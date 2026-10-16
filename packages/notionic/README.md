@@ -89,9 +89,55 @@ Paragraph, headings 1–4 (including toggleable headings), bulleted, numbered an
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 
-Code renders as plain text. Syntax highlighting with shadcn/ui's Code Block is coming through the shadcn registry.
+Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below.
 
 Unsupported blocks render nothing, with a warning in development.
+
+## shadcn/ui components
+
+notionic's shadcn registry has versions of some blocks built on your own shadcn/ui components. The shadcn CLI copies them into your project, with the shadcn components they use, so you can edit them.
+
+| Item | Built on |
+| --- | --- |
+| `notion-code` | Code Block, highlighted on the server with Shiki, with a copy button |
+| `notion-callout` | Alert |
+| `notion-table` | Table |
+| `notion-toggle` | Collapsible |
+
+Add the registry to your `components.json`:
+
+```json
+{
+  "registries": {
+    "@notionic": "https://notionic.dev/r/{name}.json"
+  }
+}
+```
+
+Then add the items you want, and pass them to `components`:
+
+```bash
+npx shadcn@latest add @notionic/notion-code @notionic/notion-callout @notionic/notion-table @notionic/notion-toggle
+```
+
+```tsx
+import { NotionCallout } from "@/components/notion-callout";
+import { NotionCode } from "@/components/notion-code";
+import { NotionTable } from "@/components/notion-table";
+import { NotionToggle } from "@/components/notion-toggle";
+
+<NotionRenderer
+  blocks={blocks}
+  components={{
+    code: NotionCode,
+    callout: NotionCallout,
+    table: NotionTable,
+    toggle: NotionToggle,
+  }}
+/>;
+```
+
+`notion-code` highlights the languages listed in `lib/highlighter.tsx`, which comes with shadcn's Code Block. Add a language there to highlight it; others render as plain text.
 
 ## Uploaded files
 
