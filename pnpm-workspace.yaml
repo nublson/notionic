@@ -1,0 +1,22 @@
+packages:
+  - apps/*
+  - packages/*
+minimumReleaseAgeExclude:
+  - '@notionhq/client@5.27.1'
+  - '@turbo/darwin-64@2.11.9'
+  - '@turbo/darwin-arm64@2.11.9'
+  - '@turbo/linux-64@2.11.9'
+  - '@turbo/linux-arm64@2.11.9'
+  - '@turbo/windows-64@2.11.9'
+  - '@turbo/windows-arm64@2.11.9'
+  - turbo@2.11.9
+  - '@next/env@16.4.2'
+  - '@next/swc-darwin-arm64@16.4.2'
+  - '@next/swc-darwin-x64@16.4.2'
+  - '@next/swc-linux-arm64-gnu@16.4.2'
+  - '@next/swc-linux-arm64-musl@16.4.2'
+  - '@next/swc-linux-x64-gnu@16.4.2'
+  - '@next/swc-linux-x64-musl@16.4.2'
+  - '@next/swc-win32-arm64-msvc@16.4.2'
+  - '@next/swc-win32-x64-msvc@16.4.2'
+  - next@16.4.2

@@ -5,3 +5,7 @@ dist/
 *.tgz
 .env
 .env.*
+.turbo/
+.next/
+next-env.d.ts
+*.tsbuildinfo
