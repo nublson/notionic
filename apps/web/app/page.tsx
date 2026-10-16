@@ -1,7 +1,19 @@
 import { Client } from "@notionhq/client";
 import { NotionRenderer, type NotionBlock } from "notionic";
 import { fetchBlocks } from "notionic/fetch";
+import { NotionCallout } from "@/registry/notionic/notion-callout";
+import { NotionCode } from "@/registry/notionic/notion-code";
+import { NotionTable } from "@/registry/notionic/notion-table";
+import { NotionToggle } from "@/registry/notionic/notion-toggle";
 import { sampleBlocks } from "./sample-blocks";
+
+// The shadcn/ui versions from notionic's registry.
+const components = {
+  code: NotionCode,
+  callout: NotionCallout,
+  table: NotionTable,
+  toggle: NotionToggle,
+};
 
 // Rendered on each request, so a Notion page shows its latest content.
 export const dynamic = "force-dynamic";
@@ -21,7 +33,7 @@ export default async function Home() {
     <main className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="text-4xl font-bold tracking-tight">notionic</h1>
       <p className="mt-2 text-muted-foreground">Rendering {source}.</p>
-      <NotionRenderer blocks={blocks} className="mt-10" />
+      <NotionRenderer blocks={blocks} components={components} className="mt-10" />
     </main>
   );
 }

@@ -77,7 +77,7 @@ export const sampleBlocks: NotionBlock[] = [
   block(
     "callout",
     {
-      rich_text: [text("Components use shadcn/ui tokens, so they follow your theme.")],
+      rich_text: [text("Code, callouts, tables and toggles here come from notionic's shadcn registry.")],
       icon: { type: "emoji", emoji: "💡" },
       color: "default",
     },
@@ -94,12 +94,14 @@ export const sampleBlocks: NotionBlock[] = [
   block("heading_2", { rich_text: [text("More blocks")], color: "default", is_toggleable: false }),
   block("quote", { rich_text: [text("Use Notion as your CMS.")], color: "default" }),
   block("toggle", { rich_text: [text("A toggle")], color: "default" }, [
-    p(text("Hidden until opened, with no JavaScript.")),
+    p(text("Stays in the HTML while closed, so search engines see it.")),
   ]),
   block("table", { has_column_header: true, has_row_header: false, table_width: 2 }, [
-    row("Block", "Rendered as"),
-    row("toggle", "<details>"),
-    row("to_do", "disabled checkbox"),
+    row("Notion block", "shadcn/ui component"),
+    row("code", "Code Block"),
+    row("callout", "Alert"),
+    row("table", "Table"),
+    row("toggle", "Collapsible"),
   ]),
   block("column_list", {}, [
     block("column", {}, [p(text("Left column"))]),
