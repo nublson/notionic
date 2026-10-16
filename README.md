@@ -31,8 +31,22 @@ pnpm build
    ```bash
    git switch develop && git pull && git switch -c my-feature
    ```
-2. Open a pull request into `develop`. Once CI passes, squash-merge it. The branch is deleted, and dev.notionic.dev updates.
+2. Open a pull request into `develop`, titled as a [conventional commit](https://www.conventionalcommits.org): `fix: …`, `feat: …`, or `feat!: …` for a breaking change. Once CI passes, squash-merge it. The title becomes the commit, the branch is deleted, and dev.notionic.dev updates.
 3. Test on dev.notionic.dev.
-4. To release, open a pull request from `develop` into `main` and merge it with a merge commit, so the two branches don't diverge. notionic.dev updates.
+4. Release: run the **Release** workflow from the Actions tab.
 
-`main` and `develop` only change through pull requests that pass CI.
+`main` and `develop` only change through pull requests that pass CI, and the workflows below.
+
+### Versions: [`auto-bump-version.yml`](.github/workflows/auto-bump-version.yml)
+
+When a push to `develop` changes `packages/notionic/src` (not its tests), the package's version is bumped in a commit by github-actions: `feat!:` is a major bump (minor before 1.0), `feat:` is minor, anything else is a patch. A version you changed yourself in the push is kept.
+
+### Release: [`release.yml`](.github/workflows/release.yml)
+
+Run by hand. It:
+
+1. Merges `develop` into `main` with a merge commit.
+2. Builds, typechecks and tests `main`, then sets the `release/build-validation` status, which Vercel waits for before deploying notionic.dev.
+3. Publishes `notionic` to npm with provenance if its version isn't published yet, then tags it (`v0.1.0`) and creates a GitHub release with generated notes.
+
+npm publishing uses [trusted publishing](https://docs.npmjs.com/trusted-publishers): there's no npm token, npm trusts `release.yml` in this repository.

@@ -1,0 +1,158 @@
+name: Release
+
+# Ships develop to production, the same way as nublson/purl's release.yml:
+#   1. Merges develop into main.
+#   2. Builds, typechecks and tests main, and publishes the
+#      `release/build-validation` status that gates Vercel's production deploy
+#      of notionic.dev.
+#   3. Publishes packages/notionic to npm if its version isn't published yet
+#      (auto-bump-version.yml raises it on develop), then tags it and creates a
+#      GitHub release.
+#
+# npm auth is keyless: npm's trusted publishing via GitHub OIDC, configured on
+# npmjs.com for nublson/notionic and this workflow file. No token secret.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  merge-develop:
+    name: Merge develop into main
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch latest changes
+        run: |
+          git fetch origin main
+          git fetch origin develop
+
+      - name: Checkout main branch
+        run: git checkout main
+
+      - name: Merge develop into main
+        run: git merge origin/develop --no-ff --no-edit
+        env:
+          GIT_MERGE_AUTOEDIT: no
+
+      - name: Push merge to main
+        run: git push origin main
+
+  validate-build:
+    name: Build Validation
+    runs-on: ubuntu-latest
+    needs: merge-develop
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build, typecheck and test
+        run: pnpm turbo run build typecheck test
+
+      - name: Publish deploy gate status for Vercel
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHA=$(git rev-parse HEAD)
+          if [ "${{ job.status }}" = "success" ]; then
+            STATE=success
+          else
+            STATE=failure
+          fi
+          gh api --method POST "repos/${{ github.repository }}/statuses/${SHA}" \
+            -f "state=${STATE}" \
+            -f context="release/build-validation" \
+            -f description="Release workflow Build Validation"
+
+  publish-npm:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: validate-build
+    permissions:
+      contents: write # tag and GitHub release
+      id-token: write # npm trusted publishing (OIDC) and provenance
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Check whether this version is published
+        id: check
+        working-directory: packages/notionic
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          if npm view "notionic@${VERSION}" version > /dev/null 2>&1; then
+            echo "::notice::notionic ${VERSION} is already on npm. Changes to packages/notionic on develop bump it."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter notionic build
+
+      - name: Publish
+        if: steps.check.outputs.skip == 'false'
+        working-directory: packages/notionic
+        run: npm publish --provenance --access public
+
+      - name: Tag and create the GitHub release
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ steps.check.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" --title "notionic $TAG" --generate-notes
