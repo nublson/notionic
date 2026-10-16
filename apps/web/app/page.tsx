@@ -1,0 +1,27 @@
+import { Client } from "@notionhq/client";
+import { NotionRenderer, type NotionBlock } from "notionic";
+import { fetchBlocks } from "notionic/fetch";
+import { sampleBlocks } from "./sample-blocks";
+
+// Rendered on each request, so a Notion page shows its latest content.
+export const dynamic = "force-dynamic";
+
+/** The page in NOTION_PAGE_ID when NOTION_TOKEN is set, otherwise sample blocks. */
+async function getBlocks(): Promise<{ blocks: NotionBlock[]; source: string }> {
+  const token = process.env.NOTION_TOKEN;
+  const pageId = process.env.NOTION_PAGE_ID;
+  if (!token || !pageId) return { blocks: sampleBlocks, source: "sample blocks" };
+  const blocks = await fetchBlocks(new Client({ auth: token }), pageId);
+  return { blocks, source: `Notion page ${pageId}` };
+}
+
+export default async function Home() {
+  const { blocks, source } = await getBlocks();
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-16">
+      <h1 className="text-4xl font-bold tracking-tight">notionic</h1>
+      <p className="mt-2 text-muted-foreground">Rendering {source}.</p>
+      <NotionRenderer blocks={blocks} className="mt-10" />
+    </main>
+  );
+}

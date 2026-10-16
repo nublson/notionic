@@ -1,15 +1,15 @@
 {
-  "name": "notionic",
-  "version": "0.0.1",
-  "description": "React library for rendering Notion blocks. Placeholder release, real package coming soon.",
-  "main": "index.js",
-  "license": "MIT",
-  "author": "Nubelson",
-  "homepage": "https://notionic.dev",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nublson/notionic.git"
+  "name": "notionic-monorepo",
+  "private": true,
+  "packageManager": "pnpm@12.4.2",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
   },
-  "keywords": ["notion", "react", "cms", "blocks", "renderer"],
-  "files": ["index.js", "README.md", "LICENSE"]
+  "devDependencies": {
+    "turbo": "^2.11.9",
+    "typescript": "^7.0.2"
+  }
 }
