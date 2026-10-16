@@ -1,4 +1,5 @@
 import { Client } from "@notionhq/client";
+import Link from "next/link";
 import { NotionRenderer, type NotionBlock } from "notionic";
 import { fetchBlocks } from "notionic/fetch";
 import { NotionCallout } from "@/registry/notionic/notion-callout";
@@ -32,7 +33,12 @@ export default async function Home() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="text-4xl font-bold tracking-tight">notionic</h1>
-      <p className="mt-2 text-muted-foreground">Rendering {source}.</p>
+      <p className="mt-2 text-muted-foreground">
+        Rendering {source}.{" "}
+        <Link href="/changelog" className="underline underline-offset-4 hover:text-foreground">
+          Changelog
+        </Link>
+      </p>
       <NotionRenderer blocks={blocks} components={components} className="mt-10" />
     </main>
   );
