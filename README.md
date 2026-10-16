@@ -18,3 +18,21 @@ pnpm test
 pnpm typecheck
 pnpm build
 ```
+
+## Workflow
+
+| Branch | Deploys to |
+| --- | --- |
+| `main` | Production, https://notionic.dev |
+| `develop` | Preview, https://dev.notionic.dev |
+| feature branches | A Vercel preview URL per pull request |
+
+1. Branch from `develop`:
+   ```bash
+   git switch develop && git pull && git switch -c my-feature
+   ```
+2. Open a pull request into `develop`. Once CI passes, squash-merge it. The branch is deleted, and dev.notionic.dev updates.
+3. Test on dev.notionic.dev.
+4. To release, open a pull request from `develop` into `main` and merge it with a merge commit, so the two branches don't diverge. notionic.dev updates.
+
+`main` and `develop` only change through pull requests that pass CI.
