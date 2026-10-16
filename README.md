@@ -37,16 +37,27 @@ pnpm build
 
 `main` and `develop` only change through pull requests that pass CI, and the workflows below.
 
-### Versions: [`auto-bump-version.yml`](.github/workflows/auto-bump-version.yml)
+### Changelog: [`auto-changeset.yml`](.github/workflows/auto-changeset.yml)
 
-When a push to `develop` changes `packages/notionic/src` (not its tests), the package's version is bumped in a commit by the repository's GitHub App (it can push to `develop` and `main` past the rules): `feat!:` is a major bump (minor before 1.0), `feat:` is minor, anything else is a patch. A version you changed yourself in the push is kept.
+Each pull request that changes `packages/notionic/src` (not its tests) gets a [changeset](.changeset/README.md) when it lands on `develop`, written by the repository's GitHub App from the PR title:
+
+| PR title | Bump | Changelog line |
+| --- | --- | --- |
+| `fix: handle empty captions` | patch | Handle empty captions |
+| `feat(renderer): render tab blocks` | minor | Render tab blocks |
+| `feat!: rename pageHref` | major (minor before 1.0) | Rename pageHref |
+
+Each line links to its PR and commit and credits its author. To write the entry yourself, run `pnpm changeset` in the pull request; the workflow then keeps yours.
 
 ### Release: [`release.yml`](.github/workflows/release.yml)
 
 Run by hand. It:
 
-1. Merges `develop` into `main` with a merge commit.
-2. Builds, typechecks and tests `main`, then sets the `release/build-validation` status, which Vercel waits for before deploying notionic.dev.
-3. Publishes `notionic` to npm with provenance if its version isn't published yet, then tags it (`v0.1.0`) and creates a GitHub release with generated notes.
+1. Runs `changeset version` on `develop`, which turns the pending changesets into the new version and a [CHANGELOG.md](packages/notionic/CHANGELOG.md) entry, and commits them.
+2. Merges `develop` into `main` with a merge commit.
+3. Builds, typechecks and tests `main`, then sets the `release/build-validation` status, which Vercel waits for before deploying notionic.dev.
+4. Publishes `notionic` to npm with provenance if its version isn't published yet, then tags it (`v0.1.0`) and creates a GitHub release whose notes are the changelog entry.
+
+With no pending changesets, a release only ships the site.
 
 npm publishing uses [trusted publishing](https://docs.npmjs.com/trusted-publishers): there's no npm token, npm trusts `release.yml` in this repository.
