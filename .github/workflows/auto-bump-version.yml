@@ -1,0 +1,123 @@
+name: Auto Bump Version
+
+# Bumps packages/notionic's version whenever a change to the package lands on
+# develop, so the next release has a new version to publish. Same pattern as
+# nublson/purl's auto-bump-versions.yml.
+#
+# The bump size comes from the conventional-commit subjects of the pushed
+# commits that touch the package (feature PRs are squash-merged, so each
+# subject is the PR's title): any `type!:` → major, any `feat:` → minor, else
+# patch. Before 1.0, breaking changes bump the minor version instead. A version
+# already changed in the push (a manual bump) is left alone.
+#
+# It pushes as the repository's GitHub App (see release.yml), which the develop
+# ruleset lets bypass its pull request rule.
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  auto-bump:
+    name: 📦 Bump version
+    runs-on: ubuntu-latest
+    # Skip the bump commit itself: the app's pushes trigger workflows, so this
+    # would otherwise loop.
+    if: "!startsWith(github.event.head_commit.message, 'chore: bump notionic to v')"
+    permissions:
+      contents: read
+    steps:
+      - name: Get a token for the GitHub App
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Bump the package version
+        id: bump
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          FILE: packages/notionic/package.json
+        run: |
+          # `before` is all-zeros on a branch's first push: nothing to diff against.
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            exit 0
+          fi
+
+          # What ships in the package: its source and stylesheet, not its tests.
+          PATHS=(
+            'packages/notionic/src/'
+            ':(exclude)packages/notionic/src/*.test.ts'
+            ':(exclude)packages/notionic/src/*.test.tsx'
+            ':(exclude)packages/notionic/src/test-utils.ts'
+          )
+
+          # If $BEFORE is unreachable (history rewritten), git fails safe to
+          # "nothing changed".
+          CHANGED=$( (git diff --name-only "$BEFORE" "$AFTER" -- "${PATHS[@]}" 2>/dev/null || true) | head -1 )
+          if [ -z "$CHANGED" ]; then
+            echo "notionic: no changes."
+            exit 0
+          fi
+
+          OLD=$(git show "${BEFORE}:${FILE}" 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+          NEW=$(jq -r .version "$FILE")
+          if [ -n "$OLD" ] && [ "$OLD" != "$NEW" ]; then
+            echo "notionic: already bumped to $NEW in this push."
+            exit 0
+          fi
+
+          SUBJECTS=$(git log --no-merges --format=%s "$BEFORE..$AFTER" -- "${PATHS[@]}" 2>/dev/null || true)
+          if printf '%s\n' "$SUBJECTS" | grep -qE '^[a-z]+(\([^)]*\))?!:'; then
+            LEVEL="major"
+          elif printf '%s\n' "$SUBJECTS" | grep -qE '^feat(\([^)]*\))?:'; then
+            LEVEL="minor"
+          else
+            LEVEL="patch"
+          fi
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$NEW"
+          # Before 1.0, a breaking change is a minor bump (0.1.0 → 0.2.0).
+          if [ "$LEVEL" = "major" ] && [ "$MAJOR" = "0" ]; then
+            LEVEL="minor"
+          fi
+          case "$LEVEL" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          VERSION="${MAJOR}.${MINOR}.${PATCH}"
+
+          # Rewrite only the first "version" line, keeping the file's formatting.
+          awk -v v="$VERSION" '!done && /"version": *"[^"]*"/ {
+            sub(/"version": *"[^"]*"/, "\"version\": \"" v "\""); done = 1
+          } { print }' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
+          if [ "$(jq -r .version "$FILE")" != "$VERSION" ]; then
+            echo "::error::Could not set $FILE's version to $VERSION."
+            exit 1
+          fi
+          git add "$FILE"
+          echo "notionic: $NEW -> $VERSION ($LEVEL)"
+          echo "message=chore: bump notionic to v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push version bump
+        if: steps.bump.outputs.message != ''
+        env:
+          MESSAGE: ${{ steps.bump.outputs.message }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BOT: ${{ steps.app-token.outputs.app-slug }}[bot]
+        run: |
+          git config user.name "$BOT"
+          git config user.email "$(gh api "/users/${BOT}" --jq .id)+${BOT}@users.noreply.github.com"
+          git commit -m "$MESSAGE"
+          git push origin develop
