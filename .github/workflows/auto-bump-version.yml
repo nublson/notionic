@@ -9,6 +9,9 @@ name: Auto Bump Version
 # subject is the PR's title): any `type!:` → major, any `feat:` → minor, else
 # patch. Before 1.0, breaking changes bump the minor version instead. A version
 # already changed in the push (a manual bump) is left alone.
+#
+# It pushes as the repository's GitHub App (see release.yml), which the develop
+# ruleset lets bypass its pull request rule.
 
 on:
   push:
@@ -19,16 +22,25 @@ jobs:
   auto-bump:
     name: 📦 Bump version
     runs-on: ubuntu-latest
-    # Skip if this push was made by the bot itself (prevents a commit loop).
-    if: github.actor != 'github-actions[bot]'
+    # Skip the bump commit itself: the app's pushes trigger workflows, so this
+    # would otherwise loop.
+    if: "!startsWith(github.event.head_commit.message, 'chore: bump notionic to v')"
     permissions:
-      contents: write
+      contents: read
     steps:
+      - name: Get a token for the GitHub App
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Bump the package version
         id: bump
@@ -102,8 +114,10 @@ jobs:
         if: steps.bump.outputs.message != ''
         env:
           MESSAGE: ${{ steps.bump.outputs.message }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BOT: ${{ steps.app-token.outputs.app-slug }}[bot]
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "$BOT"
+          git config user.email "$(gh api "/users/${BOT}" --jq .id)+${BOT}@users.noreply.github.com"
           git commit -m "$MESSAGE"
           git push origin develop

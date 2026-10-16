@@ -39,7 +39,7 @@ pnpm build
 
 ### Versions: [`auto-bump-version.yml`](.github/workflows/auto-bump-version.yml)
 
-When a push to `develop` changes `packages/notionic/src` (not its tests), the package's version is bumped in a commit by github-actions: `feat!:` is a major bump (minor before 1.0), `feat:` is minor, anything else is a patch. A version you changed yourself in the push is kept.
+When a push to `develop` changes `packages/notionic/src` (not its tests), the package's version is bumped in a commit by the repository's GitHub App (it can push to `develop` and `main` past the rules): `feat!:` is a major bump (minor before 1.0), `feat:` is minor, anything else is a patch. A version you changed yourself in the push is kept.
 
 ### Release: [`release.yml`](.github/workflows/release.yml)
 

@@ -9,6 +9,10 @@ name: Release
 #      (auto-bump-version.yml raises it on develop), then tags it and creates a
 #      GitHub release.
 #
+# The merge is pushed as the repository's GitHub App, which the main ruleset
+# lets bypass its pull request rule: repository variable RELEASE_APP_CLIENT_ID
+# and secret RELEASE_APP_PRIVATE_KEY (the app needs Contents: read and write).
+#
 # npm auth is keyless: npm's trusted publishing via GitHub OIDC, configured on
 # npmjs.com for nublson/notionic and this workflow file. No token secret.
 
@@ -24,18 +28,29 @@ jobs:
     name: Merge develop into main
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
+      - name: Get a token for the GitHub App
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Checkout code
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Configure Git
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BOT: ${{ steps.app-token.outputs.app-slug }}[bot]
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "$BOT"
+          git config user.email "$(gh api "/users/${BOT}" --jq .id)+${BOT}@users.noreply.github.com"
 
       - name: Fetch latest changes
         run: |
