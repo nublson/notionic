@@ -1,0 +1,15 @@
+{
+  "name": "notionic",
+  "version": "0.0.1",
+  "description": "React library for rendering Notion blocks. Placeholder release, real package coming soon.",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "Nubelson",
+  "homepage": "https://notionic.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nublson/notionic.git"
+  },
+  "keywords": ["notion", "react", "cms", "blocks", "renderer"],
+  "files": ["index.js", "README.md", "LICENSE"]
+}
