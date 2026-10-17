@@ -5,8 +5,12 @@
  *   @import "notionic/styles.css";
  *
  * Components use shadcn/ui's theme tokens (foreground, muted, border…), so
- * they follow your theme. Override any --notionic-* variable to change
- * Notion's colors.
+ * they follow your theme.
+ *
+ * Notion's nine colors are the --notionic-* variables below. Override the text
+ * colors to match your brand, e.g. `--notionic-red: var(--destructive);`. Each
+ * background color (--notionic-*-bg) is mixed from its text color and your
+ * --background, so it follows both, in light and dark mode.
  */
 
 /* Scan notionic's components for the classes they use. */
@@ -22,16 +26,6 @@
   --notionic-purple: oklch(49.6% 0.265 301.924);
   --notionic-pink: oklch(52.5% 0.223 3.958);
   --notionic-red: oklch(50.5% 0.213 27.518);
-
-  --notionic-gray-bg: oklch(96.7% 0.003 264.542);
-  --notionic-brown-bg: oklch(96.2% 0.059 95.617);
-  --notionic-orange-bg: oklch(95.4% 0.038 75.164);
-  --notionic-yellow-bg: oklch(97.3% 0.071 103.193);
-  --notionic-green-bg: oklch(96.2% 0.044 156.743);
-  --notionic-blue-bg: oklch(93.2% 0.032 255.585);
-  --notionic-purple-bg: oklch(94.6% 0.033 307.174);
-  --notionic-pink-bg: oklch(94.8% 0.028 342.258);
-  --notionic-red-bg: oklch(93.6% 0.032 17.717);
 }
 
 .dark {
@@ -44,14 +38,27 @@
   --notionic-purple: oklch(71.4% 0.203 305.504);
   --notionic-pink: oklch(71.8% 0.202 349.761);
   --notionic-red: oklch(70.4% 0.191 22.216);
+}
 
-  --notionic-gray-bg: oklch(27.8% 0.033 256.848);
-  --notionic-brown-bg: oklch(41.4% 0.112 45.904 / 60%);
-  --notionic-orange-bg: oklch(40.8% 0.123 38.172 / 60%);
-  --notionic-yellow-bg: oklch(42.1% 0.095 57.708 / 60%);
-  --notionic-green-bg: oklch(39.3% 0.095 152.535 / 60%);
-  --notionic-blue-bg: oklch(37.9% 0.146 265.522 / 60%);
-  --notionic-purple-bg: oklch(38.1% 0.176 304.987 / 60%);
-  --notionic-pink-bg: oklch(40.8% 0.153 2.432 / 60%);
-  --notionic-red-bg: oklch(39.6% 0.141 25.723 / 60%);
+/*
+ * Repeated under .dark so the mix is recomputed wherever the text colors
+ * change, not only on :root. Override --notionic-bg-mix to make backgrounds
+ * stronger or subtler, or any --notionic-*-bg to set one directly.
+ */
+:root,
+.dark {
+  --notionic-bg-mix: 14%;
+  --notionic-gray-bg: color-mix(in oklch, var(--notionic-gray) var(--notionic-bg-mix), var(--background, white));
+  --notionic-brown-bg: color-mix(in oklch, var(--notionic-brown) var(--notionic-bg-mix), var(--background, white));
+  --notionic-orange-bg: color-mix(in oklch, var(--notionic-orange) var(--notionic-bg-mix), var(--background, white));
+  --notionic-yellow-bg: color-mix(in oklch, var(--notionic-yellow) var(--notionic-bg-mix), var(--background, white));
+  --notionic-green-bg: color-mix(in oklch, var(--notionic-green) var(--notionic-bg-mix), var(--background, white));
+  --notionic-blue-bg: color-mix(in oklch, var(--notionic-blue) var(--notionic-bg-mix), var(--background, white));
+  --notionic-purple-bg: color-mix(in oklch, var(--notionic-purple) var(--notionic-bg-mix), var(--background, white));
+  --notionic-pink-bg: color-mix(in oklch, var(--notionic-pink) var(--notionic-bg-mix), var(--background, white));
+  --notionic-red-bg: color-mix(in oklch, var(--notionic-red) var(--notionic-bg-mix), var(--background, white));
+}
+
+.dark {
+  --notionic-bg-mix: 22%;
 }
