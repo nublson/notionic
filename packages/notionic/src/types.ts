@@ -12,13 +12,25 @@ export type PageIcon = PageObjectResponse["icon"];
 /** The page a `link_to_page` block points to, attached by `fetchBlocks`. */
 export type LinkedPage = { id: string; title: string; icon: PageIcon };
 
+/** What a bookmarked page says about itself, attached by `fetchBlocks`. */
+export type BookmarkPreview = {
+  title: string;
+  description?: string;
+  /** The page's Open Graph image. */
+  image?: string;
+  favicon?: string;
+  siteName?: string;
+};
+
 /**
- * A block from the Notion API, with its nested blocks attached as `children`
- * and, for `link_to_page`, the linked page as `linkedPage`.
+ * A block from the Notion API, with its nested blocks attached as `children`,
+ * for `link_to_page` the linked page as `linkedPage`, and for `bookmark` the
+ * bookmarked page's preview as `bookmarkPreview`.
  */
 export type NotionBlock = BlockObjectResponse & {
   children?: NotionBlock[];
   linkedPage?: LinkedPage;
+  bookmarkPreview?: BookmarkPreview;
 };
 
 /** A Notion page's metadata, from `fetchPage`. */

@@ -19,6 +19,7 @@ export type {
   ResolvedLink,
   InlineEquationProps,
   LinkedPage,
+  BookmarkPreview,
   NotionPage,
   PageIcon,
 } from "./types";

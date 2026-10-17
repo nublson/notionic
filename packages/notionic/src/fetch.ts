@@ -5,6 +5,7 @@ import type {
   ListBlockChildrenResponse,
   PageObjectResponse,
 } from "@notionhq/client";
+import { fetchBookmarkPreview } from "./bookmark-preview";
 import { toLinkedPage, toNotionPage } from "./page";
 import type { NotionBlock, NotionPage } from "./types";
 
@@ -32,6 +33,12 @@ export type FetchBlocksOptions = {
    * rate limit per second.
    */
   concurrency?: number;
+  /**
+   * Fetch each bookmarked page to read its title, description and image for
+   * the bookmark card. Default true. A page that's slow, unreachable or has
+   * no title renders as a plain link.
+   */
+  bookmarkPreviews?: boolean;
 };
 
 type Result = ListBlockChildrenResponse["results"][number];
@@ -100,13 +107,17 @@ export async function fetchBlocks(
   blockId: string,
   options: FetchBlocksOptions = {},
 ): Promise<NotionBlock[]> {
-  const { maxDepth = 5, concurrency = 3 } = options;
+  const { maxDepth = 5, concurrency = 3, bookmarkPreviews = true } = options;
   const blocks = await listChildren(client, blockId);
 
   return mapPool(blocks, concurrency, async (block) => {
     if (block.type === "link_to_page" && block.link_to_page.type === "page_id") {
       const page = await retrievePage(client, block.link_to_page.page_id);
       return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
+    }
+    if (block.type === "bookmark" && bookmarkPreviews) {
+      const preview = await fetchBookmarkPreview(block.bookmark.url);
+      return preview ? { ...block, bookmarkPreview: preview } : block;
     }
     if (
       !block.has_children ||
@@ -121,6 +132,7 @@ export async function fetchBlocks(
       children: await fetchBlocks(client, block.id, {
         maxDepth: maxDepth - 1,
         concurrency,
+        bookmarkPreviews,
       }),
     };
   });

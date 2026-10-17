@@ -59,6 +59,21 @@ describe("blocksToMarkdown", () => {
     expect(md).toBe("````\na ``` b\n````");
   });
 
+  it("labels bookmarks by caption, then preview title, then URL", () => {
+    const url = "https://example.com/post";
+    const preview = { title: "A post" };
+    expect(
+      blocksToMarkdown([
+        {
+          ...block("bookmark", { url, caption: [richText("Read this")] }),
+          bookmarkPreview: preview,
+        },
+        { ...block("bookmark", { url, caption: [] }), bookmarkPreview: preview },
+        block("bookmark", { url, caption: [] }),
+      ] as NotionBlock[]),
+    ).toBe(`[Read this](${url})\n\n[A post](${url})\n\n[${url}](${url})`);
+  });
+
   it("passes uploaded files through transformFileUrl", () => {
     const md = blocksToMarkdown(
       [

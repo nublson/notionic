@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { fetchBlocks, fetchPage, type NotionClientLike } from "./fetch";
 import { block } from "./test-utils";
 import type { NotionBlock } from "./types";
@@ -116,6 +116,44 @@ describe("linked pages", () => {
       icon: { type: "emoji", emoji: "📘" },
     });
     expect(b!.linkedPage).toBeUndefined();
+  });
+
+  describe("bookmarks", () => {
+    afterEach(() => vi.unstubAllGlobals());
+    const bookmark = (id: string, url: string) => block("bookmark", { url, caption: [] }, { id });
+
+    it("attaches each bookmarked page's preview, and skips pages without one", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (url: URL) =>
+          url.pathname === "/post"
+            ? new Response('<head><meta property="og:title" content="A post"></head>', {
+                headers: { "content-type": "text/html" },
+              })
+            : new Response("", { status: 404 }),
+        ),
+      );
+      const { client } = fakeClient({
+        root: [
+          [bookmark("a", "https://example.com/post"), bookmark("b", "https://example.com/gone")],
+        ],
+      });
+      const [a, b] = await fetchBlocks(client, "root");
+      expect(a!.bookmarkPreview).toMatchObject({ title: "A post" });
+      expect(b!.bookmarkPreview).toBeUndefined();
+    });
+
+    it("makes no requests outside Notion with bookmarkPreviews: false", async () => {
+      const fetch = vi.fn();
+      vi.stubGlobal("fetch", fetch);
+      const { client } = fakeClient({
+        root: [[withChildren("toggle", "t")]],
+        t: [[bookmark("a", "https://example.com/post")]],
+      });
+      const [toggle] = await fetchBlocks(client, "root", { bookmarkPreviews: false });
+      expect(toggle!.children?.[0]?.bookmarkPreview).toBeUndefined();
+      expect(fetch).not.toHaveBeenCalled();
+    });
   });
 
   it("fetchPage returns the page's metadata with its blocks", async () => {
