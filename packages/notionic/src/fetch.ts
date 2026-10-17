@@ -1,18 +1,26 @@
 import type {
+  GetPageParameters,
+  GetPageResponse,
   ListBlockChildrenParameters,
   ListBlockChildrenResponse,
+  PageObjectResponse,
 } from "@notionhq/client";
-import type { NotionBlock } from "./types";
+import { toLinkedPage, toNotionPage } from "./page";
+import type { NotionBlock, NotionPage } from "./types";
 
 /**
- * The part of the Notion client `fetchBlocks` uses. A `Client` from
- * `@notionhq/client` satisfies it.
+ * The part of the Notion client notionic uses. A `Client` from
+ * `@notionhq/client` satisfies it. Without `pages`, `link_to_page` blocks
+ * get no titles.
  */
 export type NotionClientLike = {
   blocks: {
     children: {
       list(args: ListBlockChildrenParameters): Promise<ListBlockChildrenResponse>;
     };
+  };
+  pages?: {
+    retrieve(args: GetPageParameters): Promise<GetPageResponse>;
   };
 };
 
@@ -47,6 +55,20 @@ async function listChildren(
     cursor = page.has_more ? (page.next_cursor ?? undefined) : undefined;
   } while (cursor);
   return blocks;
+}
+
+/** A full page, or null when the integration can't read it. */
+async function retrievePage(
+  client: NotionClientLike,
+  pageId: string,
+): Promise<PageObjectResponse | null> {
+  if (!client.pages) return null;
+  try {
+    const page = await client.pages.retrieve({ page_id: pageId });
+    return "properties" in page ? page : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Maps items with at most `limit` mapper calls in flight. */
@@ -84,6 +106,10 @@ export async function fetchBlocks(
   const blocks = await listChildren(client, blockId);
 
   return mapPool(blocks, concurrency, async (block) => {
+    if (block.type === "link_to_page" && block.link_to_page.type === "page_id") {
+      const page = await retrievePage(client, block.link_to_page.page_id);
+      return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
+    }
     if (
       !block.has_children ||
       maxDepth <= 0 ||
@@ -100,4 +126,23 @@ export async function fetchBlocks(
       }),
     };
   });
+}
+
+/**
+ * A page's metadata (title, icon, cover, properties…) and every block of it.
+ * Throws if the page doesn't exist or isn't shared with the integration.
+ */
+export async function fetchPage(
+  client: NotionClientLike & { pages: NonNullable<NotionClientLike["pages"]> },
+  pageId: string,
+  options: FetchBlocksOptions = {},
+): Promise<{ page: NotionPage; blocks: NotionBlock[] }> {
+  const [page, blocks] = await Promise.all([
+    client.pages.retrieve({ page_id: pageId }),
+    fetchBlocks(client, pageId, options),
+  ]);
+  if (!("properties" in page)) {
+    throw new Error(`notionic: page ${pageId} returned without its properties`);
+  }
+  return { page: toNotionPage(page), blocks };
 }

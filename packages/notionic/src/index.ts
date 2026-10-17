@@ -6,6 +6,7 @@ export type { PageHeading } from "./headings";
 export { resolveLink, resolvePageLink, defaultPageHref, normalizePageId } from "./links";
 export { colorClass, blockColorClass } from "./colors";
 export { plainText } from "./utils";
+export { pageTitle } from "./page";
 export type {
   NotionBlock,
   NotionBlockType,
@@ -15,5 +16,8 @@ export type {
   RenderContext,
   ResolvedLink,
   InlineEquationProps,
+  LinkedPage,
+  NotionPage,
+  PageIcon,
 } from "./types";
 export type { RichText as NotionRichText } from "./types";

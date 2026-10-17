@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fetchBlocks, type NotionClientLike } from "./fetch";
+import { fetchBlocks, fetchPage, type NotionClientLike } from "./fetch";
 import { block } from "./test-utils";
 import type { NotionBlock } from "./types";
 
@@ -82,5 +82,45 @@ describe("fetchBlocks", () => {
     });
     await fetchBlocks(client, "page", { concurrency: 2 });
     expect(maxInFlight()).toBe(2);
+  });
+});
+
+describe("linked pages", () => {
+  const page = (id: string, title: string) => ({
+    object: "page",
+    id,
+    url: `https://www.notion.so/${id}`,
+    last_edited_time: "2026-10-17T00:00:00.000Z",
+    icon: { type: "emoji", emoji: "📘" },
+    cover: null,
+    properties: { Name: { type: "title", title: [{ plain_text: title }] } },
+  });
+  const linkTo = (id: string, pageId: string) =>
+    ({ ...block("link_to_page", { type: "page_id", page_id: pageId }, { id }) }) as NotionBlock;
+
+  it("attaches the linked page's title and icon, and skips pages it can't read", async () => {
+    const { client } = fakeClient({ root: [[linkTo("a", "p1"), linkTo("b", "secret")]] });
+    const withPages = {
+      ...client,
+      pages: {
+        async retrieve({ page_id }: { page_id: string }) {
+          if (page_id === "secret") throw new Error("object_not_found");
+          return page(page_id, "Getting started") as never;
+        },
+      },
+    };
+    const [a, b] = await fetchBlocks(withPages, "root");
+    expect(a!.linkedPage).toEqual({ id: "p1", title: "Getting started", icon: { type: "emoji", emoji: "📘" } });
+    expect(b!.linkedPage).toBeUndefined();
+  });
+
+  it("fetchPage returns the page's metadata with its blocks", async () => {
+    const { client } = fakeClient({ root: [[block("paragraph", {}, { id: "p" })]] });
+    const result = await fetchPage(
+      { ...client, pages: { retrieve: async () => page("root", "Docs") as never } },
+      "root",
+    );
+    expect(result.page).toMatchObject({ id: "root", title: "Docs", lastEditedTime: "2026-10-17T00:00:00.000Z" });
+    expect(result.blocks.map((b) => b.id)).toEqual(["p"]);
   });
 });
