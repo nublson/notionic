@@ -65,7 +65,7 @@ Run by hand. It:
 1. Runs `changeset version` on `develop`, which turns the pending changesets into the new version and a [CHANGELOG.md](packages/notionic/CHANGELOG.md) entry, and commits them.
 2. Merges `develop` into `main` with a merge commit.
 3. Builds, typechecks and tests `main`, then sets the `release/build-validation` status, which Vercel waits for before deploying notionic.dev.
-4. Publishes `notionic` to npm with provenance if its version isn't published yet, then tags it (`v0.1.0`) and creates a GitHub release whose notes are the changelog entry.
+4. Tags a new version (`v0.4.0`) and creates its GitHub release, whose notes are the changelog entry. Separately, it publishes `notionic` to npm with provenance if that version isn't published yet, so a failed npm publish doesn't hold back the GitHub release.
 
 With no pending changesets, a release only ships the site.
 
