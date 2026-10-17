@@ -190,7 +190,11 @@ function block(item: NotionBlock, context: Context): string {
         context,
       );
     case "bookmark":
-      return linkLine(plainText(item.bookmark.caption), item.bookmark.url, context);
+      return linkLine(
+        plainText(item.bookmark.caption) || item.bookmarkPreview?.title || "",
+        item.bookmark.url,
+        context,
+      );
     case "embed":
       return linkLine(plainText(item.embed.caption), item.embed.url, context);
     case "link_preview":

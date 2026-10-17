@@ -1,5 +1,11 @@
 # notionic
 
+## 0.6.0
+
+### Minor Changes
+
+- [#31](https://github.com/nublson/notionic/pull/31) [`74ce1db`](https://github.com/nublson/notionic/commit/74ce1db5d931342e0b4f0525d51337d6049f1c80) Thanks [@nublson](https://github.com/nublson)! - Bookmarks render as cards with the bookmarked page's title, description, image and favicon, like in Notion. `fetchBlocks` reads them from the page's Open Graph tags and attaches them as `bookmarkPreview`; pass `bookmarkPreviews: false` to make no requests outside Notion. Bookmarks without a preview still render as links.
+
 ## 0.5.0
 
 ### Minor Changes
