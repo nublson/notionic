@@ -27,7 +27,16 @@ describe("resolveLink", () => {
   });
 
   it("drops empty and unsafe links, and protocol-relative paths", () => {
-    for (const href of [null, "", "  ", "javascript:alert(1)", "java\nscript:x", "//evil.com", "/\\evil.com", "data:text/html,x"]) {
+    for (const href of [
+      null,
+      "",
+      "  ",
+      "javascript:alert(1)",
+      "java\nscript:x",
+      "//evil.com",
+      "/\\evil.com",
+      "data:text/html,x",
+    ]) {
       expect(resolveLink(href, context())).toBeNull();
     }
   });
@@ -52,7 +61,12 @@ describe("resolveLink", () => {
   });
 
   it("checks the URL pageHref returns", () => {
-    expect(resolveLink(`/${ID}`, context(() => "javascript:x"))).toBeNull();
+    expect(
+      resolveLink(
+        `/${ID}`,
+        context(() => "javascript:x"),
+      ),
+    ).toBeNull();
     expect(resolveLink(`/${ID}`, context())).toEqual({
       href: `https://www.notion.so/${ID}`,
       external: true,

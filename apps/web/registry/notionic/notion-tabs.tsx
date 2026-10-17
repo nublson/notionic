@@ -30,6 +30,7 @@ export function NotionTabs({ block, context }: BlockProps<"tab">) {
               {icon?.type === "emoji" ? (
                 <span aria-hidden="true">{icon.emoji}</span>
               ) : iconUrl ? (
+                // biome-ignore lint/performance/noImgElement: registry blocks must work outside Next.js, and Notion icon URLs come from arbitrary hosts
                 <img src={iconUrl} alt="" className="size-4" />
               ) : null}
               {plainText(rich_text)}

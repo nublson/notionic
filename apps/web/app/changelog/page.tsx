@@ -27,7 +27,10 @@ const components: Components = {
   h2({ node, children }) {
     const id = textOf(node).trim();
     return (
-      <h2 id={id} className="mt-12 scroll-mt-16 border-b pb-2 text-2xl font-semibold tracking-tight first:mt-0">
+      <h2
+        id={id}
+        className="mt-12 scroll-mt-16 border-b pb-2 text-2xl font-semibold tracking-tight first:mt-0"
+      >
         <a href={`#${id}`} className="hover:underline">
           {children}
         </a>

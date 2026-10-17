@@ -1,11 +1,6 @@
 import "server-only";
 
-import {
-  Client,
-  collectPaginatedAPI,
-  isFullPage,
-  type PageObjectResponse,
-} from "@notionhq/client";
+import { Client, collectPaginatedAPI, isFullPage, type PageObjectResponse } from "@notionhq/client";
 import { normalizePageId, pageTitle, plainText } from "notionic";
 import { fetchPage } from "notionic/fetch";
 import { cache } from "react";

@@ -1,8 +1,7 @@
 import type { RenderContext, ResolvedLink } from "./types";
 
 const PLAIN_ID = /[0-9a-f]{32}$/i;
-const DASHED_ID =
-  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DASHED_ID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** A page id as 32 lowercase hex characters, without dashes. */
 export function normalizePageId(id: string): string {
@@ -52,6 +51,7 @@ function internalPath(path: string): ResolvedLink | null {
 /** A plain URL or path as it should render, or null when empty or unsafe. */
 function classify(href: string): ResolvedLink | null {
   // Browsers drop tabs and newlines inside URLs, so do the same before checking.
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: stripping control characters is the point
   const value = href.replace(/[\u0000-\u001f\u007f]/g, "").trim();
   if (!value) return null;
   if (value.startsWith("#")) return { href: value, external: false };
@@ -81,10 +81,7 @@ function linkedPageId(href: string): string | null {
 }
 
 /** Where a link to a Notion page renders, or null to show its text without a link. */
-export function resolvePageLink(
-  pageId: string,
-  context: RenderContext,
-): ResolvedLink | null {
+export function resolvePageLink(pageId: string, context: RenderContext): ResolvedLink | null {
   const href = context.pageHref(normalizePageId(pageId));
   return href ? classify(href) : null;
 }

@@ -22,7 +22,7 @@ function manualSecretMatches(request: NextRequest): boolean {
   if (!expected) return false;
   const bearer = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
   const given = (bearer ?? request.nextUrl.searchParams.get("secret"))?.trim();
-  return Boolean(given) && safeEqual(given!, expected);
+  return given ? safeEqual(given, expected) : false;
 }
 
 /** The token Notion sends once, when a webhook subscription is created. */

@@ -244,10 +244,16 @@ describe("NotionRenderer", () => {
 
   it("renders tabs as an exclusive accordion with the first open", async () => {
     const tab = (title: string, body: string) =>
-      block("paragraph", { rich_text: [richText(title)], color: "default", icon: null }, {
-        children: [para(richText(body))],
-      });
-    const html = await render([block("tab", {}, { children: [tab("One", "First"), tab("Two", "Second")] })]);
+      block(
+        "paragraph",
+        { rich_text: [richText(title)], color: "default", icon: null },
+        {
+          children: [para(richText(body))],
+        },
+      );
+    const html = await render([
+      block("tab", {}, { children: [tab("One", "First"), tab("Two", "Second")] }),
+    ]);
     const names = html.match(/<details name="([^"]+)"/g) ?? [];
     expect(names).toHaveLength(2);
     expect(new Set(names).size).toBe(1);
@@ -259,11 +265,18 @@ describe("NotionRenderer", () => {
     const equation = {
       type: "equation",
       equation: { expression: "x^2" },
-      annotations: { bold: true, italic: false, strikethrough: false, underline: false, code: false, color: "default" },
+      annotations: {
+        bold: true,
+        italic: false,
+        strikethrough: false,
+        underline: false,
+        code: false,
+        color: "default",
+      },
       plain_text: "x^2",
       href: null,
     } as unknown as ReturnType<typeof richText>;
-    expect(await render([para(equation)])).toContain("<strong class=\"font-semibold\"><code");
+    expect(await render([para(equation)])).toContain('<strong class="font-semibold"><code');
     const html = await render([para(equation)], {
       components: { inline_equation: ({ expression }) => <span data-math="">{expression}</span> },
     });
@@ -275,10 +288,15 @@ describe("NotionRenderer", () => {
       ...block("link_to_page", { type: "page_id", page_id: PAGE_ID }),
       linkedPage: { id: PAGE_ID, title: "Install", icon: { type: "emoji", emoji: "📦" } },
     } as NotionBlock;
-    const html = await render([link, block("link_to_page", { type: "page_id", page_id: PAGE_ID })], {
-      pageHref: (id) => `/docs/${id.slice(0, 4)}`,
-    });
-    expect(html).toMatch(/<a href="\/docs\/244b"[^>]*><span aria-hidden="true"[^>]*>📦<\/span>Install<\/a>/);
+    const html = await render(
+      [link, block("link_to_page", { type: "page_id", page_id: PAGE_ID })],
+      {
+        pageHref: (id) => `/docs/${id.slice(0, 4)}`,
+      },
+    );
+    expect(html).toMatch(
+      /<a href="\/docs\/244b"[^>]*><span aria-hidden="true"[^>]*>📦<\/span>Install<\/a>/,
+    );
     expect(html.match(/<a /g)).toHaveLength(1);
   });
 
