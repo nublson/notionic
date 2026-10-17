@@ -6,6 +6,7 @@ import { SITE_AUTHOR, SITE_DESCRIPTION, SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { WebMcp } from "@/components/webmcp";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {children}
         <Analytics />
         <SpeedInsights />
+        <WebMcp />
       </body>
     </html>
   );
