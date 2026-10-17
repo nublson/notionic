@@ -109,6 +109,27 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "notion-mermaid",
+      "type": "registry:component",
+      "title": "Notion Mermaid",
+      "description": "Draws Notion mermaid code blocks as diagrams, loading Mermaid only on pages that have one, with the code as fallback.",
+      "dependencies": [
+        "notionic",
+        "mermaid"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/notionic/notion-mermaid.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/notionic/mermaid-diagram.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }
