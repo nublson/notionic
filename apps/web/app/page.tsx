@@ -1,4 +1,3 @@
-import { Client } from "@notionhq/client";
 import { NotionRenderer, type NotionBlock } from "notionic";
 import { fetchBlocks } from "notionic/fetch";
 import { SiteHeader } from "@/components/site-header";
@@ -10,7 +9,8 @@ import {
   CodeBlockCopyButton,
 } from "@/components/ui/code-block";
 import { cn } from "@/lib/utils";
-import { notionComponents } from "@/lib/notion-components";
+import { notionClient } from "@/lib/notion";
+import { notionComponents, notionFileUrl } from "@/lib/notion-components";
 import { sampleBlocks } from "./sample-blocks";
 
 // The page is cached and rebuilt in the background at most once an hour, so
@@ -25,11 +25,11 @@ const INSTALL = "pnpm add notionic @notionhq/client";
  * never fails on Notion.
  */
 async function getBlocks(): Promise<{ blocks: NotionBlock[]; live: boolean }> {
-  const token = process.env.NOTION_TOKEN;
+  const client = notionClient();
   const pageId = process.env.NOTION_PAGE_ID;
-  if (!token || !pageId) return { blocks: sampleBlocks, live: false };
+  if (!client || !pageId) return { blocks: sampleBlocks, live: false };
   try {
-    return { blocks: await fetchBlocks(new Client({ auth: token }), pageId), live: true };
+    return { blocks: await fetchBlocks(client, pageId), live: true };
   } catch (error) {
     console.error("Could not fetch the Notion page; showing sample blocks.", error);
     return { blocks: sampleBlocks, live: false };
@@ -48,8 +48,8 @@ export default async function Home() {
             Notion pages, rendered as React Server Components
           </h1>
           <p className="max-w-xl text-lg text-pretty text-muted-foreground">
-            Use Notion as your CMS. notionic renders blocks from the official
-            Notion API on the server, styled with Tailwind CSS and shadcn/ui.
+            Use Notion as your CMS. notionic renders blocks from the official Notion API on the
+            server, styled with Tailwind CSS and shadcn/ui.
           </p>
           <CodeBlock className="max-w-md">
             <CodeBlockActions>
@@ -79,11 +79,18 @@ export default async function Home() {
           >
             <span
               aria-hidden="true"
-              className={cn("size-2 rounded-full", live ? "bg-emerald-500" : "bg-muted-foreground/50")}
+              className={cn(
+                "size-2 rounded-full",
+                live ? "bg-emerald-500" : "bg-muted-foreground/50",
+              )}
             />
             {live ? "Live from Notion" : "Sample blocks"}
           </p>
-          <NotionRenderer blocks={blocks} components={notionComponents} />
+          <NotionRenderer
+            blocks={blocks}
+            components={notionComponents}
+            transformFileUrl={notionFileUrl}
+          />
         </section>
       </main>
 

@@ -1,4 +1,5 @@
 import { blockColorClass } from "../colors";
+import { resolveFileUrl } from "../files";
 import { CODE_CLASSES, RichText } from "../rich-text";
 import type { BlockProps, InlineEquationProps } from "../types";
 import { cx } from "../utils";
@@ -31,8 +32,7 @@ export function Quote({ block, context, children }: BlockProps<"quote">) {
 
 export function Callout({ block, context, children }: BlockProps<"callout">) {
   const { icon, rich_text, color } = block.callout;
-  const iconUrl =
-    icon?.type === "external" ? icon.external.url : icon?.type === "file" ? icon.file.url : null;
+  const iconUrl = icon?.type === "emoji" ? null : resolveFileUrl(icon, block.id, context);
   return (
     <div
       className={cx(

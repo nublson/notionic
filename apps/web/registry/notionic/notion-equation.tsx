@@ -18,6 +18,7 @@ export function NotionEquation({ block }: BlockProps<"equation">) {
   return (
     <div
       className="overflow-x-auto py-1"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: KaTeX output, escaped with `trust` off (see render)
       dangerouslySetInnerHTML={{
         __html: render(block.equation.expression, true),
       }}
@@ -28,6 +29,7 @@ export function NotionEquation({ block }: BlockProps<"equation">) {
 /** An equation inside text, typeset with KaTeX. */
 export function NotionInlineEquation({ expression }: InlineEquationProps) {
   return (
+    // biome-ignore lint/security/noDangerouslySetInnerHtml: KaTeX output, escaped with `trust` off (see render)
     <span dangerouslySetInnerHTML={{ __html: render(expression, false) }} />
   )
 }

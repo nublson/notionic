@@ -7,6 +7,8 @@ export { resolveLink, resolvePageLink, defaultPageHref, normalizePageId } from "
 export { colorClass, blockColorClass } from "./colors";
 export { plainText } from "./utils";
 export { pageTitle } from "./page";
+export { resolveFileUrl } from "./files";
+export type { HostedFile } from "./files";
 export type {
   NotionBlock,
   NotionBlockType,

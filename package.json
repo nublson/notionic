@@ -5,10 +5,13 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "format": "biome format --write",
+    "lint": "biome check",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^3.0.3",
     "turbo": "^2.11.9",

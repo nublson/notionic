@@ -14,7 +14,9 @@ export function Code({ block, context }: BlockProps<"code">) {
       <div className="border-b border-border px-4 py-2 text-xs text-muted-foreground">
         {language}
       </div>
+      {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: names the focusable scroll container for screen readers */}
       <pre
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable code must be keyboard-focusable to scroll (WCAG 2.1.1)
         tabIndex={0}
         aria-label={`Code, ${language}`}
         className="overflow-x-auto px-4 py-3 font-mono text-[0.8125rem] leading-relaxed focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"

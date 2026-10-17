@@ -40,10 +40,7 @@ function isFullBlock(result: Result): result is NotionBlock {
   return "type" in result;
 }
 
-async function listChildren(
-  client: NotionClientLike,
-  blockId: string,
-): Promise<NotionBlock[]> {
+async function listChildren(client: NotionClientLike, blockId: string): Promise<NotionBlock[]> {
   const blocks: NotionBlock[] = [];
   let cursor: string | undefined;
   do {
@@ -82,6 +79,7 @@ async function mapPool<T, R>(
   async function worker(): Promise<void> {
     while (next < items.length) {
       const i = next++;
+      // biome-ignore lint/style/noNonNullAssertion: i < items.length
       results[i] = await mapper(items[i]!);
     }
   }

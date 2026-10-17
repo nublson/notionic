@@ -1,6 +1,6 @@
 {
   "name": "notionic",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Render Notion API blocks as React Server Components, styled with Tailwind CSS and shadcn/ui tokens.",
   "license": "MIT",
   "author": "Nubelson Fernandes",
@@ -50,7 +50,7 @@
     "typecheck": "tsc"
   },
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0"
+    "react": "^19.0.0"
   },
   "devDependencies": {
     "@notionhq/client": "^5.27.1",

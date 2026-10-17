@@ -15,7 +15,7 @@ Render blocks from the [official Notion API](https://developers.notion.com) as R
 pnpm add notionic @notionhq/client
 ```
 
-`@notionhq/client` is only needed to fetch blocks with `notionic/fetch`.
+notionic needs React 19. `@notionhq/client` is only needed to fetch blocks with `notionic/fetch`.
 
 ## Set up Tailwind CSS
 
@@ -168,7 +168,16 @@ import { withMermaid } from "@/components/notion-mermaid";
 
 ## Uploaded files
 
-Notion's URLs for uploaded files (images, videos, files) expire after an hour. If you cache rendered pages longer than that, host the files elsewhere or proxy them.
+Notion's URLs for uploaded files (images, videos, files, icons) expire after an hour, which is shorter than most pages are cached. Pass `transformFileUrl` to point them at a route of yours that fetches a fresh URL:
+
+```tsx
+<NotionRenderer
+  blocks={blocks}
+  transformFileUrl={({ blockId }) => `/api/notion/file/${blockId}`}
+/>
+```
+
+The route retrieves the block with the Notion API (`notion.blocks.retrieve`) and redirects to its file's current URL. notionic.dev's route is a working example: `apps/web/app/api/notion/file/[blockId]/route.ts`. External URLs never go through `transformFileUrl`.
 
 ## License
 

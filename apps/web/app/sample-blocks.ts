@@ -65,28 +65,43 @@ export const sampleBlocks: NotionBlock[] = [
     text("highlights", { color: "yellow_background" }),
     text("."),
   ),
-  block("heading_1", { rich_text: [text("Getting started")], color: "default", is_toggleable: false }),
-  block("numbered_list_item", { rich_text: [text("Fetch a page's blocks with fetchBlocks.")], color: "default" }),
+  block("heading_1", {
+    rich_text: [text("Getting started")],
+    color: "default",
+    is_toggleable: false,
+  }),
+  block("numbered_list_item", {
+    rich_text: [text("Fetch a page's blocks with fetchBlocks.")],
+    color: "default",
+  }),
   block(
     "numbered_list_item",
     { rich_text: [text("Pass them to <NotionRenderer>.")], color: "default" },
-    [block("bulleted_list_item", { rich_text: [text("Nested lists work too.")], color: "default" })],
+    [
+      block("bulleted_list_item", {
+        rich_text: [text("Nested lists work too.")],
+        color: "default",
+      }),
+    ],
   ),
   block("to_do", { rich_text: [text("Reserve the npm name")], checked: true, color: "default" }),
-  block("to_do", { rich_text: [text("Ship the shadcn registry")], checked: false, color: "default" }),
-  block(
-    "callout",
-    {
-      rich_text: [text("Code, callouts, tables and toggles here come from notionic's shadcn registry.")],
-      icon: { type: "emoji", emoji: "💡" },
-      color: "default",
-    },
-  ),
+  block("to_do", {
+    rich_text: [text("Ship the shadcn registry")],
+    checked: false,
+    color: "default",
+  }),
+  block("callout", {
+    rich_text: [
+      text("Code, callouts, tables and toggles here come from notionic's shadcn registry."),
+    ],
+    icon: { type: "emoji", emoji: "💡" },
+    color: "default",
+  }),
   block("code", {
     language: "typescript",
     rich_text: [
       text(
-        'const blocks = await fetchBlocks(notion, pageId)\n\nreturn <NotionRenderer blocks={blocks} />',
+        "const blocks = await fetchBlocks(notion, pageId)\n\nreturn <NotionRenderer blocks={blocks} />",
       ),
     ],
     caption: [text("app/page.tsx")],

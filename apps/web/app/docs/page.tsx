@@ -14,8 +14,8 @@ export default async function DocsIndex() {
       <main className="py-16">
         <h1 className="text-3xl font-semibold tracking-tight">Docs</h1>
         <p className="mt-2 text-muted-foreground">
-          The docs come from a Notion database. Set NOTION_TOKEN and
-          NOTION_DOCS_DATA_SOURCE_ID to show them.
+          The docs come from a Notion database. Set NOTION_TOKEN and NOTION_DOCS_DATA_SOURCE_ID to
+          show them.
         </p>
       </main>
     </div>

@@ -1,4 +1,4 @@
-import { BlockList, plainText, type BlockProps } from "notionic"
+import { BlockList, plainText, resolveFileUrl, type BlockProps } from "notionic"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -19,17 +19,16 @@ export function NotionTabs({ block, context }: BlockProps<"tab">) {
         {tabs.map((tab) => {
           const { rich_text, icon } = tab.paragraph
           const iconUrl =
-            icon?.type === "external"
-              ? icon.external.url
-              : icon?.type === "file"
-                ? icon.file.url
-                : null
+            icon?.type === "emoji"
+              ? null
+              : resolveFileUrl(icon, tab.id, context)
           return (
             // The title is plain text: links can't sit inside the tab button.
             <TabsTrigger key={tab.id} value={tab.id}>
               {icon?.type === "emoji" ? (
                 <span aria-hidden="true">{icon.emoji}</span>
               ) : iconUrl ? (
+                // biome-ignore lint/performance/noImgElement: registry blocks must work outside Next.js, and Notion icon URLs come from arbitrary hosts
                 <img src={iconUrl} alt="" className="size-4" />
               ) : null}
               {plainText(rich_text)}

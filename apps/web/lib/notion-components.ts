@@ -1,9 +1,6 @@
 import { NotionCallout } from "@/registry/notionic/notion-callout";
 import { NotionCode } from "@/registry/notionic/notion-code";
-import {
-  NotionEquation,
-  NotionInlineEquation,
-} from "@/registry/notionic/notion-equation";
+import { NotionEquation, NotionInlineEquation } from "@/registry/notionic/notion-equation";
 import { withMermaid } from "@/registry/notionic/notion-mermaid";
 import { NotionTable } from "@/registry/notionic/notion-table";
 import { NotionTabs } from "@/registry/notionic/notion-tabs";
@@ -19,3 +16,11 @@ export const notionComponents = {
   equation: NotionEquation,
   inline_equation: NotionInlineEquation,
 };
+
+/**
+ * Files uploaded to Notion go through the file route, which re-signs their
+ * URLs (Notion's expire after an hour, longer than pages are cached).
+ */
+export function notionFileUrl({ blockId }: { blockId: string }) {
+  return `/api/notion/file/${blockId}`;
+}

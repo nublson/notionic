@@ -4,6 +4,7 @@ import type {
   RichTextItemResponse,
 } from "@notionhq/client";
 import type { ComponentType, ReactNode } from "react";
+import type { HostedFile } from "./files";
 import type { PageHeading } from "./headings";
 
 export type PageIcon = PageObjectResponse["icon"];
@@ -34,10 +35,7 @@ export type NotionPage = {
 export type NotionBlockType = NotionBlock["type"];
 
 /** A Notion block of one type, with its typed payload. */
-export type BlockOf<T extends NotionBlockType> = Extract<
-  NotionBlock,
-  { type: T }
->;
+export type BlockOf<T extends NotionBlockType> = Extract<NotionBlock, { type: T }>;
 
 export type RichText = RichTextItemResponse[];
 
@@ -54,6 +52,8 @@ export type RenderContext = {
   /** The page's headings, with their anchor ids (see `collectHeadings`). */
   headings: PageHeading[];
   components: BlockComponents;
+  /** Rewrites URLs of files uploaded to Notion (see `NotionRendererProps`). */
+  transformFileUrl?: (file: HostedFile) => string;
 };
 
 export type BlockProps<T extends NotionBlockType> = {

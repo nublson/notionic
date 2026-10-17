@@ -1,0 +1,105 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!.claude/worktrees",
+      "!pnpm-lock.yaml",
+      "!**/public/r",
+      "!packages/notionic/src/fixtures",
+      "!packages/notionic/CHANGELOG.md"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "assist": {
+    "enabled": false
+  },
+  "overrides": [
+    {
+      "includes": [
+        "apps/web/components/ui/**",
+        "apps/web/hooks/**",
+        "apps/web/lib/highlighter.tsx",
+        "apps/web/lib/utils.ts",
+        "apps/web/registry/**"
+      ],
+      "javascript": {
+        "formatter": {
+          "lineWidth": 80,
+          "semicolons": "asNeeded",
+          "trailingCommas": "es5"
+        }
+      }
+    },
+    {
+      "includes": [
+        "apps/web/components/ui/**",
+        "apps/web/hooks/**",
+        "apps/web/lib/highlighter.tsx",
+        "apps/web/lib/utils.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          },
+          "a11y": {
+            "noNoninteractiveTabindex": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    }
+  ],
+  "json": {
+    "formatter": {
+      "enabled": false
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    },
+    "formatter": {
+      "enabled": false
+    }
+  }
+}

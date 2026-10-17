@@ -1,4 +1,9 @@
-import { plainText, RichText, type BlockProps, type NotionBlock } from "notionic"
+import {
+  plainText,
+  RichText,
+  type BlockProps,
+  type NotionBlock,
+} from "notionic"
 
 import {
   Table,
@@ -24,10 +29,12 @@ export function NotionTable({ block, context }: BlockProps<"table">) {
     <TableRow key={row.id}>
       {cells(row).map((cell, index) =>
         head || (index === 0 && has_row_header) ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: cells have no ID; a cell's index is its column
           <TableHead key={index} scope={head ? "col" : "row"}>
             <RichText text={cell} context={context} />
           </TableHead>
         ) : (
+          // biome-ignore lint/suspicious/noArrayIndexKey: cells have no ID; a cell's index is its column
           <TableCell key={index} className="whitespace-normal">
             <RichText text={cell} context={context} />
           </TableCell>
@@ -38,7 +45,9 @@ export function NotionTable({ block, context }: BlockProps<"table">) {
 
   // Named by its columns, so several tables on a page can be told apart.
   const columns = has_column_header
-    ? cells(first).map((cell) => plainText(cell).trim()).filter(Boolean)
+    ? cells(first)
+        .map((cell) => plainText(cell).trim())
+        .filter(Boolean)
     : []
 
   return (
