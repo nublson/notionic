@@ -79,5 +79,7 @@ export async function POST(request: NextRequest) {
   }
 
   revalidatePath("/", "layout");
+  // Metadata routes are cached apart from the layout tree.
+  revalidatePath("/sitemap.xml");
   return NextResponse.json({ revalidated: true, now: Date.now() });
 }
