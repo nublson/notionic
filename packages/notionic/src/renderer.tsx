@@ -15,9 +15,10 @@ import {
   Video,
 } from "./blocks/media";
 import { Table } from "./blocks/table";
+import { Tab, TableOfContents } from "./blocks/navigation";
 import { Callout, Divider, Equation, Paragraph, Quote } from "./blocks/text";
 import { defaultPageHref } from "./links";
-import { createSlugger } from "./slug";
+import { collectHeadings } from "./headings";
 import type { BlockComponents, BlockProps, NotionBlock, RenderContext } from "./types";
 import { cx, warnOnce } from "./utils";
 
@@ -49,6 +50,8 @@ export const defaultComponents: BlockComponents = {
   embed: Embed,
   link_preview: LinkPreview,
   child_page: ChildPage,
+  table_of_contents: TableOfContents,
+  tab: Tab,
 };
 
 type ListKind = "bulleted" | "numbered" | "todo";
@@ -173,7 +176,7 @@ export function NotionRenderer({
 }: NotionRendererProps) {
   const context: RenderContext = {
     pageHref,
-    slug: createSlugger(),
+    headings: collectHeadings(blocks),
     components: { ...defaultComponents, ...components },
   };
   return (

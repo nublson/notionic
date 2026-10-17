@@ -85,13 +85,25 @@ function Callout({ block, context, children }: BlockProps<"callout">) {
 
 ## Supported blocks
 
-Paragraph, headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, synced block, image, video (YouTube or file), audio, file, PDF, bookmark, embed, link preview and child page.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark, embed, link preview and child page. Date mentions render as `<time>`.
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 
-Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below.
+Tabs render as an accordion, one `<details>` per tab, where opening one closes the others, with no JavaScript.
+
+Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below. Equations show their LaTeX source.
 
 Unsupported blocks render nothing, with a warning in development.
+
+### Page outline
+
+`collectHeadings(blocks)` returns the page's headings in reading order, with the same anchor ids the rendered headings get, for a sidebar outline:
+
+```tsx
+import { collectHeadings } from "notionic";
+
+const outline = collectHeadings(blocks); // [{ id: "intro", text: "Intro", level: 1, blockId }]
+```
 
 ## shadcn/ui components
 

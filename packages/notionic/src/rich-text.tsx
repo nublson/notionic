@@ -38,7 +38,15 @@ function RichTextItem({
   context: RenderContext;
 }) {
   const { annotations } = item;
-  let node: ReactNode = item.plain_text;
+  // Notion writes line breaks within a block (Shift+Enter) as "\n".
+  let node: ReactNode = item.plain_text.includes("\n")
+    ? item.plain_text.split("\n").flatMap((line, i) => (i === 0 ? [line] : [<br key={i} />, line]))
+    : item.plain_text;
+
+  // Shown as Notion writes it; `dateTime` gives the machine-readable start.
+  if (item.type === "mention" && item.mention.type === "date") {
+    node = <time dateTime={item.mention.date.start}>{node}</time>;
+  }
 
   if (annotations.code || item.type === "equation") {
     node = (

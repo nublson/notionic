@@ -224,6 +224,37 @@ describe("NotionRenderer", () => {
     expect(html.indexOf("R")).toBeGreaterThan(html.indexOf("L"));
   });
 
+  it("renders line breaks within text", async () => {
+    const html = await render([para(richText("one\ntwo"))]);
+    expect(html).toContain("<p>one<br/>two</p>");
+  });
+
+  it("links a table of contents to headings, even ones after it", async () => {
+    const html = await render([
+      block("table_of_contents", { color: "default" }),
+      block("heading_1", { rich_text: [richText("Intro")] }),
+      block("heading_2", { rich_text: [richText("Intro")] }),
+    ]);
+    expect(html).toContain('<a href="#intro"');
+    expect(html).toContain('<a href="#intro-2"');
+    expect(html).toMatch(/<li class="pl-4"><a href="#intro-2"/);
+    expect(html).toMatch(/<h2 id="intro"/);
+    expect(html).toMatch(/<h3 id="intro-2"/);
+  });
+
+  it("renders tabs as an exclusive accordion with the first open", async () => {
+    const tab = (title: string, body: string) =>
+      block("paragraph", { rich_text: [richText(title)], color: "default", icon: null }, {
+        children: [para(richText(body))],
+      });
+    const html = await render([block("tab", {}, { children: [tab("One", "First"), tab("Two", "Second")] })]);
+    const names = html.match(/<details name="([^"]+)"/g) ?? [];
+    expect(names).toHaveLength(2);
+    expect(new Set(names).size).toBe(1);
+    expect(html).toMatch(/<details name="[^"]+" open=""/);
+    expect(html).toContain("Second");
+  });
+
   it("skips unsupported blocks", async () => {
     const html = await render([block("breadcrumb"), para(richText("after"))]);
     expect(html).toContain("after");
