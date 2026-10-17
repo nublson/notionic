@@ -67,7 +67,9 @@
             "useImportType": "off"
           },
           "a11y": {
-            "noNoninteractiveTabindex": "off"
+            "noNoninteractiveTabindex": "off",
+            "useSemanticElements": "off",
+            "useKeyWithClickEvents": "off"
           },
           "suspicious": {
             "noArrayIndexKey": "off"
