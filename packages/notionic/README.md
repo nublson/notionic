@@ -26,9 +26,39 @@ notionic needs Tailwind CSS v4. Import its styles after Tailwind:
 @import "notionic/styles.css";
 ```
 
-This one line tells Tailwind to scan notionic's components, and defines Notion's colors as `--notionic-*` variables, with dark values under `.dark`. Override any of them to change a color.
+This one line tells Tailwind to scan notionic's components, and defines Notion's nine colors as `--notionic-*` variables. Their dark values apply under the `dark` class, `data-theme="dark"` or `data-mode="dark"`, and on pages whose [`color-scheme`](https://developer.mozilla.org/docs/Web/CSS/color-scheme) is dark, so a page that follows `prefers-color-scheme` gets them by declaring `color-scheme: light dark`.
 
-The components use shadcn/ui's color tokens. If you don't use shadcn/ui, define `--color-foreground`, `--color-muted`, `--color-muted-foreground`, `--color-border`, `--color-ring` and `--color-primary` in your theme.
+### Match Notion's colors to your brand
+
+Override the text colors after the import. Each background color (`--notionic-red-bg`…) is mixed from its text color and your `--background`, so it follows on its own:
+
+```css
+:root,
+.dark {
+  --notionic-red: var(--destructive);
+  --notionic-blue: var(--primary);
+}
+```
+
+Mapping to tokens that already switch in dark mode, like shadcn's, keeps both modes right. To make every background stronger or subtler, set `--notionic-bg-mix` (default `14%`, `22%` in dark mode); to set one background directly, override its `--notionic-*-bg`.
+
+### Use your own theme tokens
+
+The components use shadcn/ui's color tokens, and Tailwind only generates their classes if your theme defines them. If your design system names them differently, map yours to these seven, after importing notionic:
+
+```css
+@theme inline {
+  --color-background: var(--color-page);
+  --color-foreground: var(--color-text);
+  --color-muted: var(--color-surface);
+  --color-muted-foreground: var(--color-text-subtle);
+  --color-border: var(--color-line);
+  --color-ring: var(--color-focus);
+  --color-primary: var(--color-brand);
+}
+```
+
+Replace each right-hand side with your own token. notionic needs no others.
 
 ## Render a page
 

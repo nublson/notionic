@@ -5,8 +5,17 @@
  *   @import "notionic/styles.css";
  *
  * Components use shadcn/ui's theme tokens (foreground, muted, border…), so
- * they follow your theme. Override any --notionic-* variable to change
- * Notion's colors.
+ * they follow your theme. If your theme names them differently, map them; the
+ * README lists the ones notionic needs.
+ *
+ * Notion's nine colors are the --notionic-* variables below. Override the text
+ * colors to match your brand, e.g. `--notionic-red: var(--destructive);`. Each
+ * background color (--notionic-*-bg) is mixed from its text color and your
+ * --background, so it follows both, in light and dark mode.
+ *
+ * The dark text colors apply under the `dark` class, `data-theme="dark"` or
+ * `data-mode="dark"`, and on pages whose `color-scheme` is dark (e.g. a page
+ * that declares `color-scheme: light dark`, on a dark OS).
  */
 
 /* Scan notionic's components for the classes they use. */
@@ -22,19 +31,30 @@
   --notionic-purple: oklch(49.6% 0.265 301.924);
   --notionic-pink: oklch(52.5% 0.223 3.958);
   --notionic-red: oklch(50.5% 0.213 27.518);
-
-  --notionic-gray-bg: oklch(96.7% 0.003 264.542);
-  --notionic-brown-bg: oklch(96.2% 0.059 95.617);
-  --notionic-orange-bg: oklch(95.4% 0.038 75.164);
-  --notionic-yellow-bg: oklch(97.3% 0.071 103.193);
-  --notionic-green-bg: oklch(96.2% 0.044 156.743);
-  --notionic-blue-bg: oklch(93.2% 0.032 255.585);
-  --notionic-purple-bg: oklch(94.6% 0.033 307.174);
-  --notionic-pink-bg: oklch(94.8% 0.028 342.258);
-  --notionic-red-bg: oklch(93.6% 0.032 17.717);
 }
 
-.dark {
+/*
+ * Follow the page's color-scheme. Behind @supports so browsers without
+ * light-dark() keep the light colors above. Pages that never declare a dark
+ * color-scheme always get the light values.
+ */
+@supports (color: light-dark(white, black)) {
+  :root {
+    --notionic-gray: light-dark(oklch(44.6% 0.03 256.802), oklch(70.7% 0.022 261.325));
+    --notionic-brown: light-dark(oklch(47.3% 0.137 46.201), oklch(82.8% 0.189 84.429));
+    --notionic-orange: light-dark(oklch(55.3% 0.195 38.402), oklch(75% 0.183 55.934));
+    --notionic-yellow: light-dark(oklch(55.4% 0.135 66.442), oklch(85.2% 0.199 91.936));
+    --notionic-green: light-dark(oklch(52.7% 0.154 150.069), oklch(79.2% 0.209 151.711));
+    --notionic-blue: light-dark(oklch(48.8% 0.243 264.376), oklch(70.7% 0.165 254.624));
+    --notionic-purple: light-dark(oklch(49.6% 0.265 301.924), oklch(71.4% 0.203 305.504));
+    --notionic-pink: light-dark(oklch(52.5% 0.223 3.958), oklch(71.8% 0.202 349.761));
+    --notionic-red: light-dark(oklch(50.5% 0.213 27.518), oklch(70.4% 0.191 22.216));
+  }
+}
+
+.dark,
+[data-theme="dark"],
+[data-mode="dark"] {
   --notionic-gray: oklch(70.7% 0.022 261.325);
   --notionic-brown: oklch(82.8% 0.189 84.429);
   --notionic-orange: oklch(75% 0.183 55.934);
@@ -44,14 +64,31 @@
   --notionic-purple: oklch(71.4% 0.203 305.504);
   --notionic-pink: oklch(71.8% 0.202 349.761);
   --notionic-red: oklch(70.4% 0.191 22.216);
+}
 
-  --notionic-gray-bg: oklch(27.8% 0.033 256.848);
-  --notionic-brown-bg: oklch(41.4% 0.112 45.904 / 60%);
-  --notionic-orange-bg: oklch(40.8% 0.123 38.172 / 60%);
-  --notionic-yellow-bg: oklch(42.1% 0.095 57.708 / 60%);
-  --notionic-green-bg: oklch(39.3% 0.095 152.535 / 60%);
-  --notionic-blue-bg: oklch(37.9% 0.146 265.522 / 60%);
-  --notionic-purple-bg: oklch(38.1% 0.176 304.987 / 60%);
-  --notionic-pink-bg: oklch(40.8% 0.153 2.432 / 60%);
-  --notionic-red-bg: oklch(39.6% 0.141 25.723 / 60%);
+/*
+ * Repeated under the dark selectors so the mix is recomputed wherever the
+ * text colors change, not only on :root. Override --notionic-bg-mix to make
+ * backgrounds stronger or subtler, or any --notionic-*-bg to set one directly.
+ */
+:root,
+.dark,
+[data-theme="dark"],
+[data-mode="dark"] {
+  --notionic-bg-mix: 14%;
+  --notionic-gray-bg: color-mix(in oklch, var(--notionic-gray) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+  --notionic-brown-bg: color-mix(in oklch, var(--notionic-brown) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+  --notionic-orange-bg: color-mix(in oklch, var(--notionic-orange) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+  --notionic-yellow-bg: color-mix(in oklch, var(--notionic-yellow) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+  --notionic-green-bg: color-mix(in oklch, var(--notionic-green) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+  --notionic-blue-bg: color-mix(in oklch, var(--notionic-blue) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+  --notionic-purple-bg: color-mix(in oklch, var(--notionic-purple) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+  --notionic-pink-bg: color-mix(in oklch, var(--notionic-pink) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+  --notionic-red-bg: color-mix(in oklch, var(--notionic-red) var(--notionic-bg-mix), var(--background, var(--color-background, white)));
+}
+
+.dark,
+[data-theme="dark"],
+[data-mode="dark"] {
+  --notionic-bg-mix: 22%;
 }
