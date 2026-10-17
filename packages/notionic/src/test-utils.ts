@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { prerender } from "react-dom/static";
+import { PassThrough } from "node:stream";
+import { renderToPipeableStream } from "react-dom/server";
 import type { NotionBlock, RichText } from "./types";
 
 let counter = 0;
@@ -53,8 +54,22 @@ export function richText(
   } as RichText[number];
 }
 
-/** Renders a React node to an HTML string, as a server would. */
-export async function renderToHtml(node: ReactNode): Promise<string> {
-  const { prelude } = await prerender(node);
-  return new Response(prelude).text();
+/**
+ * Renders a React node to an HTML string, as a server would. Uses an API that
+ * React 18 and 19 both have, since the package supports both.
+ */
+export function renderToHtml(node: ReactNode): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const { pipe } = renderToPipeableStream(node, {
+      onAllReady() {
+        const chunks: Buffer[] = [];
+        const sink = new PassThrough();
+        sink.on("data", (chunk: Buffer) => chunks.push(chunk));
+        sink.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+        pipe(sink);
+      },
+      onShellError: reject,
+      onError: reject,
+    });
+  });
 }

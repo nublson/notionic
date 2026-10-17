@@ -26,3 +26,33 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm turbo run build typecheck test
+
+  # notionic's peer range is React 18 || 19; run its tests and typecheck on both.
+  react:
+    name: notionic on React ${{ matrix.react }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        react: [18, 19]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The lockfile pins React 19; swap in React 18 for that leg.
+      - if: matrix.react == 18
+        run: pnpm --filter notionic add -D react@^18.3.1 react-dom@^18.3.1 @types/react@^18.3.0 @types/react-dom@^18.3.0
+
+      - run: pnpm --filter notionic exec node -p "'react ' + require('react/package.json').version"
+
+      - run: pnpm --filter notionic typecheck
+
+      - run: pnpm --filter notionic test
