@@ -5,7 +5,8 @@ import Link from "next/link";
 import Markdown, { type Components } from "react-markdown";
 
 export const metadata: Metadata = {
-  title: "Changelog · notionic",
+  title: "Changelog",
+  alternates: { canonical: "/changelog" },
   description: "What changed in each notionic release.",
 };
 
