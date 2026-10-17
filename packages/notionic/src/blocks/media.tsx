@@ -1,18 +1,12 @@
+import { resolveFileUrl } from "../files";
 import { resolveLink, resolvePageLink } from "../links";
 import { NotionLink, RichText } from "../rich-text";
 import type { BlockProps, RenderContext, RichText as RichTextArray } from "../types";
 import { plainText } from "../utils";
 
-type FilePayload =
-  | { type: "external"; external: { url: string } }
-  | { type: "file"; file: { url: string } };
-
-/** The URL of a Notion file payload, uploaded or external. Uploaded files' URLs expire after an hour. */
-function fileUrl(payload: FilePayload): string {
-  return payload.type === "external" ? payload.external.url : payload.file.url;
-}
-
-function isHttpUrl(url: string): boolean {
+/** An http(s) URL, or a same-site path such as a file proxy route. */
+function isUrl(url: string): boolean {
+  if (/^\/(?![/\\])/.test(url)) return true;
   try {
     const { protocol } = new URL(url);
     return protocol === "http:" || protocol === "https:";
@@ -50,8 +44,8 @@ function UrlLine({
 }
 
 export function Image({ block, context }: BlockProps<"image">) {
-  const src = fileUrl(block.image);
-  if (!isHttpUrl(src)) return null;
+  const src = resolveFileUrl(block.image, block.id, context);
+  if (!src || !isUrl(src)) return null;
   return (
     <figure>
       <img
@@ -89,7 +83,7 @@ export function youTubeEmbedUrl(url: string): string | null {
 }
 
 export function Video({ block, context }: BlockProps<"video">) {
-  const src = fileUrl(block.video);
+  const src = resolveFileUrl(block.video, block.id, context) ?? "";
   const caption = block.video.caption;
   const label = plainText(caption);
   const embed = youTubeEmbedUrl(src);
@@ -109,7 +103,7 @@ export function Video({ block, context }: BlockProps<"video">) {
       </figure>
     );
   }
-  if (block.video.type === "file" && isHttpUrl(src)) {
+  if (block.video.type === "file" && isUrl(src)) {
     return (
       <figure>
         <video src={src} controls preload="metadata" className="w-full rounded-lg" />
@@ -121,8 +115,8 @@ export function Video({ block, context }: BlockProps<"video">) {
 }
 
 export function Audio({ block, context }: BlockProps<"audio">) {
-  const src = fileUrl(block.audio);
-  if (!isHttpUrl(src)) return null;
+  const src = resolveFileUrl(block.audio, block.id, context);
+  if (!src || !isUrl(src)) return null;
   return (
     <figure>
       <audio src={src} controls preload="metadata" className="w-full" />
@@ -134,7 +128,7 @@ export function Audio({ block, context }: BlockProps<"audio">) {
 export function File({ block, context }: BlockProps<"file">) {
   return (
     <UrlLine
-      url={fileUrl(block.file)}
+      url={resolveFileUrl(block.file, block.id, context) ?? ""}
       label={block.file.name || plainText(block.file.caption)}
       context={context}
     />
@@ -142,7 +136,13 @@ export function File({ block, context }: BlockProps<"file">) {
 }
 
 export function Pdf({ block, context }: BlockProps<"pdf">) {
-  return <UrlLine url={fileUrl(block.pdf)} label={plainText(block.pdf.caption)} context={context} />;
+  return (
+    <UrlLine
+      url={resolveFileUrl(block.pdf, block.id, context) ?? ""}
+      label={plainText(block.pdf.caption)}
+      context={context}
+    />
+  );
 }
 
 export function Bookmark({ block, context }: BlockProps<"bookmark">) {
