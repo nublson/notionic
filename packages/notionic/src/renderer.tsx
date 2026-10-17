@@ -21,7 +21,7 @@ import { Callout, Divider, Equation, InlineEquation, Paragraph, Quote } from "./
 import { defaultPageHref } from "./links";
 import type { HostedFile } from "./files";
 import { collectHeadings } from "./headings";
-import type { BlockComponents, BlockProps, NotionBlock, RenderContext } from "./types";
+import type { BlockComponents, BlockProps, Demos, NotionBlock, RenderContext } from "./types";
 import { cx, warnOnce } from "./utils";
 
 export const defaultComponents: BlockComponents = {
@@ -175,20 +175,31 @@ export type NotionRendererProps = {
    * External URLs aren't passed through it.
    */
   transformFileUrl?: (file: HostedFile) => string;
+  /**
+   * Your demo components, by name. An embed of a URL ending in
+   * `/demos/<name>` renders `demos[name]` in its place, with the embed's
+   * caption below. They can be Client Components.
+   */
+  demos?: Demos;
   className?: string;
 };
 
-/** Renders Notion blocks. Works as a Server Component; it ships no client JavaScript. */
+/**
+ * Renders Notion blocks. Works as a Server Component; it ships no client
+ * JavaScript of its own (demos ship theirs).
+ */
 export function NotionRenderer({
   blocks,
   components,
   pageHref = defaultPageHref,
   transformFileUrl,
+  demos,
   className,
 }: NotionRendererProps) {
   const context: RenderContext = {
     pageHref,
     transformFileUrl,
+    demos,
     headings: collectHeadings(blocks),
     components: { ...defaultComponents, ...components },
   };

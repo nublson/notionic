@@ -125,9 +125,38 @@ function Callout({ block, context, children }: BlockProps<"callout">) {
 
 Equations inside text have their own key, `inline_equation`, whose component gets the equation's LaTeX as `expression`.
 
+### Interactive demos
+
+Put your own React components in a page, like the demos in a design engineering blog. Each demo is a component in your project, so it can use anything you install (Motion, Sonner, charts, 3D). In Notion, an embed of a URL ending in `/demos/<name>` marks where it goes, and its caption goes below it.
+
+```tsx
+// components/demos/morph-button.tsx
+"use client";
+export function MorphButton({ params }: DemoProps) { /* … */ }
+
+// app/page.tsx
+<NotionRenderer blocks={blocks} demos={{ "morph-button": MorphButton }} />;
+```
+
+In Notion, add `/embed` with `https://your-site.com/demos/morph-button`. Only the path counts, so the same embed renders on localhost and previews. The URL's query reaches the demo as `params`: `?speed=slow` is `{ speed: "slow" }`. Unknown names render as links.
+
+To see the demo inside Notion while you write, add a page at `/demos/[name]` that renders the demo alone:
+
+```tsx
+// app/demos/[name]/page.tsx
+export default async function DemoPage({ params }: { params: Promise<{ name: string }> }) {
+  const { name } = await params;
+  const Demo = Object.hasOwn(demos, name) ? demos[name] : undefined;
+  if (!Demo) notFound();
+  return <main className="grid min-h-svh place-items-center"><Demo name={name} params={{}} /></main>;
+}
+```
+
+Demos render in `DemoFrame`, a bordered stage with the caption centered below. Replace it with `components={{ demo: MyFrame }}`; it gets the demo as `children`, plus `name`, `caption` and `context`. Only the demos a page uses send JavaScript to the browser.
+
 ## Supported blocks
 
-Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed, link preview and child page and link to page (titled by `fetchBlocks`). Date mentions render as `<time>`.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed (a link, or one of your demos), link preview and child page and link to page (titled by `fetchBlocks`). Date mentions render as `<time>`.
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 

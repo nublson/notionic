@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/code-block";
 import { cn } from "@/lib/utils";
 import { notionClient } from "@/lib/notion";
+import { demos } from "@/lib/demos";
 import { notionComponents, notionFileUrl } from "@/lib/notion-components";
 import { sampleBlocks } from "./sample-blocks";
 
@@ -90,6 +91,7 @@ export default async function Home() {
             blocks={blocks}
             components={notionComponents}
             transformFileUrl={notionFileUrl}
+            demos={demos}
           />
         </section>
       </main>
