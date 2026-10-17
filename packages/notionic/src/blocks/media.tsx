@@ -139,7 +139,8 @@ export function Pdf({ block, context }: BlockProps<"pdf">) {
 
 /**
  * A bookmark as a card with the page's title, description and image, as in
- * Notion. Without a preview from `fetchBlocks`, a plain link.
+ * Notion: the image sits on the right, or on top when the card is narrow (a
+ * phone, a column). Without a preview from `fetchBlocks`, a plain link.
  */
 export function Bookmark({ block, context }: BlockProps<"bookmark">) {
   const { url, caption } = block.bookmark;
@@ -147,11 +148,11 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
   const link = resolveLink(url, context);
   if (!preview || !link) return <UrlLine url={url} label={plainText(caption)} context={context} />;
   return (
-    <figure>
+    <figure className="@container">
       <a
         href={link.href}
         {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="flex min-h-26 overflow-hidden rounded-lg border border-border transition-[background-color] hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="flex flex-col-reverse overflow-hidden rounded-lg border border-border transition-[background-color] @md:min-h-26 @md:flex-row hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-1 p-3.5">
           <span className="truncate text-sm font-medium">{preview.title}</span>
@@ -182,7 +183,7 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
-            className="hidden w-1/3 max-w-60 shrink-0 border-l border-border object-cover sm:block"
+            className="aspect-[1.91/1] w-full border-b border-border object-cover @md:aspect-auto @md:w-1/3 @md:max-w-60 @md:shrink-0 @md:border-b-0 @md:border-l"
           />
         ) : null}
         {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
