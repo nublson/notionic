@@ -70,7 +70,10 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           PREVIOUS=$(jq -r .version packages/notionic/package.json)
-          pnpm changeset version
+          # `changeset version` fails when there's nothing to release.
+          if ls .changeset/*.md 2>/dev/null | grep -qv '/README\.md$'; then
+            pnpm changeset version
+          fi
           CURRENT=$(jq -r .version packages/notionic/package.json)
           echo "version=${CURRENT}" >> "$GITHUB_OUTPUT"
           if [ "$PREVIOUS" = "$CURRENT" ]; then
