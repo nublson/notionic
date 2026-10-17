@@ -29,7 +29,8 @@ describe("POST /api/notion/revalidate", () => {
       (await POST(request("/api/notion/revalidate", { authorization: "Bearer s3cret" }))).status,
     ).toBe(200);
     expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
-    expect(revalidatePath).toHaveBeenCalledTimes(2);
+    expect(revalidatePath).toHaveBeenCalledWith("/sitemap.xml");
+    expect(revalidatePath).toHaveBeenCalledTimes(4);
   });
 
   it("rejects a wrong or missing secret", async () => {

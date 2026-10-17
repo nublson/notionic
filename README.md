@@ -1,5 +1,9 @@
 # notionic
 
+[![npm](https://img.shields.io/npm/v/notionic)](https://www.npmjs.com/package/notionic)
+[![CI](https://github.com/nublson/notionic/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nublson/notionic/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/npm/l/notionic)](https://github.com/nublson/notionic/blob/main/LICENSE)
+
 Render Notion API blocks as React Server Components, styled with Tailwind CSS and shadcn/ui. See [the package README](packages/notionic/README.md) for usage.
 
 More at https://notionic.dev
