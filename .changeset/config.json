@@ -8,6 +8,6 @@
   "baseBranch": "develop",
   "updateInternalDependencies": "patch",
   "ignore": [],
-  "changedFilePatterns": ["src/**", "!src/**/*.test.{ts,tsx}", "!src/test-utils.ts"],
+  "changedFilePatterns": ["src/**", "!src/**/*.test.{ts,tsx}", "!src/test-utils.ts", "!src/fixtures/**"],
   "format": false
 }

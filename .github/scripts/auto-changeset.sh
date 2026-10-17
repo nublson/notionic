@@ -21,6 +21,7 @@ PATHS=(
   ':(exclude)packages/notionic/src/*.test.ts'
   ':(exclude)packages/notionic/src/*.test.tsx'
   ':(exclude)packages/notionic/src/test-utils.ts'
+  ':(exclude)packages/notionic/src/fixtures/'
 )
 
 count=0
