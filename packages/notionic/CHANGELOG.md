@@ -1,5 +1,13 @@
 # notionic
 
+## 0.5.0
+
+### Minor Changes
+
+- [#28](https://github.com/nublson/notionic/pull/28) [`0dfca00`](https://github.com/nublson/notionic/commit/0dfca00345d8233b850794246b144a54d460e42c) Thanks [@nublson](https://github.com/nublson)! - Follow any dark mode setup and renamed theme tokens
+
+- [#27](https://github.com/nublson/notionic/pull/27) [`ba01dfd`](https://github.com/nublson/notionic/commit/ba01dfdf42934715ffa8a2e9d0597058e5047443) Thanks [@nublson](https://github.com/nublson)! - Notion's background colors (`--notionic-*-bg`) are now mixed from their text color and your theme's `--background`, so overriding the nine text colors (for example `--notionic-red: var(--destructive)`) themes the backgrounds too, in light and dark mode. `--notionic-bg-mix` sets their strength.
+
 ## 0.4.0
 
 ### Minor Changes
