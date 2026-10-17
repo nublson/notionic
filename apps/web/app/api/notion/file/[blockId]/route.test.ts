@@ -12,7 +12,8 @@ vi.mock("@notionhq/client", () => ({
 const { GET } = await import("./route");
 
 const ID = "3fcb1726-8ab3-81d7-b265-ff9229b44af9";
-const call = (blockId: string) => GET(new Request("http://localhost/x"), { params: Promise.resolve({ blockId }) });
+const call = (blockId: string) =>
+  GET(new Request("http://localhost/x"), { params: Promise.resolve({ blockId }) });
 const inMinutes = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
 const signed = "https://prod-files-secure.s3.amazonaws.com/a.png?X-Amz-Signature=fresh";
 
@@ -24,7 +25,10 @@ describe("GET /api/notion/file/[blockId]", () => {
   afterEach(() => vi.unstubAllEnvs());
 
   it("redirects to a fresh signed URL for an uploaded image", async () => {
-    retrieve.mockResolvedValue({ type: "image", image: { type: "file", file: { url: signed, expiry_time: inMinutes(60) } } });
+    retrieve.mockResolvedValue({
+      type: "image",
+      image: { type: "file", file: { url: signed, expiry_time: inMinutes(60) } },
+    });
     const res = await call(ID);
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe(signed);
@@ -33,7 +37,10 @@ describe("GET /api/notion/file/[blockId]", () => {
   });
 
   it("caches only until shortly before the URL expires", async () => {
-    retrieve.mockResolvedValue({ type: "file", file: { type: "file", file: { url: signed, expiry_time: inMinutes(10) } } });
+    retrieve.mockResolvedValue({
+      type: "file",
+      file: { type: "file", file: { url: signed, expiry_time: inMinutes(10) } },
+    });
     const res = await call(ID);
     const maxAge = Number(res.headers.get("cache-control")?.match(/s-maxage=(\d+)/)?.[1]);
     expect(maxAge).toBeGreaterThan(290);
@@ -49,7 +56,10 @@ describe("GET /api/notion/file/[blockId]", () => {
   });
 
   it("returns 404 for external files, blocks without files, unreadable blocks and bad ids", async () => {
-    retrieve.mockResolvedValueOnce({ type: "image", image: { type: "external", external: { url: "https://x.y/a.png" } } });
+    retrieve.mockResolvedValueOnce({
+      type: "image",
+      image: { type: "external", external: { url: "https://x.y/a.png" } },
+    });
     expect((await call(ID)).status).toBe(404);
     retrieve.mockResolvedValueOnce({ type: "paragraph", paragraph: { rich_text: [], icon: null } });
     expect((await call(ID)).status).toBe(404);

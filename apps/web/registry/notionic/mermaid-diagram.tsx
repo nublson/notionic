@@ -15,6 +15,7 @@ function tokenColors(names: string[]) {
   const style = getComputedStyle(document.documentElement)
   const canvas = document.createElement("canvas")
   canvas.width = canvas.height = 1
+  // biome-ignore lint/style/noNonNullAssertion: a fresh canvas always has a 2D context
   const ctx = canvas.getContext("2d", { willReadFrequently: true })!
   const read = (name: string) => style.getPropertyValue(name).trim()
   return Object.fromEntries(
@@ -151,6 +152,7 @@ export function MermaidDiagram({
       aria-label={label}
       // The same card as shadcn/ui's Code Block, so diagrams sit with code.
       className="flex justify-center overflow-x-auto rounded-lg border border-input p-6 dark:bg-input/30 [&_svg]:h-auto [&_svg]:max-w-full"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG from mermaid.render with securityLevel "strict", which sanitizes it
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   )

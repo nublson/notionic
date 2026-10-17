@@ -48,8 +48,8 @@ export default async function Home() {
             Notion pages, rendered as React Server Components
           </h1>
           <p className="max-w-xl text-lg text-pretty text-muted-foreground">
-            Use Notion as your CMS. notionic renders blocks from the official
-            Notion API on the server, styled with Tailwind CSS and shadcn/ui.
+            Use Notion as your CMS. notionic renders blocks from the official Notion API on the
+            server, styled with Tailwind CSS and shadcn/ui.
           </p>
           <CodeBlock className="max-w-md">
             <CodeBlockActions>
@@ -79,7 +79,10 @@ export default async function Home() {
           >
             <span
               aria-hidden="true"
-              className={cn("size-2 rounded-full", live ? "bg-emerald-500" : "bg-muted-foreground/50")}
+              className={cn(
+                "size-2 rounded-full",
+                live ? "bg-emerald-500" : "bg-muted-foreground/50",
+              )}
             />
             {live ? "Live from Notion" : "Sample blocks"}
           </p>

@@ -39,7 +39,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ blo
   let file: HostedFile | null = null;
   try {
     const block = await client.blocks.retrieve({ block_id: blockId });
-    if (isFullBlock(block)) file = hostedFile(block as unknown as Record<string, unknown> & { type: string });
+    if (isFullBlock(block))
+      file = hostedFile(block as unknown as Record<string, unknown> & { type: string });
   } catch {
     // Missing, or not shared with the integration.
   }

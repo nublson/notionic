@@ -35,10 +35,7 @@ export type NotionPage = {
 export type NotionBlockType = NotionBlock["type"];
 
 /** A Notion block of one type, with its typed payload. */
-export type BlockOf<T extends NotionBlockType> = Extract<
-  NotionBlock,
-  { type: T }
->;
+export type BlockOf<T extends NotionBlockType> = Extract<NotionBlock, { type: T }>;
 
 export type RichText = RichTextItemResponse[];
 

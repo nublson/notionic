@@ -29,6 +29,7 @@ export function NotionCallout({
           {icon.emoji}
         </span>
       ) : iconUrl ? (
+        // biome-ignore lint/performance/noImgElement: registry blocks must work outside Next.js, and Notion icon URLs come from arbitrary hosts
         <img src={iconUrl} alt="" className="mt-0.5 size-5 shrink-0" />
       ) : null}
       <div className="flex min-w-0 flex-1 flex-col gap-4">

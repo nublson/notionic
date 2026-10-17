@@ -40,7 +40,9 @@ describe("POST /api/notion/revalidate", () => {
 
   it("refreshes on a correctly signed webhook event", async () => {
     const body = JSON.stringify({ type: "page.content_updated", entity: { id: "abc" } });
-    const res = await POST(request("/api/notion/revalidate", { "x-notion-signature": sign(body) }, body));
+    const res = await POST(
+      request("/api/notion/revalidate", { "x-notion-signature": sign(body) }, body),
+    );
     expect(res.status).toBe(200);
     expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
   });
@@ -58,14 +60,19 @@ describe("POST /api/notion/revalidate", () => {
     vi.stubEnv("NOTION_WEBHOOK_SECRET", "");
     const body = "{}";
     expect(
-      (await POST(request("/api/notion/revalidate", { "x-notion-signature": sign(body) }, body))).status,
+      (await POST(request("/api/notion/revalidate", { "x-notion-signature": sign(body) }, body)))
+        .status,
     ).toBe(401);
   });
 
   it("logs the verification token without refreshing anything", async () => {
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
     const res = await POST(
-      request("/api/notion/revalidate", {}, JSON.stringify({ verification_token: "secret_abc123" })),
+      request(
+        "/api/notion/revalidate",
+        {},
+        JSON.stringify({ verification_token: "secret_abc123" }),
+      ),
     );
     expect(res.status).toBe(200);
     expect(info.mock.calls[0]?.[0]).toContain("secret_abc123");
@@ -76,7 +83,11 @@ describe("POST /api/notion/revalidate", () => {
   it("doesn't log a verification token that could forge log lines", async () => {
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
     const res = await POST(
-      request("/api/notion/revalidate", {}, JSON.stringify({ verification_token: "a\n[fake] line" })),
+      request(
+        "/api/notion/revalidate",
+        {},
+        JSON.stringify({ verification_token: "a\n[fake] line" }),
+      ),
     );
     expect(res.status).toBe(401);
     expect(info).not.toHaveBeenCalled();

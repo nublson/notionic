@@ -1,9 +1,6 @@
 import { NotionCallout } from "@/registry/notionic/notion-callout";
 import { NotionCode } from "@/registry/notionic/notion-code";
-import {
-  NotionEquation,
-  NotionInlineEquation,
-} from "@/registry/notionic/notion-equation";
+import { NotionEquation, NotionInlineEquation } from "@/registry/notionic/notion-equation";
 import { withMermaid } from "@/registry/notionic/notion-mermaid";
 import { NotionTable } from "@/registry/notionic/notion-table";
 import { NotionTabs } from "@/registry/notionic/notion-tabs";

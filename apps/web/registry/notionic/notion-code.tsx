@@ -54,6 +54,7 @@ export async function NotionCode({ block, context }: BlockProps<"code">) {
       <CodeBlockContent aria-label={`Code, ${TITLES[language] ?? language}`}>
         {lines
           ? lines.map((line, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: lines have no identity beyond their position
               <CodeBlockLine key={index}>{line}</CodeBlockLine>
             ))
           : code}

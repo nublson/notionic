@@ -25,6 +25,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm lint
+
       - run: pnpm turbo run build typecheck test
 
   # Every shadcn registry item, installed into a fresh shadcn app with the

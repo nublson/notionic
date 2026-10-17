@@ -21,14 +21,17 @@ export function Table({ block, context }: BlockProps<"table">) {
     <tr key={row.id}>
       {cells(row).map((cell, i) =>
         head ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: cells have no ID; a cell's index is its column
           <th key={i} scope="col" className={HEADER_CELL}>
             <RichText text={cell} context={context} />
           </th>
         ) : i === 0 && has_row_header ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: cells have no ID; a cell's index is its column
           <th key={i} scope="row" className={HEADER_CELL}>
             <RichText text={cell} context={context} />
           </th>
         ) : (
+          // biome-ignore lint/suspicious/noArrayIndexKey: cells have no ID; a cell's index is its column
           <td key={i} className={CELL}>
             <RichText text={cell} context={context} />
           </td>
@@ -39,12 +42,16 @@ export function Table({ block, context }: BlockProps<"table">) {
 
   // Named by its columns, so several tables on a page can be told apart.
   const columns = has_column_header
-    ? cells(first).map((cell) => plainText(cell).trim()).filter(Boolean)
+    ? cells(first)
+        .map((cell) => plainText(cell).trim())
+        .filter(Boolean)
     : [];
   return (
+    // biome-ignore lint/a11y/useSemanticElements: kept a <div> so the rendered markup doesn't change; the role names the scroll container
     <div
       role="region"
       aria-label={columns.length > 0 ? `Table: ${columns.join(", ")}` : "Table"}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable region must be keyboard-focusable to scroll (WCAG 2.1.1)
       tabIndex={0}
       className="overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >

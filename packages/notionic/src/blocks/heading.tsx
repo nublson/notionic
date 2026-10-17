@@ -56,6 +56,7 @@ export function Heading({ block, context, children }: HeadingProps) {
     <>
       <div className={cx("group flex items-baseline gap-2", className)}>
         {heading}
+        {/* biome-ignore lint/a11y/useAnchorContent: aria-label gives the link its accessible name */}
         <a href={`#${id}`} aria-label={`Link to section: ${text}`} className={ANCHOR}>
           <span aria-hidden="true">#</span>
         </a>

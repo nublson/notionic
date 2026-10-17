@@ -25,15 +25,7 @@ function Caption({ caption, context }: { caption: RichTextArray; context: Render
 }
 
 /** A line linking to a URL, labelled by the caption or the URL itself. */
-function UrlLine({
-  url,
-  label,
-  context,
-}: {
-  url: string;
-  label: string;
-  context: RenderContext;
-}) {
+function UrlLine({ url, label, context }: { url: string; label: string; context: RenderContext }) {
   const link = resolveLink(url, context);
   if (!link) return null;
   return (
@@ -77,9 +69,7 @@ export function youTubeEmbedUrl(url: string): string | null {
       parsed.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1] ??
       null;
   }
-  return id && /^[\w-]{6,}$/.test(id)
-    ? `https://www.youtube-nocookie.com/embed/${id}`
-    : null;
+  return id && /^[\w-]{6,}$/.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : null;
 }
 
 export function Video({ block, context }: BlockProps<"video">) {
@@ -106,6 +96,7 @@ export function Video({ block, context }: BlockProps<"video">) {
   if (block.video.type === "file" && isUrl(src)) {
     return (
       <figure>
+        {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
         <video src={src} controls preload="metadata" className="w-full rounded-lg" />
         <Caption caption={caption} context={context} />
       </figure>
@@ -119,6 +110,7 @@ export function Audio({ block, context }: BlockProps<"audio">) {
   if (!src || !isUrl(src)) return null;
   return (
     <figure>
+      {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
       <audio src={src} controls preload="metadata" className="w-full" />
       <Caption caption={block.audio.caption} context={context} />
     </figure>

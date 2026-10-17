@@ -110,7 +110,11 @@ describe("linked pages", () => {
       },
     };
     const [a, b] = await fetchBlocks(withPages, "root");
-    expect(a!.linkedPage).toEqual({ id: "p1", title: "Getting started", icon: { type: "emoji", emoji: "📘" } });
+    expect(a!.linkedPage).toEqual({
+      id: "p1",
+      title: "Getting started",
+      icon: { type: "emoji", emoji: "📘" },
+    });
     expect(b!.linkedPage).toBeUndefined();
   });
 
@@ -120,7 +124,11 @@ describe("linked pages", () => {
       { ...client, pages: { retrieve: async () => page("root", "Docs") as never } },
       "root",
     );
-    expect(result.page).toMatchObject({ id: "root", title: "Docs", lastEditedTime: "2026-10-17T00:00:00.000Z" });
+    expect(result.page).toMatchObject({
+      id: "root",
+      title: "Docs",
+      lastEditedTime: "2026-10-17T00:00:00.000Z",
+    });
     expect(result.blocks.map((b) => b.id)).toEqual(["p"]);
   });
 });

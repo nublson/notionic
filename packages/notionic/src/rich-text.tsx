@@ -32,17 +32,12 @@ export function NotionLink({
   );
 }
 
-function RichTextItem({
-  item,
-  context,
-}: {
-  item: RichTextItemResponse;
-  context: RenderContext;
-}) {
+function RichTextItem({ item, context }: { item: RichTextItemResponse; context: RenderContext }) {
   const { annotations } = item;
   // Notion writes line breaks within a block (Shift+Enter) as "\n".
   let node: ReactNode = item.plain_text.includes("\n")
-    ? item.plain_text.split("\n").flatMap((line, i) => (i === 0 ? [line] : [<br key={i} />, line]))
+    ? // biome-ignore lint/suspicious/noArrayIndexKey: line breaks have no identity beyond their position
+      item.plain_text.split("\n").flatMap((line, i) => (i === 0 ? [line] : [<br key={i} />, line]))
     : item.plain_text;
 
   // Shown as Notion writes it; `dateTime` gives the machine-readable start.
@@ -79,14 +74,7 @@ function RichTextItem({
 }
 
 /** A Notion rich text array: annotations, colors, links and mentions. */
-export function RichText({
-  text,
-  context,
-}: {
-  text: RichTextArray;
-  context: RenderContext;
-}) {
-  return text.map((item, i) => (
-    <RichTextItem key={i} item={item} context={context} />
-  ));
+export function RichText({ text, context }: { text: RichTextArray; context: RenderContext }) {
+  // biome-ignore lint/suspicious/noArrayIndexKey: rich text items have no ID; Notion returns them in order
+  return text.map((item, i) => <RichTextItem key={i} item={item} context={context} />);
 }
