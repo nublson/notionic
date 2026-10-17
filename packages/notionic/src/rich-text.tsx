@@ -5,6 +5,8 @@ import { resolveLink } from "./links";
 import type { RenderContext, ResolvedLink, RichText as RichTextArray } from "./types";
 import { cx } from "./utils";
 
+export const CODE_CLASSES = "rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[0.875em]";
+
 const LINK_CLASSES =
   "font-medium underline underline-offset-4 decoration-muted-foreground/50 hover:decoration-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
@@ -48,12 +50,13 @@ function RichTextItem({
     node = <time dateTime={item.mention.date.start}>{node}</time>;
   }
 
-  if (annotations.code || item.type === "equation") {
-    node = (
-      <code className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[0.875em]">
-        {node}
-      </code>
-    );
+  if (item.type === "equation") {
+    const InlineEquation = context.components.inline_equation;
+    if (InlineEquation) {
+      node = <InlineEquation expression={item.equation.expression} context={context} />;
+    }
+  } else if (annotations.code) {
+    node = <code className={CODE_CLASSES}>{node}</code>;
   }
   if (annotations.bold) node = <strong className="font-semibold">{node}</strong>;
   if (annotations.italic) node = <em>{node}</em>;

@@ -1,6 +1,6 @@
 import { blockColorClass } from "../colors";
-import { RichText } from "../rich-text";
-import type { BlockProps } from "../types";
+import { CODE_CLASSES, RichText } from "../rich-text";
+import type { BlockProps, InlineEquationProps } from "../types";
 import { cx } from "../utils";
 
 export function Paragraph({ block, context, children }: BlockProps<"paragraph">) {
@@ -63,10 +63,16 @@ export function Divider(_: BlockProps<"divider">) {
   return <hr className="border-border" />;
 }
 
+/** An equation's LaTeX source. For formatted math, use `notion-equation` from the shadcn registry. */
 export function Equation({ block }: BlockProps<"equation">) {
   return (
     <div className="overflow-x-auto rounded-md bg-muted px-4 py-3">
       <code className="font-mono text-sm">{block.equation.expression}</code>
     </div>
   );
+}
+
+/** An equation inside text, as its LaTeX source. */
+export function InlineEquation({ expression }: InlineEquationProps) {
+  return <code className={CODE_CLASSES}>{expression}</code>;
 }

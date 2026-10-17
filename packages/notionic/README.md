@@ -83,6 +83,8 @@ function Callout({ block, context, children }: BlockProps<"callout">) {
 
 `children` holds the block's nested blocks, already rendered.
 
+Equations inside text have their own key, `inline_equation`, whose component gets the equation's LaTeX as `expression`.
+
 ## Supported blocks
 
 Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark, embed, link preview and child page. Date mentions render as `<time>`.
@@ -91,7 +93,7 @@ Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; headi
 
 Tabs render as an accordion, one `<details>` per tab, where opening one closes the others, with no JavaScript. For real tabs, use `notion-tabs` from the shadcn registry.
 
-Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below. Equations show their LaTeX source.
+Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below. Equations, in blocks and inside text, show their LaTeX source; `notion-equation` typesets them with KaTeX.
 
 Unsupported blocks render nothing, with a warning in development.
 
@@ -116,6 +118,7 @@ notionic's shadcn registry has versions of some blocks built on your own shadcn/
 | `notion-table` | Table |
 | `notion-toggle` | Collapsible |
 | `notion-tabs` | Tabs, with every panel kept in the HTML |
+| `notion-equation` | KaTeX, rendered on the server: equation blocks and equations inside text |
 
 Add the registry to your `components.json`:
 
@@ -130,7 +133,7 @@ Add the registry to your `components.json`:
 Then add the items you want, and pass them to `components`:
 
 ```bash
-npx shadcn@latest add @notionic/notion-code @notionic/notion-callout @notionic/notion-table @notionic/notion-toggle @notionic/notion-tabs
+npx shadcn@latest add @notionic/notion-code @notionic/notion-callout @notionic/notion-table @notionic/notion-toggle @notionic/notion-tabs @notionic/notion-equation
 ```
 
 ```tsx
@@ -139,6 +142,7 @@ import { NotionCode } from "@/components/notion-code";
 import { NotionTable } from "@/components/notion-table";
 import { NotionToggle } from "@/components/notion-toggle";
 import { NotionTabs } from "@/components/notion-tabs";
+import { NotionEquation, NotionInlineEquation } from "@/components/notion-equation";
 
 <NotionRenderer
   blocks={blocks}
@@ -148,6 +152,8 @@ import { NotionTabs } from "@/components/notion-tabs";
     table: NotionTable,
     toggle: NotionToggle,
     tab: NotionTabs,
+    equation: NotionEquation,
+    inline_equation: NotionInlineEquation,
   }}
 />;
 ```

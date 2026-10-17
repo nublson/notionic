@@ -16,7 +16,7 @@ import {
 } from "./blocks/media";
 import { Table } from "./blocks/table";
 import { Tab, TableOfContents } from "./blocks/navigation";
-import { Callout, Divider, Equation, Paragraph, Quote } from "./blocks/text";
+import { Callout, Divider, Equation, InlineEquation, Paragraph, Quote } from "./blocks/text";
 import { defaultPageHref } from "./links";
 import { collectHeadings } from "./headings";
 import type { BlockComponents, BlockProps, NotionBlock, RenderContext } from "./types";
@@ -52,6 +52,7 @@ export const defaultComponents: BlockComponents = {
   child_page: ChildPage,
   table_of_contents: TableOfContents,
   tab: Tab,
+  inline_equation: InlineEquation,
 };
 
 type ListKind = "bulleted" | "numbered" | "todo";

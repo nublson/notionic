@@ -92,6 +92,23 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "notion-equation",
+      "type": "registry:component",
+      "title": "Notion Equation",
+      "description": "Notion equations, in blocks and inside text, typeset with KaTeX on the server.",
+      "dependencies": [
+        "notionic",
+        "katex"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/notionic/notion-equation.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }

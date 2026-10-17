@@ -255,6 +255,21 @@ describe("NotionRenderer", () => {
     expect(html).toContain("Second");
   });
 
+  it("renders inline equations with a replaceable component", async () => {
+    const equation = {
+      type: "equation",
+      equation: { expression: "x^2" },
+      annotations: { bold: true, italic: false, strikethrough: false, underline: false, code: false, color: "default" },
+      plain_text: "x^2",
+      href: null,
+    } as unknown as ReturnType<typeof richText>;
+    expect(await render([para(equation)])).toContain("<strong class=\"font-semibold\"><code");
+    const html = await render([para(equation)], {
+      components: { inline_equation: ({ expression }) => <span data-math="">{expression}</span> },
+    });
+    expect(html).toContain('<span data-math="">x^2</span>');
+  });
+
   it("skips unsupported blocks", async () => {
     const html = await render([block("breadcrumb"), para(richText("after"))]);
     expect(html).toContain("after");

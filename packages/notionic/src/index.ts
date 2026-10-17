@@ -14,5 +14,6 @@ export type {
   BlockComponents,
   RenderContext,
   ResolvedLink,
+  InlineEquationProps,
 } from "./types";
 export type { RichText as NotionRichText } from "./types";

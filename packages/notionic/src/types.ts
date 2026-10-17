@@ -40,7 +40,18 @@ export type BlockProps<T extends NotionBlockType> = {
   children?: ReactNode;
 };
 
-/** Replacements for the built-in components, by block type. */
+export type InlineEquationProps = {
+  /** The equation's LaTeX source. */
+  expression: string;
+  context: RenderContext;
+};
+
+/**
+ * Replacements for the built-in components: one per block type, plus
+ * `inline_equation` for equations inside text.
+ */
 export type BlockComponents = {
   [T in NotionBlockType]?: ComponentType<BlockProps<T>>;
+} & {
+  inline_equation?: ComponentType<InlineEquationProps>;
 };

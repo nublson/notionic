@@ -4,6 +4,10 @@ import { NotionRenderer, type NotionBlock } from "notionic";
 import { fetchBlocks } from "notionic/fetch";
 import { NotionCallout } from "@/registry/notionic/notion-callout";
 import { NotionCode } from "@/registry/notionic/notion-code";
+import {
+  NotionEquation,
+  NotionInlineEquation,
+} from "@/registry/notionic/notion-equation";
 import { NotionTable } from "@/registry/notionic/notion-table";
 import { NotionTabs } from "@/registry/notionic/notion-tabs";
 import { NotionToggle } from "@/registry/notionic/notion-toggle";
@@ -16,6 +20,8 @@ const components = {
   table: NotionTable,
   toggle: NotionToggle,
   tab: NotionTabs,
+  equation: NotionEquation,
+  inline_equation: NotionInlineEquation,
 };
 
 // Rendered on each request, so a Notion page shows its latest content.
