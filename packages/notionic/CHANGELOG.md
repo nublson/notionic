@@ -1,5 +1,11 @@
 # notionic
 
+## 0.4.0
+
+### Minor Changes
+
+- [#22](https://github.com/nublson/notionic/pull/22) [`ed4a20a`](https://github.com/nublson/notionic/commit/ed4a20a0ecddb51efb507a618cb133c0cb452682) Thanks [@nublson](https://github.com/nublson)! - Add `notionic/markdown` with `blocksToMarkdown(blocks, options)`, which turns Notion blocks into GitHub-flavored Markdown for feeds and `llms.txt`. It supports every block `NotionRenderer` does, and takes the same `pageHref` and `transformFileUrl` options.
+
 ## 0.3.0
 
 ### Minor Changes
