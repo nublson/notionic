@@ -13,6 +13,7 @@ import { notionClient } from "@/lib/notion";
 import { demos } from "@/lib/demos";
 import { notionComponents, notionFileUrl } from "@/lib/notion-components";
 import { SITE_AUTHOR } from "@/lib/site";
+import { homeStructuredData, JsonLd } from "@/lib/structured-data";
 import { sampleBlocks } from "./sample-blocks";
 
 // The page is cached and rebuilt in the background at most once an hour, so
@@ -42,6 +43,7 @@ export default async function Home() {
   const { blocks, live } = await getBlocks();
   return (
     <div className="mx-auto flex min-h-svh max-w-3xl flex-col px-4">
+      <JsonLd data={homeStructuredData} />
       <SiteHeader />
 
       <main className="flex-1">

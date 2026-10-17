@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DocsSearch } from "@/components/docs-search";
+import { Logo } from "@/components/logo";
 
 const NAV_LINK =
   "rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
@@ -7,8 +8,12 @@ const NAV_LINK =
 export function SiteHeader() {
   return (
     <header className="flex items-center justify-between py-6 text-sm">
-      <Link href="/" className="font-semibold tracking-tight">
-        notionic
+      <Link
+        href="/"
+        className="-m-1 rounded-sm p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        <Logo />
+        <span className="sr-only">notionic</span>
       </Link>
       <nav className="flex items-center gap-3.5 sm:gap-5">
         <DocsSearch />
