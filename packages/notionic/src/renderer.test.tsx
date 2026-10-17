@@ -300,6 +300,31 @@ describe("NotionRenderer", () => {
     expect(html.match(/<a /g)).toHaveLength(1);
   });
 
+  it("renders bookmarks with a preview as cards, and others as links", async () => {
+    const url = "https://example.com/post";
+    const card = {
+      ...block("bookmark", { url, caption: [richText("Worth reading")] }),
+      bookmarkPreview: {
+        title: "A post",
+        description: "What it's about.",
+        image: "https://example.com/cover.png",
+        favicon: "https://example.com/favicon.ico",
+      },
+    } as NotionBlock;
+    const html = await render([card, block("bookmark", { url, caption: [] })]);
+    expect(html).toMatch(
+      /<a href="https:\/\/example.com\/post" target="_blank" rel="noopener noreferrer"/,
+    );
+    expect(html).toContain("A post");
+    expect(html).toContain("What it&#x27;s about.");
+    expect(html).toContain('src="https://example.com/cover.png"');
+    expect(html).toContain("<figcaption");
+    // The second bookmark has no preview: a plain link labelled by its URL.
+    expect(html).toMatch(
+      /<p class="break-words"><a href="https:\/\/example.com\/post"[^>]*>https:\/\/example.com\/post/,
+    );
+  });
+
   it("passes uploaded files, not external ones, through transformFileUrl", async () => {
     const signed = "https://prod-files-secure.s3.amazonaws.com/a.png?X-Amz-Signature=x";
     const html = await render(
