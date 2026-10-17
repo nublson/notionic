@@ -1,7 +1,7 @@
 import { Client } from "@notionhq/client";
-import Link from "next/link";
 import { NotionRenderer, type NotionBlock } from "notionic";
 import { fetchBlocks } from "notionic/fetch";
+import { SiteHeader } from "@/components/site-header";
 import { buttonVariants } from "@/components/ui/button";
 import {
   CodeBlock,
@@ -10,28 +10,8 @@ import {
   CodeBlockCopyButton,
 } from "@/components/ui/code-block";
 import { cn } from "@/lib/utils";
-import { NotionCallout } from "@/registry/notionic/notion-callout";
-import { NotionCode } from "@/registry/notionic/notion-code";
-import {
-  NotionEquation,
-  NotionInlineEquation,
-} from "@/registry/notionic/notion-equation";
-import { withMermaid } from "@/registry/notionic/notion-mermaid";
-import { NotionTable } from "@/registry/notionic/notion-table";
-import { NotionTabs } from "@/registry/notionic/notion-tabs";
-import { NotionToggle } from "@/registry/notionic/notion-toggle";
+import { notionComponents } from "@/lib/notion-components";
 import { sampleBlocks } from "./sample-blocks";
-
-// The shadcn/ui versions from notionic's registry.
-const components = {
-  code: withMermaid(NotionCode),
-  callout: NotionCallout,
-  table: NotionTable,
-  toggle: NotionToggle,
-  tab: NotionTabs,
-  equation: NotionEquation,
-  inline_equation: NotionInlineEquation,
-};
 
 // The page is cached and rebuilt in the background at most once an hour, so
 // visits don't call the Notion API (about 3 requests a second on average).
@@ -56,29 +36,11 @@ async function getBlocks(): Promise<{ blocks: NotionBlock[]; live: boolean }> {
   }
 }
 
-const NAV_LINK =
-  "rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-
 export default async function Home() {
   const { blocks, live } = await getBlocks();
   return (
     <div className="mx-auto flex min-h-svh max-w-3xl flex-col px-4">
-      <header className="flex items-center justify-between py-6 text-sm">
-        <Link href="/" className="font-semibold tracking-tight">
-          notionic
-        </Link>
-        <nav className="flex items-center gap-5">
-          <Link href="/changelog" className={NAV_LINK}>
-            Changelog
-          </Link>
-          <a href="https://www.npmjs.com/package/notionic" className={NAV_LINK}>
-            npm
-          </a>
-          <a href="https://github.com/nublson/notionic" className={NAV_LINK}>
-            GitHub
-          </a>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
         <section className="flex flex-col gap-6 py-16 sm:py-24">
@@ -98,8 +60,8 @@ export default async function Home() {
             </CodeBlockContent>
           </CodeBlock>
           <div className="flex flex-wrap gap-3">
-            <a href="#get-started" className={cn(buttonVariants({ size: "lg" }), "px-4")}>
-              Get started
+            <a href="/docs" className={cn(buttonVariants({ size: "lg" }), "px-4")}>
+              Read the docs
             </a>
             <a
               href="https://github.com/nublson/notionic"
@@ -121,7 +83,7 @@ export default async function Home() {
             />
             {live ? "Live from Notion" : "Sample blocks"}
           </p>
-          <NotionRenderer blocks={blocks} components={components} />
+          <NotionRenderer blocks={blocks} components={notionComponents} />
         </section>
       </main>
 

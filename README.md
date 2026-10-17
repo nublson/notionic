@@ -7,7 +7,7 @@ More at https://notionic.dev
 ## Repository
 
 - `packages/notionic`: the npm package.
-- `apps/web`: notionic.dev. Renders sample blocks, or a real page when `NOTION_TOKEN` and `NOTION_PAGE_ID` are set. It also serves the shadcn registry at `/r/{name}.json`: the items' source is in `apps/web/registry`, listed in `apps/web/registry.json`, and `pnpm build` builds the JSON into `apps/web/public/r`.
+- `apps/web`: notionic.dev. Its landing page renders the Notion page in `NOTION_PAGE_ID`, and `/docs` renders the docs database in `NOTION_DOCS_DATA_SOURCE_ID` (both read with `NOTION_TOKEN`; without them the site shows sample blocks and a docs notice). It also serves the shadcn registry at `/r/{name}.json`: the items' source is in `apps/web/registry`, listed in `apps/web/registry.json`, and `pnpm build` builds the JSON into `apps/web/public/r`.
 
 ## Develop
 

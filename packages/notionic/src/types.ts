@@ -1,12 +1,35 @@
 import type {
   BlockObjectResponse,
+  PageObjectResponse,
   RichTextItemResponse,
 } from "@notionhq/client";
 import type { ComponentType, ReactNode } from "react";
 import type { PageHeading } from "./headings";
 
-/** A block from the Notion API, with its nested blocks attached as `children`. */
-export type NotionBlock = BlockObjectResponse & { children?: NotionBlock[] };
+export type PageIcon = PageObjectResponse["icon"];
+
+/** The page a `link_to_page` block points to, attached by `fetchBlocks`. */
+export type LinkedPage = { id: string; title: string; icon: PageIcon };
+
+/**
+ * A block from the Notion API, with its nested blocks attached as `children`
+ * and, for `link_to_page`, the linked page as `linkedPage`.
+ */
+export type NotionBlock = BlockObjectResponse & {
+  children?: NotionBlock[];
+  linkedPage?: LinkedPage;
+};
+
+/** A Notion page's metadata, from `fetchPage`. */
+export type NotionPage = {
+  id: string;
+  url: string;
+  title: string;
+  icon: PageIcon;
+  cover: PageObjectResponse["cover"];
+  lastEditedTime: string;
+  properties: PageObjectResponse["properties"];
+};
 
 export type NotionBlockType = NotionBlock["type"];
 

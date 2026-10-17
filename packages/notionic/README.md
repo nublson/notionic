@@ -45,6 +45,8 @@ export default async function Page() {
 }
 ```
 
+To also get the page's title, icon, cover and properties, use `fetchPage(notion, pageId)`, which returns `{ page, blocks }`.
+
 `fetchBlocks` fetches every block of the page with its nested blocks, following pagination. It limits requests in flight (`concurrency`, default 3) and nesting depth (`maxDepth`, default 5). It doesn't cache: use your framework's cache, such as Next.js's `"use cache"`.
 
 You can also pass blocks you fetched yourself: `NotionRenderer` takes the API's block objects with nested blocks attached as `children` (the `NotionBlock` type).
@@ -89,7 +91,7 @@ Equations inside text have their own key, `inline_equation`, whose component get
 
 ## Supported blocks
 
-Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark, embed, link preview and child page. Date mentions render as `<time>`.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark, embed, link preview and child page and link to page (titled by `fetchBlocks`). Date mentions render as `<time>`.
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 
