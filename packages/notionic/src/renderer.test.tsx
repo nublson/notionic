@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { NotionRenderer, type NotionRendererProps } from "./renderer";
 import { RichText } from "./rich-text";
 import { block, renderToHtml, richText } from "./test-utils";
-import type { BlockProps, NotionBlock } from "./types";
+import type { BlockProps, DemoFrameProps, DemoProps, NotionBlock } from "./types";
 
 const PAGE_ID = "244b17268ab383c3938887a7a5748b73";
 
@@ -323,6 +323,35 @@ describe("NotionRenderer", () => {
     expect(html).toMatch(
       /<p class="break-words"><a href="https:\/\/example.com\/post"[^>]*>https:\/\/example.com\/post/,
     );
+  });
+
+  it("renders embeds of /demos/<name> as demos, in a frame with the caption", async () => {
+    const Demo = ({ name, params }: DemoProps) => (
+      <button type="button">
+        {name} {params.speed}
+      </button>
+    );
+    const embed = (url: string, caption = [richText("Press the button.")]) =>
+      block("embed", { url, caption });
+    const blocks = [
+      embed("https://nublson.com/demos/morph-button?speed=slow"),
+      embed("https://nublson.com/demos/unknown", []),
+    ];
+    const html = await render(blocks, { demos: { "morph-button": Demo } });
+    expect(html).toMatch(
+      /<figure><div class="flex min-h-48[^"]*"><button type="button">morph-button<!-- --> <!-- -->slow<\/button><\/div><figcaption[^>]*>Press the button.<\/figcaption><\/figure>/,
+    );
+    // An unknown name stays a link.
+    expect(html).toMatch(/<a href="https:\/\/nublson.com\/demos\/unknown"/);
+    // Without demos, every embed is a link.
+    expect(await render(blocks)).not.toContain("<button");
+
+    const Frame = ({ name, children }: DemoFrameProps) => (
+      <section data-demo={name}>{children}</section>
+    );
+    expect(
+      await render(blocks, { demos: { "morph-button": Demo }, components: { demo: Frame } }),
+    ).toContain('<section data-demo="morph-button"><button');
   });
 
   it("passes uploaded files, not external ones, through transformFileUrl", async () => {
