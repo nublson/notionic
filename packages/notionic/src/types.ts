@@ -3,6 +3,7 @@ import type {
   RichTextItemResponse,
 } from "@notionhq/client";
 import type { ComponentType, ReactNode } from "react";
+import type { PageHeading } from "./headings";
 
 /** A block from the Notion API, with its nested blocks attached as `children`. */
 export type NotionBlock = BlockObjectResponse & { children?: NotionBlock[] };
@@ -27,8 +28,8 @@ export type ResolvedLink = { href: string; external: boolean };
 export type RenderContext = {
   /** Where a Notion page links to, or null to render its text without a link. */
   pageHref: (pageId: string) => string | null;
-  /** Unique heading ids across the whole page. */
-  slug: (text: string) => string;
+  /** The page's headings, with their anchor ids (see `collectHeadings`). */
+  headings: PageHeading[];
   components: BlockComponents;
 };
 
@@ -39,7 +40,18 @@ export type BlockProps<T extends NotionBlockType> = {
   children?: ReactNode;
 };
 
-/** Replacements for the built-in components, by block type. */
+export type InlineEquationProps = {
+  /** The equation's LaTeX source. */
+  expression: string;
+  context: RenderContext;
+};
+
+/**
+ * Replacements for the built-in components: one per block type, plus
+ * `inline_equation` for equations inside text.
+ */
 export type BlockComponents = {
   [T in NotionBlockType]?: ComponentType<BlockProps<T>>;
+} & {
+  inline_equation?: ComponentType<InlineEquationProps>;
 };

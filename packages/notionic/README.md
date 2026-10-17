@@ -83,15 +83,31 @@ function Callout({ block, context, children }: BlockProps<"callout">) {
 
 `children` holds the block's nested blocks, already rendered.
 
+`notion-mermaid` loads Mermaid in the browser only on pages with a diagram, follows the `dark` class, and keeps showing the code until the diagram draws, or if its source doesn't parse. Wrap the code component you use: `withMermaid(NotionCode)`, or `withMermaid(defaultComponents.code)`.
+
+Equations inside text have their own key, `inline_equation`, whose component gets the equation's LaTeX as `expression`.
+
 ## Supported blocks
 
-Paragraph, headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, synced block, image, video (YouTube or file), audio, file, PDF, bookmark, embed, link preview and child page.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark, embed, link preview and child page. Date mentions render as `<time>`.
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 
-Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below.
+Tabs render as an accordion, one `<details>` per tab, where opening one closes the others, with no JavaScript. For real tabs, use `notion-tabs` from the shadcn registry.
+
+Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below. Equations, in blocks and inside text, show their LaTeX source; `notion-equation` typesets them with KaTeX.
 
 Unsupported blocks render nothing, with a warning in development.
+
+### Page outline
+
+`collectHeadings(blocks)` returns the page's headings in reading order, with the same anchor ids the rendered headings get, for a sidebar outline:
+
+```tsx
+import { collectHeadings } from "notionic";
+
+const outline = collectHeadings(blocks); // [{ id: "intro", text: "Intro", level: 1, blockId }]
+```
 
 ## shadcn/ui components
 
@@ -103,6 +119,9 @@ notionic's shadcn registry has versions of some blocks built on your own shadcn/
 | `notion-callout` | Alert |
 | `notion-table` | Table |
 | `notion-toggle` | Collapsible |
+| `notion-tabs` | Tabs, with every panel kept in the HTML |
+| `notion-equation` | KaTeX, rendered on the server: equation blocks and equations inside text |
+| `notion-mermaid` | Mermaid: draws `mermaid` code blocks as diagrams, wrapping your code component |
 
 Add the registry to your `components.json`:
 
@@ -117,7 +136,7 @@ Add the registry to your `components.json`:
 Then add the items you want, and pass them to `components`:
 
 ```bash
-npx shadcn@latest add @notionic/notion-code @notionic/notion-callout @notionic/notion-table @notionic/notion-toggle
+npx shadcn@latest add @notionic/notion-code @notionic/notion-callout @notionic/notion-table @notionic/notion-toggle @notionic/notion-tabs @notionic/notion-equation @notionic/notion-mermaid
 ```
 
 ```tsx
@@ -125,14 +144,20 @@ import { NotionCallout } from "@/components/notion-callout";
 import { NotionCode } from "@/components/notion-code";
 import { NotionTable } from "@/components/notion-table";
 import { NotionToggle } from "@/components/notion-toggle";
+import { NotionTabs } from "@/components/notion-tabs";
+import { NotionEquation, NotionInlineEquation } from "@/components/notion-equation";
+import { withMermaid } from "@/components/notion-mermaid";
 
 <NotionRenderer
   blocks={blocks}
   components={{
-    code: NotionCode,
+    code: withMermaid(NotionCode),
     callout: NotionCallout,
     table: NotionTable,
     toggle: NotionToggle,
+    tab: NotionTabs,
+    equation: NotionEquation,
+    inline_equation: NotionInlineEquation,
   }}
 />;
 ```

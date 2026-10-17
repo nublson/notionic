@@ -8,7 +8,7 @@ const DASHED = "244b1726-8ab3-83c3-9388-87a7a5748b73";
 
 const context = (pageHref: RenderContext["pageHref"] = defaultPageHref): RenderContext => ({
   pageHref,
-  slug: (text) => text,
+  headings: [],
   components: defaultComponents,
 });
 

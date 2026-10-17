@@ -28,9 +28,8 @@ export function Heading({ block, context, children }: HeadingProps) {
           : block.heading_4;
   const text = plainText(data.rich_text);
   // A blank heading would get an empty id and an unnamed anchor.
-  if (text.trim() === "") return children ?? null;
-
-  const id = context.slug(text);
+  const id = context.headings.find((heading) => heading.blockId === block.id)?.id;
+  if (!id) return children ?? null;
   const { Tag, className } = LEVELS[block.type];
   const heading = (
     <Tag id={id} className={cx("scroll-mt-8", blockColorClass(data.color))}>

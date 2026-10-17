@@ -4,16 +4,25 @@ import { NotionRenderer, type NotionBlock } from "notionic";
 import { fetchBlocks } from "notionic/fetch";
 import { NotionCallout } from "@/registry/notionic/notion-callout";
 import { NotionCode } from "@/registry/notionic/notion-code";
+import {
+  NotionEquation,
+  NotionInlineEquation,
+} from "@/registry/notionic/notion-equation";
+import { withMermaid } from "@/registry/notionic/notion-mermaid";
 import { NotionTable } from "@/registry/notionic/notion-table";
+import { NotionTabs } from "@/registry/notionic/notion-tabs";
 import { NotionToggle } from "@/registry/notionic/notion-toggle";
 import { sampleBlocks } from "./sample-blocks";
 
 // The shadcn/ui versions from notionic's registry.
 const components = {
-  code: NotionCode,
+  code: withMermaid(NotionCode),
   callout: NotionCallout,
   table: NotionTable,
   toggle: NotionToggle,
+  tab: NotionTabs,
+  equation: NotionEquation,
+  inline_equation: NotionInlineEquation,
 };
 
 // Rendered on each request, so a Notion page shows its latest content.
