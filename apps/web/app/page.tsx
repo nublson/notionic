@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { notionClient } from "@/lib/notion";
 import { demos } from "@/lib/demos";
 import { notionComponents, notionFileUrl } from "@/lib/notion-components";
+import { SITE_AUTHOR } from "@/lib/site";
 import { sampleBlocks } from "./sample-blocks";
 
 // The page is cached and rebuilt in the background at most once an hour, so
@@ -98,7 +99,25 @@ export default async function Home() {
 
       <footer className="flex items-center justify-between border-t border-border py-6 text-sm text-muted-foreground">
         <span>MIT License</span>
-        <span>Built with notionic</span>
+        <span>
+          Built with notionic
+          {SITE_AUTHOR ? (
+            <>
+              {" "}
+              by{" "}
+              {SITE_AUTHOR.url ? (
+                <a
+                  href={SITE_AUTHOR.url}
+                  className="font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  {SITE_AUTHOR.name}
+                </a>
+              ) : (
+                SITE_AUTHOR.name
+              )}
+            </>
+          ) : null}
+        </span>
       </footer>
     </div>
   );
