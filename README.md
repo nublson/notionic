@@ -8,6 +8,7 @@ More at https://notionic.dev
 
 - `packages/notionic`: the npm package.
 - `apps/web`: notionic.dev. Its landing page renders the Notion page in `NOTION_PAGE_ID`, and `/docs` renders the docs database in `NOTION_DOCS_DATA_SOURCE_ID` (both read with `NOTION_TOKEN`; without them the site shows sample blocks and a docs notice). It also serves the shadcn registry at `/r/{name}.json`: the items' source is in `apps/web/registry`, listed in `apps/web/registry.json`, and `pnpm build` builds the JSON into `apps/web/public/r`.
+- `examples/starter`: a Next.js starter that builds a site from a Notion database. It's a standalone app that people copy, so it's outside the pnpm workspace and Biome (it has its own ESLint and Prettier) and installs `notionic` from npm. To try local changes in it, `npm pack` `packages/notionic` and `npm install` the tarball in a copy of it.
 
 ### Instant refresh from Notion
 
@@ -65,8 +66,16 @@ Run by hand. It:
 1. Runs `changeset version` on `develop`, which turns the pending changesets into the new version and a [CHANGELOG.md](packages/notionic/CHANGELOG.md) entry, and commits them.
 2. Merges `develop` into `main` with a merge commit.
 3. Builds, typechecks and tests `main`, then sets the `release/build-validation` status, which Vercel waits for before deploying notionic.dev.
-4. Tags a new version (`v0.4.0`) and creates its GitHub release, whose notes are the changelog entry. Separately, it publishes `notionic` to npm with provenance if that version isn't published yet, so a failed npm publish doesn't hold back the GitHub release.
+4. Makes sure Vercel deploys that commit to production. Vercel's GitHub integration occasionally misses a push to `main`; if it hasn't reported a `Vercel` status on the release commit within 3 minutes, the workflow triggers a Deploy Hook for `main`. That deployment still waits for `release/build-validation`.
+5. Tags a new version (`v0.4.0`) and creates its GitHub release, whose notes are the changelog entry. Separately, it publishes `notionic` to npm with provenance if that version isn't published yet, so a failed npm publish doesn't hold back the GitHub release.
 
 With no pending changesets, a release only ships the site.
+
+The fallback deploy needs a Deploy Hook, set up once:
+
+1. In Vercel, open the `notionic` project → **Settings → Git → Deploy Hooks**, and create a hook named `release` for the branch `main` (or run `vercel deploy-hooks create release --ref main` in a linked checkout).
+2. Store its URL as the repository secret `VERCEL_DEPLOY_HOOK_URL`: `gh secret set VERCEL_DEPLOY_HOOK_URL --repo nublson/notionic`, then paste the URL.
+
+Without the secret, a release whose commit Vercel missed fails the **Ensure production deploy** job instead.
 
 npm publishing uses [trusted publishing](https://docs.npmjs.com/trusted-publishers): there's no npm token, npm trusts `release.yml` in this repository.
