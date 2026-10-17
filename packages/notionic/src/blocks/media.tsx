@@ -164,3 +164,21 @@ export function ChildPage({ block, context }: BlockProps<"child_page">) {
   const title = block.child_page.title || "Untitled";
   return <p>{link ? <NotionLink link={link}>{title}</NotionLink> : title}</p>;
 }
+
+/** A link to another page, titled by `fetchBlocks`. Without a title, nothing renders. */
+export function LinkToPage({ block, context }: BlockProps<"link_to_page">) {
+  const page = block.linkedPage;
+  if (!page) return null;
+  const link = resolvePageLink(page.id, context);
+  const label = (
+    <>
+      {page.icon?.type === "emoji" ? (
+        <span aria-hidden="true" className="mr-1.5">
+          {page.icon.emoji}
+        </span>
+      ) : null}
+      {page.title || "Untitled"}
+    </>
+  );
+  return <p>{link ? <NotionLink link={link}>{label}</NotionLink> : label}</p>;
+}

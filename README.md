@@ -7,7 +7,16 @@ More at https://notionic.dev
 ## Repository
 
 - `packages/notionic`: the npm package.
-- `apps/web`: notionic.dev. Renders sample blocks, or a real page when `NOTION_TOKEN` and `NOTION_PAGE_ID` are set. It also serves the shadcn registry at `/r/{name}.json`: the items' source is in `apps/web/registry`, listed in `apps/web/registry.json`, and `pnpm build` builds the JSON into `apps/web/public/r`.
+- `apps/web`: notionic.dev. Its landing page renders the Notion page in `NOTION_PAGE_ID`, and `/docs` renders the docs database in `NOTION_DOCS_DATA_SOURCE_ID` (both read with `NOTION_TOKEN`; without them the site shows sample blocks and a docs notice). It also serves the shadcn registry at `/r/{name}.json`: the items' source is in `apps/web/registry`, listed in `apps/web/registry.json`, and `pnpm build` builds the JSON into `apps/web/public/r`.
+
+### Instant refresh from Notion
+
+Pages refresh hourly on their own. `POST /api/notion/revalidate` refreshes every page on its next visit, so a Notion edit shows right away:
+
+- **Notion webhook.** On the production integration (`notionic`), add a webhook subscription to `https://notionic.dev/api/notion/revalidate` for page events. Notion first sends a verification token: find it in the Vercel logs (`[notion] Webhook verification token: …`), paste it into the subscription's **Verify** dialog, and set it as `NOTION_WEBHOOK_SECRET` in Vercel. Events are then checked against their `X-Notion-Signature`.
+- **By hand.** Set `NOTION_REVALIDATION_SECRET`, then `curl -X POST -H "Authorization: Bearer $SECRET" https://notionic.dev/api/notion/revalidate`.
+
+Previews (dev.notionic.dev) are behind Vercel's login, so webhooks can't reach them; they refresh hourly.
 
 ## Develop
 

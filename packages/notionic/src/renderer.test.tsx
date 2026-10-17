@@ -270,6 +270,18 @@ describe("NotionRenderer", () => {
     expect(html).toContain('<span data-math="">x^2</span>');
   });
 
+  it("links to a linked page by its title, through pageHref", async () => {
+    const link = {
+      ...block("link_to_page", { type: "page_id", page_id: PAGE_ID }),
+      linkedPage: { id: PAGE_ID, title: "Install", icon: { type: "emoji", emoji: "📦" } },
+    } as NotionBlock;
+    const html = await render([link, block("link_to_page", { type: "page_id", page_id: PAGE_ID })], {
+      pageHref: (id) => `/docs/${id.slice(0, 4)}`,
+    });
+    expect(html).toMatch(/<a href="\/docs\/244b"[^>]*><span aria-hidden="true"[^>]*>📦<\/span>Install<\/a>/);
+    expect(html.match(/<a /g)).toHaveLength(1);
+  });
+
   it("skips unsupported blocks", async () => {
     const html = await render([block("breadcrumb"), para(richText("after"))]);
     expect(html).toContain("after");

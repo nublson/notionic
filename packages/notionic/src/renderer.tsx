@@ -11,6 +11,7 @@ import {
   File,
   Image,
   LinkPreview,
+  LinkToPage,
   Pdf,
   Video,
 } from "./blocks/media";
@@ -50,6 +51,7 @@ export const defaultComponents: BlockComponents = {
   embed: Embed,
   link_preview: LinkPreview,
   child_page: ChildPage,
+  link_to_page: LinkToPage,
   table_of_contents: TableOfContents,
   tab: Tab,
   inline_equation: InlineEquation,
