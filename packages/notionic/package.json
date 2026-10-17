@@ -1,6 +1,6 @@
 {
   "name": "notionic",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Render Notion API blocks as React Server Components, styled with Tailwind CSS and shadcn/ui tokens.",
   "license": "MIT",
   "author": "Nubelson Fernandes",
@@ -36,6 +36,10 @@
     "./fetch": {
       "types": "./dist/fetch.d.ts",
       "default": "./dist/fetch.js"
+    },
+    "./markdown": {
+      "types": "./dist/markdown.d.ts",
+      "default": "./dist/markdown.js"
     },
     "./styles.css": {
       "style": "./dist/styles.css",

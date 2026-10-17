@@ -166,6 +166,18 @@ import { withMermaid } from "@/components/notion-mermaid";
 
 `notion-code` highlights the languages listed in `lib/highlighter.tsx`, which comes with shadcn's Code Block. Add a language there to highlight it; others render as plain text.
 
+## Markdown
+
+`notionic/markdown` turns the same blocks into GitHub-flavored Markdown, for RSS feeds, `llms.txt` and other plain-text uses:
+
+```ts
+import { blocksToMarkdown } from "notionic/markdown";
+
+const markdown = `# ${page.title}\n\n${blocksToMarkdown(blocks, { pageHref, transformFileUrl })}`;
+```
+
+It takes the same `pageHref` and `transformFileUrl` as `NotionRenderer`, so links and files match the HTML. Notion's heading 1 becomes `##`, so add the page title yourself. Toggles become `<details>`, equations `$…$` and `$$…$$`.
+
 ## Uploaded files
 
 Notion's URLs for uploaded files (images, videos, files, icons) expire after an hour, which is shorter than most pages are cached. Pass `transformFileUrl` to point them at a route of yours that fetches a fresh URL:

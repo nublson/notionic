@@ -28,6 +28,8 @@ export type DocSummary = {
   section: string;
   order: number;
   description: string;
+  /** ISO timestamp of the page's last edit. */
+  lastEdited: string;
 };
 
 function config() {
@@ -51,6 +53,7 @@ function toSummary(page: PageObjectResponse): DocSummary {
     section: section?.type === "select" ? (section.select?.name ?? "") : "",
     order: order?.type === "number" ? (order.number ?? 0) : 0,
     description: text(page, "Description"),
+    lastEdited: page.last_edited_time,
   };
 }
 

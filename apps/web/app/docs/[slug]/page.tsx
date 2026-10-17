@@ -20,7 +20,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const doc = (await getDocs()).find((d) => d.slug === slug);
   if (!doc) return {};
-  return { title: `${doc.title} · notionic`, description: doc.description || undefined };
+  const description = doc.description || undefined;
+  return {
+    title: doc.title,
+    description,
+    alternates: {
+      canonical: `/docs/${doc.slug}`,
+      types: { "text/markdown": `/docs/${doc.slug}.md` },
+    },
+    openGraph: { title: doc.title, description, url: `/docs/${doc.slug}`, type: "article" },
+  };
 }
 
 const FOCUS =
