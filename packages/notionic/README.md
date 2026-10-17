@@ -15,7 +15,7 @@ Render blocks from the [official Notion API](https://developers.notion.com) as R
 pnpm add notionic @notionhq/client
 ```
 
-`@notionhq/client` is only needed to fetch blocks with `notionic/fetch`.
+notionic needs React 19. `@notionhq/client` is only needed to fetch blocks with `notionic/fetch`.
 
 ## Set up Tailwind CSS
 
