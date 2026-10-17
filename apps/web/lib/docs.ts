@@ -1,7 +1,6 @@
 import "server-only";
 
 import {
-  Client,
   collectPaginatedAPI,
   isFullPage,
   type PageObjectResponse,
@@ -9,6 +8,7 @@ import {
 import { normalizePageId, pageTitle, plainText } from "notionic";
 import { fetchPage } from "notionic/fetch";
 import { cache } from "react";
+import { notionClient } from "./notion";
 
 /**
  * The docs live in a Notion database (NOTION_DOCS_DATA_SOURCE_ID): one page
@@ -35,9 +35,9 @@ export type DocSummary = {
 };
 
 function config() {
-  const token = process.env.NOTION_TOKEN;
+  const client = notionClient();
   const dataSourceId = process.env.NOTION_DOCS_DATA_SOURCE_ID;
-  return token && dataSourceId ? { client: new Client({ auth: token }), dataSourceId } : null;
+  return client && dataSourceId ? { client, dataSourceId } : null;
 }
 
 function text(page: PageObjectResponse, name: string): string {

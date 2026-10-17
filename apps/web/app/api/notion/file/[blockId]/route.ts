@@ -1,5 +1,6 @@
-import { Client, isFullBlock } from "@notionhq/client";
+import { isFullBlock } from "@notionhq/client";
 import { NextResponse } from "next/server";
+import { notionClient } from "@/lib/notion";
 
 export const runtime = "nodejs";
 
@@ -30,14 +31,14 @@ function hostedFile(block: Record<string, unknown> & { type: string }): HostedFi
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ blockId: string }> }) {
   const { blockId } = await params;
-  const token = process.env.NOTION_TOKEN;
-  if (!token || !BLOCK_ID.test(blockId)) {
+  const client = notionClient();
+  if (!client || !BLOCK_ID.test(blockId)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   let file: HostedFile | null = null;
   try {
-    const block = await new Client({ auth: token }).blocks.retrieve({ block_id: blockId });
+    const block = await client.blocks.retrieve({ block_id: blockId });
     if (isFullBlock(block)) file = hostedFile(block as unknown as Record<string, unknown> & { type: string });
   } catch {
     // Missing, or not shared with the integration.

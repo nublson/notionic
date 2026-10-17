@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const retrieve = vi.fn();
+vi.mock("server-only", () => ({}));
 vi.mock("@notionhq/client", () => ({
   Client: class {
     blocks = { retrieve };
