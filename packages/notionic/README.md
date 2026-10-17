@@ -26,7 +26,21 @@ notionic needs Tailwind CSS v4. Import its styles after Tailwind:
 @import "notionic/styles.css";
 ```
 
-This one line tells Tailwind to scan notionic's components, and defines Notion's colors as `--notionic-*` variables, with dark values under `.dark`. Override any of them to change a color.
+This one line tells Tailwind to scan notionic's components, and defines Notion's nine colors as `--notionic-*` variables, with dark values under `.dark`.
+
+### Match Notion's colors to your brand
+
+Override the text colors after the import. Each background color (`--notionic-red-bg`…) is mixed from its text color and your `--background`, so it follows on its own:
+
+```css
+:root,
+.dark {
+  --notionic-red: var(--destructive);
+  --notionic-blue: var(--primary);
+}
+```
+
+Mapping to tokens that already switch in dark mode, like shadcn's, keeps both modes right. To make every background stronger or subtler, set `--notionic-bg-mix` (default `14%`, `22%` in dark mode); to set one background directly, override its `--notionic-*-bg`.
 
 The components use shadcn/ui's color tokens. If you don't use shadcn/ui, define `--color-foreground`, `--color-muted`, `--color-muted-foreground`, `--color-border`, `--color-ring` and `--color-primary` in your theme.
 
