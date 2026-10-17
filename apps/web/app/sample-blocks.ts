@@ -102,6 +102,7 @@ export const sampleBlocks: NotionBlock[] = [
     row("callout", "Alert"),
     row("table", "Table"),
     row("toggle", "Collapsible"),
+    row("tab", "Tabs"),
   ]),
   block("column_list", {}, [
     block("column", {}, [p(text("Left column"))]),

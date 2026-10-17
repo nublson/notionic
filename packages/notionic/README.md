@@ -89,7 +89,7 @@ Paragraph (with line breaks), headings 1–4 (including toggleable headings), bu
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 
-Tabs render as an accordion, one `<details>` per tab, where opening one closes the others, with no JavaScript.
+Tabs render as an accordion, one `<details>` per tab, where opening one closes the others, with no JavaScript. For real tabs, use `notion-tabs` from the shadcn registry.
 
 Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below. Equations show their LaTeX source.
 
@@ -115,6 +115,7 @@ notionic's shadcn registry has versions of some blocks built on your own shadcn/
 | `notion-callout` | Alert |
 | `notion-table` | Table |
 | `notion-toggle` | Collapsible |
+| `notion-tabs` | Tabs, with every panel kept in the HTML |
 
 Add the registry to your `components.json`:
 
@@ -129,7 +130,7 @@ Add the registry to your `components.json`:
 Then add the items you want, and pass them to `components`:
 
 ```bash
-npx shadcn@latest add @notionic/notion-code @notionic/notion-callout @notionic/notion-table @notionic/notion-toggle
+npx shadcn@latest add @notionic/notion-code @notionic/notion-callout @notionic/notion-table @notionic/notion-toggle @notionic/notion-tabs
 ```
 
 ```tsx
@@ -137,6 +138,7 @@ import { NotionCallout } from "@/components/notion-callout";
 import { NotionCode } from "@/components/notion-code";
 import { NotionTable } from "@/components/notion-table";
 import { NotionToggle } from "@/components/notion-toggle";
+import { NotionTabs } from "@/components/notion-tabs";
 
 <NotionRenderer
   blocks={blocks}
@@ -145,6 +147,7 @@ import { NotionToggle } from "@/components/notion-toggle";
     callout: NotionCallout,
     table: NotionTable,
     toggle: NotionToggle,
+    tab: NotionTabs,
   }}
 />;
 ```

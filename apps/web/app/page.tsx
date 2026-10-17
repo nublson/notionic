@@ -5,6 +5,7 @@ import { fetchBlocks } from "notionic/fetch";
 import { NotionCallout } from "@/registry/notionic/notion-callout";
 import { NotionCode } from "@/registry/notionic/notion-code";
 import { NotionTable } from "@/registry/notionic/notion-table";
+import { NotionTabs } from "@/registry/notionic/notion-tabs";
 import { NotionToggle } from "@/registry/notionic/notion-toggle";
 import { sampleBlocks } from "./sample-blocks";
 
@@ -14,6 +15,7 @@ const components = {
   callout: NotionCallout,
   table: NotionTable,
   toggle: NotionToggle,
+  tab: NotionTabs,
 };
 
 // Rendered on each request, so a Notion page shows its latest content.

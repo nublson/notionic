@@ -74,6 +74,24 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "notion-tabs",
+      "type": "registry:component",
+      "title": "Notion Tabs",
+      "description": "Notion tabs as shadcn/ui's Tabs, with every panel kept in the HTML.",
+      "dependencies": [
+        "notionic"
+      ],
+      "registryDependencies": [
+        "tabs"
+      ],
+      "files": [
+        {
+          "path": "registry/notionic/notion-tabs.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }
