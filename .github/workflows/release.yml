@@ -8,8 +8,9 @@ name: Release
 #   3. Builds, typechecks and tests main, and publishes the
 #      `release/build-validation` status that gates Vercel's production deploy
 #      of notionic.dev.
-#   4. Publishes packages/notionic to npm if its version isn't published yet,
-#      then tags it and creates a GitHub release from its changelog entry.
+#   4. Tags a new version and creates its GitHub release from its changelog
+#      entry, and, separately, publishes packages/notionic to npm if its
+#      version isn't published yet.
 #
 # With no pending changesets, it still ships the site and publishes nothing.
 #
@@ -199,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-build
     permissions:
-      contents: write # tag and GitHub release
+      contents: read
       id-token: write # npm trusted publishing (OIDC) and provenance
     steps:
       - name: Checkout main
@@ -242,22 +243,35 @@ jobs:
         working-directory: packages/notionic
         run: npm publish --provenance --access public
 
+  github-release:
+    name: GitHub release
+    runs-on: ubuntu-latest
+    needs: validate-build
+    permissions:
+      contents: write # tag and GitHub release
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # Independent of npm: a release that fails to publish still gets its
+      # tag and notes. A release with no new version (site only) skips this.
       - name: Tag and create the GitHub release
-        if: steps.check.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: v${{ steps.check.outputs.version }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git ls-remote --exit-code --tags origin "refs/tags/${TAG}" > /dev/null; then
-            git tag "$TAG"
-            git push origin "$TAG"
-          fi
-          if gh release view "$TAG" > /dev/null 2>&1; then
-            echo "Release ${TAG} already exists."
+          VERSION=$(jq -r .version packages/notionic/package.json)
+          TAG="v${VERSION}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" > /dev/null; then
+            echo "::notice::${TAG} is already tagged: no new notionic version in this release."
             exit 0
           fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
           # This version's changelog entry: from its `## ` heading to the next.
           awk '/^## /{n++} n==1 && !/^## /{print} n==2{exit}' packages/notionic/CHANGELOG.md > notes.md
-          gh release create "$TAG" --title "notionic ${TAG}" --notes-file notes.md
+          gh release create "$TAG" --title "notionic ${TAG}" --notes-file notes.md --latest
