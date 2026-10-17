@@ -1,4 +1,9 @@
-import { blockColorClass, RichText, type BlockProps } from "notionic"
+import {
+  blockColorClass,
+  resolveFileUrl,
+  RichText,
+  type BlockProps,
+} from "notionic"
 
 import { Alert } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
@@ -11,11 +16,7 @@ export function NotionCallout({
 }: BlockProps<"callout">) {
   const { icon, rich_text, color } = block.callout
   const iconUrl =
-    icon?.type === "external"
-      ? icon.external.url
-      : icon?.type === "file"
-        ? icon.file.url
-        : null
+    icon?.type === "emoji" ? null : resolveFileUrl(icon, block.id, context)
 
   return (
     // A note, not an alert: it is page content, not something that just happened.

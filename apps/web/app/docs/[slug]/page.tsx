@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { collectHeadings, NotionRenderer } from "notionic";
 import { SiteHeader } from "@/components/site-header";
 import { docsPageHref, getDoc, getDocs, groupBySection, type DocSummary } from "@/lib/docs";
-import { notionComponents } from "@/lib/notion-components";
+import { notionComponents, notionFileUrl } from "@/lib/notion-components";
 import { cn } from "@/lib/utils";
 
 // Built ahead of time, and rebuilt in the background at most once an hour.
@@ -104,6 +104,7 @@ export default async function DocPage({ params }: Props) {
             blocks={blocks}
             components={notionComponents}
             pageHref={docsPageHref(docs)}
+            transformFileUrl={notionFileUrl}
           />
 
           <nav

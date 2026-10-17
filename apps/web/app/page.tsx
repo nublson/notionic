@@ -10,7 +10,7 @@ import {
   CodeBlockCopyButton,
 } from "@/components/ui/code-block";
 import { cn } from "@/lib/utils";
-import { notionComponents } from "@/lib/notion-components";
+import { notionComponents, notionFileUrl } from "@/lib/notion-components";
 import { sampleBlocks } from "./sample-blocks";
 
 // The page is cached and rebuilt in the background at most once an hour, so
@@ -83,7 +83,11 @@ export default async function Home() {
             />
             {live ? "Live from Notion" : "Sample blocks"}
           </p>
-          <NotionRenderer blocks={blocks} components={notionComponents} />
+          <NotionRenderer
+            blocks={blocks}
+            components={notionComponents}
+            transformFileUrl={notionFileUrl}
+          />
         </section>
       </main>
 

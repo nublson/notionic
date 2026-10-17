@@ -282,6 +282,36 @@ describe("NotionRenderer", () => {
     expect(html.match(/<a /g)).toHaveLength(1);
   });
 
+  it("passes uploaded files, not external ones, through transformFileUrl", async () => {
+    const signed = "https://prod-files-secure.s3.amazonaws.com/a.png?X-Amz-Signature=x";
+    const html = await render(
+      [
+        block("image", { type: "file", file: { url: signed, expiry_time: "" }, caption: [] }, { id: "img-1" }),
+        block("image", { type: "external", external: { url: "https://example.com/b.png" }, caption: [] }),
+        block("file", { type: "file", file: { url: signed, expiry_time: "" }, caption: [], name: "a.pdf" }, { id: "file-1" }),
+        block(
+          "callout",
+          { rich_text: [richText("Note")], color: "default", icon: { type: "file", file: { url: signed, expiry_time: "" } } },
+          { id: "callout-1" },
+        ),
+      ],
+      { transformFileUrl: ({ blockId }) => `/api/notion/file/${blockId}` },
+    );
+    expect(html).toContain('src="/api/notion/file/img-1"');
+    expect(html).toContain('src="https://example.com/b.png"');
+    expect(html).toContain('href="/api/notion/file/file-1"');
+    expect(html).toContain('src="/api/notion/file/callout-1"');
+    expect(html).not.toContain("X-Amz-Signature");
+  });
+
+  it("keeps uploaded files' URLs as they are without transformFileUrl", async () => {
+    const signed = "https://prod-files-secure.s3.amazonaws.com/a.png";
+    const html = await render([
+      block("image", { type: "file", file: { url: signed, expiry_time: "" }, caption: [] }),
+    ]);
+    expect(html).toContain(`src="${signed}"`);
+  });
+
   it("skips unsupported blocks", async () => {
     const html = await render([block("breadcrumb"), para(richText("after"))]);
     expect(html).toContain("after");

@@ -19,6 +19,7 @@ import { Table } from "./blocks/table";
 import { Tab, TableOfContents } from "./blocks/navigation";
 import { Callout, Divider, Equation, InlineEquation, Paragraph, Quote } from "./blocks/text";
 import { defaultPageHref } from "./links";
+import type { HostedFile } from "./files";
 import { collectHeadings } from "./headings";
 import type { BlockComponents, BlockProps, NotionBlock, RenderContext } from "./types";
 import { cx, warnOnce } from "./utils";
@@ -167,6 +168,13 @@ export type NotionRendererProps = {
    * page on notion.so.
    */
   pageHref?: (pageId: string) => string | null;
+  /**
+   * Rewrites the URL of each file uploaded to Notion (images, videos, files,
+   * icons). Notion's signed URLs expire after an hour, so point them at a
+   * route that re-signs them, e.g. `({ blockId }) => \`/api/notion/file/\${blockId}\``.
+   * External URLs aren't passed through it.
+   */
+  transformFileUrl?: (file: HostedFile) => string;
   className?: string;
 };
 
@@ -175,10 +183,12 @@ export function NotionRenderer({
   blocks,
   components,
   pageHref = defaultPageHref,
+  transformFileUrl,
   className,
 }: NotionRendererProps) {
   const context: RenderContext = {
     pageHref,
+    transformFileUrl,
     headings: collectHeadings(blocks),
     components: { ...defaultComponents, ...components },
   };

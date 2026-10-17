@@ -19,3 +19,11 @@ export const notionComponents = {
   equation: NotionEquation,
   inline_equation: NotionInlineEquation,
 };
+
+/**
+ * Files uploaded to Notion go through the file route, which re-signs their
+ * URLs (Notion's expire after an hour, longer than pages are cached).
+ */
+export function notionFileUrl({ blockId }: { blockId: string }) {
+  return `/api/notion/file/${blockId}`;
+}
