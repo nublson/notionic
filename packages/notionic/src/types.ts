@@ -66,6 +66,29 @@ export type RenderContext = {
   components: BlockComponents;
   /** Rewrites URLs of files uploaded to Notion (see `NotionRendererProps`). */
   transformFileUrl?: (file: HostedFile) => string;
+  /** Your demo components, by name (see `NotionRendererProps`). */
+  demos?: Demos;
+};
+
+/** Props of a demo component: what its embed's URL says. */
+export type DemoProps = {
+  /** The demo's name, from the embed's URL: `…/demos/<name>`. */
+  name: string;
+  /** The URL's query parameters: `?speed=slow` is `{ speed: "slow" }`. */
+  params: Record<string, string>;
+};
+
+/** Demo components by name, rendered in place of embeds of `…/demos/<name>`. */
+export type Demos = Record<string, ComponentType<DemoProps>>;
+
+/** Props of the frame around a demo. */
+export type DemoFrameProps = {
+  name: string;
+  /** The embed's caption. */
+  caption: RichText;
+  context: RenderContext;
+  /** The demo, rendered. */
+  children: ReactNode;
 };
 
 export type BlockProps<T extends NotionBlockType> = {
@@ -83,10 +106,12 @@ export type InlineEquationProps = {
 
 /**
  * Replacements for the built-in components: one per block type, plus
- * `inline_equation` for equations inside text.
+ * `inline_equation` for equations inside text and `demo` for the frame
+ * around demos.
  */
 export type BlockComponents = {
   [T in NotionBlockType]?: ComponentType<BlockProps<T>>;
 } & {
   inline_equation?: ComponentType<InlineEquationProps>;
+  demo?: ComponentType<DemoFrameProps>;
 };

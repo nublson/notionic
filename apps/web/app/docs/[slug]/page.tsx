@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { collectHeadings, NotionRenderer } from "notionic";
 import { SiteHeader } from "@/components/site-header";
 import { docsPageHref, getDoc, getDocs, groupBySection, type DocSummary } from "@/lib/docs";
+import { demos } from "@/lib/demos";
 import { notionComponents, notionFileUrl } from "@/lib/notion-components";
 import { cn } from "@/lib/utils";
 
@@ -114,6 +115,7 @@ export default async function DocPage({ params }: Props) {
             components={notionComponents}
             pageHref={docsPageHref(docs)}
             transformFileUrl={notionFileUrl}
+            demos={demos}
           />
 
           <nav
