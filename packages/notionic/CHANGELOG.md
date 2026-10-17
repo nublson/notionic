@@ -1,5 +1,11 @@
 # notionic
 
+## 0.7.0
+
+### Minor Changes
+
+- [#32](https://github.com/nublson/notionic/pull/32) [`df7d4ec`](https://github.com/nublson/notionic/commit/df7d4ecbab5eec6ee7a32eef50adb2881cfa9ea7) Thanks [@nublson](https://github.com/nublson)! - Interactive demos: pass your own React components as `demos={{ "morph-button": MorphButton }}`, and an embed of a URL ending in `/demos/<name>` renders that component in its place, in a frame with the embed's caption below. The URL's query reaches the demo as `params`. Replace the frame with `components.demo`.
+
 ## 0.6.0
 
 ### Minor Changes
