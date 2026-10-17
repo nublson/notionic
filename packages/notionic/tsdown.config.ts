@@ -1,7 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/fetch.ts"],
+  entry: ["src/index.ts", "src/fetch.ts", "src/markdown.ts"],
   format: "esm",
   platform: "neutral",
   dts: true,
