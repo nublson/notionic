@@ -8,6 +8,7 @@ More at https://notionic.dev
 
 - `packages/notionic`: the npm package.
 - `apps/web`: notionic.dev. Its landing page renders the Notion page in `NOTION_PAGE_ID`, and `/docs` renders the docs database in `NOTION_DOCS_DATA_SOURCE_ID` (both read with `NOTION_TOKEN`; without them the site shows sample blocks and a docs notice). It also serves the shadcn registry at `/r/{name}.json`: the items' source is in `apps/web/registry`, listed in `apps/web/registry.json`, and `pnpm build` builds the JSON into `apps/web/public/r`.
+- `examples/starter`: a Next.js starter that builds a site from a Notion database. It's a standalone app that people copy, so it's outside the pnpm workspace and Biome (it has its own ESLint and Prettier) and installs `notionic` from npm. To try local changes in it, `npm pack` `packages/notionic` and `npm install` the tarball in a copy of it.
 
 ### Instant refresh from Notion
 
