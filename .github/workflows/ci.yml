@@ -26,3 +26,28 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm turbo run build typecheck test
+
+  # Every shadcn registry item, installed into a fresh shadcn app with the
+  # local notionic build, then typechecked and built.
+  registry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # npm cache for the fresh app's installs (it has no lockfile to key on).
+      - uses: actions/cache@v6
+        with:
+          path: ~/.npm
+          key: registry-npm-${{ hashFiles('apps/web/registry.json', 'pnpm-lock.yaml') }}
+          restore-keys: registry-npm-
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: bash scripts/check-registry.sh
