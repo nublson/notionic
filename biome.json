@@ -9,6 +9,7 @@
     "includes": [
       "**",
       "!.claude/worktrees",
+      "!examples",
       "!pnpm-lock.yaml",
       "!**/public/r",
       "!packages/notionic/src/fixtures",
