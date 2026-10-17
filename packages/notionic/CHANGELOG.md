@@ -1,5 +1,17 @@
 # notionic
 
+## 0.3.0
+
+### Minor Changes
+
+- [#18](https://github.com/nublson/notionic/pull/18) [`106aa72`](https://github.com/nublson/notionic/commit/106aa72d6903a8e6a622b8e5a67c4cdbd7a89010) Thanks [@nublson](https://github.com/nublson)! - **Breaking:** notionic now requires React 19. The peer dependency changes from `^18.0.0 || ^19.0.0` to `^19.0.0`. React 18 was never tested, and the package only targets React Server Components frameworks, which run React 19. If you're on React 18, stay on notionic 0.2.
+
+- [#17](https://github.com/nublson/notionic/pull/17) [`8e279be`](https://github.com/nublson/notionic/commit/8e279bedc56421ad3fd280a99dec8795f0bab0e9) Thanks [@nublson](https://github.com/nublson)! - Add `transformFileUrl` to `NotionRenderer`, which rewrites the URLs of files uploaded to Notion (images, videos, files, PDFs, audio and callout icons), so they can point at a route that re-signs them before Notion's one-hour expiry. `resolveFileUrl` applies it in custom components.
+
+### Patch Changes
+
+- [#16](https://github.com/nublson/notionic/pull/16) [`63119a9`](https://github.com/nublson/notionic/commit/63119a996698fa551a9827d24a72447201b99ea3) Thanks [@nublson](https://github.com/nublson)! - Lint and format with Biome
+
 ## 0.2.0
 
 ### Minor Changes
