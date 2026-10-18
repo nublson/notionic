@@ -313,7 +313,7 @@ describe("NotionRenderer", () => {
     expect(html.match(/<a /g)).toHaveLength(1);
   });
 
-  it("renders bookmarks with a preview as cards, and others as links", async () => {
+  it("renders bookmarks with a preview as cards, and others as one-line cards", async () => {
     const url = "https://example.com/post";
     const card = {
       ...block("bookmark", { url, caption: [richText("Worth reading")] }),
@@ -332,10 +332,9 @@ describe("NotionRenderer", () => {
     expect(html).toContain("What it&#x27;s about.");
     expect(html).toContain('src="https://example.com/cover.png"');
     expect(html).toContain("<figcaption");
-    // The second bookmark has no preview: a plain link labelled by its URL.
-    expect(html).toMatch(
-      /<p><a href="https:\/\/example.com\/post"[^>]*>https:\/\/example.com\/post/,
-    );
+    expect(html).toContain('<span class="truncate">example.com/post</span>');
+    // The second bookmark has no preview: a one-line card titled by its URL.
+    expect(html).toMatch(/<a href="https:\/\/example.com\/post" title="example.com\/post"/);
   });
 
   it("renders embeds of /demos/<name> as demos, in a frame with the caption", async () => {
