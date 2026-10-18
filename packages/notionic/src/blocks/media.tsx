@@ -5,6 +5,7 @@ import { resolveLink, resolvePageLink } from "../links";
 import { NotionLink, RichText } from "../rich-text";
 import type {
   BlockProps,
+  BookmarkPreview,
   DemoFrameProps,
   RenderContext,
   RichText as RichTextArray,
@@ -300,25 +301,47 @@ export function Pdf({ block, context }: BlockProps<"pdf">) {
   );
 }
 
-/**
- * A bookmark as a card with the page's title, description and image, as in
- * Notion: the image sits on the right, or on top when the card is narrow (a
- * phone, a column). Without a preview from `fetchBlocks`, a plain link.
- */
 export function Bookmark({ block, context }: BlockProps<"bookmark">) {
   const { url, caption } = block.bookmark;
-  const preview = block.bookmarkPreview;
+  return (
+    <PreviewCard
+      url={url}
+      preview={block.bookmarkPreview}
+      icon={LINK_ICON}
+      caption={caption}
+      context={context}
+    />
+  );
+}
+
+// Covers the browser's broken-image icon with a muted surface. Browsers draw
+// an image's ::before only when it fails to load.
+const BROKEN_IMAGE =
+  "relative before:absolute before:inset-0 before:rounded-[inherit] before:bg-muted before:content-['']";
+
+/**
+ * A link with the linked page's title, description and image, as in Notion's
+ * bookmarks: the image sits on the right, or on top when the card is narrow (a
+ * phone, a column). Without a preview from `fetchBlocks` (none fetched, or the
+ * page had no title), a one-line card.
+ */
+function PreviewCard({
+  url,
+  preview,
+  icon,
+  caption,
+  context,
+}: {
+  url: string;
+  preview: BookmarkPreview | undefined;
+  icon: ReactNode;
+  caption: RichTextArray;
+  context: RenderContext;
+}) {
   const link = resolveLink(url, context);
-  // Without a preview (none fetched, or the page had no title), a one-line card.
   if (!preview || !link) {
     return (
-      <CardRow
-        url={url}
-        title={displayUrl(url)}
-        icon={LINK_ICON}
-        caption={caption}
-        context={context}
-      />
+      <CardRow url={url} title={displayUrl(url)} icon={icon} caption={caption} context={context} />
     );
   }
   return (
@@ -344,7 +367,7 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
                 height={16}
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                className="size-4 shrink-0 rounded-sm"
+                className={cx("size-4 shrink-0 rounded-sm", BROKEN_IMAGE)}
               />
             ) : null}
             <span className="truncate">{displayUrl(url)}</span>
@@ -357,7 +380,10 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
-            className="aspect-[1.91/1] w-full border-b border-border bg-muted object-cover @md:aspect-auto @md:w-1/3 @md:max-w-60 @md:shrink-0 @md:border-b-0 @md:border-s"
+            className={cx(
+              "aspect-[1.91/1] w-full border-b border-border bg-muted object-cover @md:aspect-auto @md:w-1/3 @md:max-w-60 @md:shrink-0 @md:border-b-0 @md:border-s",
+              BROKEN_IMAGE,
+            )}
           />
         ) : null}
         {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
@@ -384,7 +410,7 @@ export function DemoFrame({ caption, context, children }: DemoFrameProps) {
 }
 
 /**
- * An embed, as a one-line card linking to it: embedding any site in an iframe
+ * An embed, as a preview card linking to it: embedding any site in an iframe
  * is unsafe, and most refuse it. An embed of `…/demos/<name>` whose name is one of
  * `demos` renders that demo component instead, in the `demo` frame.
  */
@@ -399,9 +425,9 @@ export function Embed({ block, context }: BlockProps<"embed">) {
     );
   }
   return (
-    <CardRow
+    <PreviewCard
       url={block.embed.url}
-      title={displayUrl(block.embed.url)}
+      preview={block.bookmarkPreview}
       icon={EMBED_ICON}
       caption={block.embed.caption}
       context={context}
@@ -410,7 +436,15 @@ export function Embed({ block, context }: BlockProps<"embed">) {
 }
 
 export function LinkPreview({ block, context }: BlockProps<"link_preview">) {
-  return <UrlLine url={block.link_preview.url} label="" context={context} />;
+  return (
+    <PreviewCard
+      url={block.link_preview.url}
+      preview={block.bookmarkPreview}
+      icon={LINK_ICON}
+      caption={[]}
+      context={context}
+    />
+  );
 }
 
 export function ChildPage({ block, context }: BlockProps<"child_page">) {

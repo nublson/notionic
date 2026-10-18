@@ -337,6 +337,23 @@ describe("NotionRenderer", () => {
     expect(html).toMatch(/<a href="https:\/\/example.com\/post" title="example.com\/post"/);
   });
 
+  it("renders link previews as one-line cards", async () => {
+    const url = "https://github.com/nublson/notionic/pull/31";
+    const html = await render([block("link_preview", { url })]);
+    expect(html).toContain(`<a href="${url}" title="github.com/nublson/notionic/pull/31"`);
+  });
+
+  it("renders embeds and link previews with a preview as cards", async () => {
+    const bookmarkPreview = { title: "A pen", description: "Some CSS." };
+    const html = await render([
+      { ...block("embed", { url: "https://codepen.io/pen", caption: [] }), bookmarkPreview },
+      { ...block("link_preview", { url: "https://github.com/pr" }), bookmarkPreview },
+    ] as NotionBlock[]);
+    expect(html.match(/>A pen<\/span>/g)).toHaveLength(2);
+    expect(html).toContain('<span class="truncate">codepen.io/pen</span>');
+    expect(html).toContain('<span class="truncate">github.com/pr</span>');
+  });
+
   it("renders embeds as one-line cards with the caption below", async () => {
     const html = await render([
       block("embed", {

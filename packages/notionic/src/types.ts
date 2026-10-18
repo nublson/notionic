@@ -12,7 +12,7 @@ export type PageIcon = PageObjectResponse["icon"];
 /** The page a `link_to_page` block points to, attached by `fetchBlocks`. */
 export type LinkedPage = { id: string; title: string; icon: PageIcon };
 
-/** What a bookmarked page says about itself, attached by `fetchBlocks`. */
+/** What a linked page says about itself, attached by `fetchBlocks` to bookmarks, embeds and link previews. */
 export type BookmarkPreview = {
   title: string;
   description?: string;
@@ -24,8 +24,8 @@ export type BookmarkPreview = {
 
 /**
  * A block from the Notion API, with its nested blocks attached as `children`,
- * for `link_to_page` the linked page as `linkedPage`, and for `bookmark` the
- * bookmarked page's preview as `bookmarkPreview`.
+ * for `link_to_page` the linked page as `linkedPage`, and for `bookmark`,
+ * `embed` and `link_preview` the linked page's preview as `bookmarkPreview`.
  */
 export type NotionBlock = BlockObjectResponse & {
   children?: NotionBlock[];

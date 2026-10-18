@@ -196,9 +196,13 @@ function block(item: NotionBlock, context: Context): string {
         context,
       );
     case "embed":
-      return linkLine(plainText(item.embed.caption), item.embed.url, context);
+      return linkLine(
+        plainText(item.embed.caption) || item.bookmarkPreview?.title || "",
+        item.embed.url,
+        context,
+      );
     case "link_preview":
-      return linkLine("", item.link_preview.url, context);
+      return linkLine(item.bookmarkPreview?.title ?? "", item.link_preview.url, context);
     case "child_page": {
       const link = resolvePageLink(item.id, context);
       const title = item.child_page.title || "Untitled";

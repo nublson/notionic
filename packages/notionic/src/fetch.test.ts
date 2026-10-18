@@ -143,6 +143,29 @@ describe("linked pages", () => {
       expect(b!.bookmarkPreview).toBeUndefined();
     });
 
+    it("attaches previews to embeds and link previews too", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(
+          async () =>
+            new Response('<head><meta property="og:title" content="A pen"></head>', {
+              headers: { "content-type": "text/html" },
+            }),
+        ),
+      );
+      const { client } = fakeClient({
+        root: [
+          [
+            block("embed", { url: "https://example.com/pen", caption: [] }, { id: "e" }),
+            block("link_preview", { url: "https://example.com/pr" }, { id: "l" }),
+          ],
+        ],
+      });
+      const [embed, preview] = await fetchBlocks(client, "root");
+      expect(embed!.bookmarkPreview).toMatchObject({ title: "A pen" });
+      expect(preview!.bookmarkPreview).toMatchObject({ title: "A pen" });
+    });
+
     it("makes no requests outside Notion with bookmarkPreviews: false", async () => {
       const fetch = vi.fn();
       vi.stubGlobal("fetch", fetch);

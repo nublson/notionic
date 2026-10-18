@@ -84,7 +84,7 @@ To also get the page's title, icon, cover and properties, use `fetchPage(notion,
 
 `fetchBlocks` fetches every block of the page with its nested blocks, following pagination. It limits requests in flight (`concurrency`, default 3) and nesting depth (`maxDepth`, default 5). It doesn't cache: use your framework's cache, such as Next.js's `"use cache"`.
 
-For bookmarks, `fetchBlocks` also fetches each bookmarked page and reads its title, description, image and favicon, so the bookmark renders as a card like in Notion. A page that's slow (over 5 seconds), unreachable or untitled renders as a plain link, and private network addresses are never fetched. Pass `bookmarkPreviews: false` to make no requests outside Notion.
+For bookmarks, embeds and link previews, `fetchBlocks` also fetches the linked page and reads its title, description, image and favicon, so the block renders as a card like a Notion bookmark. A page that's slow (over 5 seconds), unreachable or untitled renders as a one-line card with the URL, and private network addresses are never fetched. Pass `bookmarkPreviews: false` to make no requests outside Notion.
 
 You can also pass blocks you fetched yourself: `NotionRenderer` takes the API's block objects with nested blocks attached as `children` (the `NotionBlock` type).
 
@@ -157,7 +157,7 @@ Demos render in `DemoFrame`, a bordered stage with the caption centered below. R
 
 ## Supported blocks
 
-Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed (a link, or one of your demos), link preview and child page and link to page (titled by `fetchBlocks`). Date mentions render as `<time>`.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos), and child page and link to page (titled by `fetchBlocks`). Date mentions render as `<time>`.
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 

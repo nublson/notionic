@@ -34,14 +34,23 @@ export type FetchBlocksOptions = {
    */
   concurrency?: number;
   /**
-   * Fetch each bookmarked page to read its title, description and image for
-   * the bookmark card. Default true. A page that's slow, unreachable or has
-   * no title renders as a plain link.
+   * Fetch the page behind each bookmark, embed and link preview to read its
+   * title, description and image for a preview card. Default true. A page
+   * that's slow, unreachable or has no title renders as a one-line card.
    */
   bookmarkPreviews?: boolean;
 };
 
 type Result = ListBlockChildrenResponse["results"][number];
+
+/** The URL of a block that links to another site: a bookmark, embed or link preview. */
+function linkedUrl(block: Result): string | null {
+  if (!("type" in block)) return null;
+  if (block.type === "bookmark") return block.bookmark.url;
+  if (block.type === "embed") return block.embed.url;
+  if (block.type === "link_preview") return block.link_preview.url;
+  return null;
+}
 
 function isFullBlock(result: Result): result is NotionBlock {
   return "type" in result;
@@ -115,8 +124,9 @@ export async function fetchBlocks(
       const page = await retrievePage(client, block.link_to_page.page_id);
       return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
     }
-    if (block.type === "bookmark" && bookmarkPreviews) {
-      const preview = await fetchBookmarkPreview(block.bookmark.url);
+    const previewUrl = bookmarkPreviews ? linkedUrl(block) : null;
+    if (previewUrl) {
+      const preview = await fetchBookmarkPreview(previewUrl);
       return preview ? { ...block, bookmarkPreview: preview } : block;
     }
     if (
