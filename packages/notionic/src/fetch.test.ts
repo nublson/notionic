@@ -118,6 +118,20 @@ describe("linked pages", () => {
     expect(b!.linkedPage).toBeUndefined();
   });
 
+  it("attaches each subpage's icon", async () => {
+    const { client } = fakeClient({
+      root: [[block("child_page", { title: "Intro" }, { id: "p1" })]],
+    });
+    const withPages = {
+      ...client,
+      pages: {
+        retrieve: async ({ page_id }: { page_id: string }) => page(page_id, "Intro") as never,
+      },
+    };
+    const [child] = await fetchBlocks(withPages, "root");
+    expect(child!.linkedPage?.icon).toEqual({ type: "emoji", emoji: "📘" });
+  });
+
   describe("bookmarks", () => {
     afterEach(() => vi.unstubAllGlobals());
     const bookmark = (id: string, url: string) => block("bookmark", { url, caption: [] }, { id });

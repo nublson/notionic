@@ -1,8 +1,8 @@
 import { blockColorClass, colorClass, isBackgroundColor } from "../colors";
-import { resolveFileUrl } from "../files";
 import { CODE_CLASSES, RichText } from "../rich-text";
 import type { BlockProps, InlineEquationProps } from "../types";
 import { cx } from "../utils";
+import { IconSlot } from "./icon";
 
 export function Paragraph({ block, context, children }: BlockProps<"paragraph">) {
   const { rich_text, color } = block.paragraph;
@@ -40,12 +40,6 @@ export function Quote({ block, context, children }: BlockProps<"quote">) {
 
 export function Callout({ block, context, children }: BlockProps<"callout">) {
   const { icon, rich_text, color } = block.callout;
-  const iconUrl =
-    icon?.type === "emoji"
-      ? null
-      : icon?.type === "custom_emoji"
-        ? icon.custom_emoji.url
-        : resolveFileUrl(icon, block.id, context);
   return (
     <div
       className={cx(
@@ -57,17 +51,7 @@ export function Callout({ block, context, children }: BlockProps<"callout">) {
           : cx("border border-border bg-muted/50", colorClass(color)),
       )}
     >
-      {icon?.type === "emoji" || iconUrl ? (
-        // A fixed slot, one line tall: icons center on the first line, and the
-        // text starts at the same place whatever the icon.
-        <span aria-hidden="true" className="flex h-[1lh] w-5 shrink-0 items-center justify-center">
-          {icon?.type === "emoji" ? (
-            icon.emoji
-          ) : (
-            <img src={iconUrl ?? ""} alt="" className="size-5 rounded-sm object-contain" />
-          )}
-        </span>
-      ) : null}
+      <IconSlot icon={icon} blockId={block.id} context={context} />
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         {rich_text.length > 0 ? (
           <p>

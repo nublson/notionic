@@ -308,9 +308,26 @@ describe("NotionRenderer", () => {
       },
     );
     expect(html).toMatch(
-      /<a href="\/docs\/244b"[^>]*><span aria-hidden="true"[^>]*>📦<\/span>Install<\/a>/,
+      /<a href="\/docs\/244b"[^>]*><span aria-hidden="true"[^>]*>📦<\/span><span[^>]*>Install<\/span><\/a>/,
     );
     expect(html.match(/<a /g)).toHaveLength(1);
+  });
+
+  it("renders subpages with their icon, or a page icon, as rows", async () => {
+    const html = await render([
+      block("child_page", { title: "Plain" }),
+      {
+        ...block("child_page", { title: "Iconic" }),
+        linkedPage: {
+          id: PAGE_ID,
+          title: "Iconic",
+          icon: { type: "external", external: { url: "https://e.com/i.svg" } },
+        },
+      } as NotionBlock,
+    ]);
+    expect(html.match(/data-page-row=""/g)).toHaveLength(2);
+    expect(html).toMatch(/<svg aria-hidden="true"[^>]*>.*<\/svg><\/span><span[^>]*>Plain<\/span>/);
+    expect(html).toContain('src="https://e.com/i.svg"');
   });
 
   it("renders bookmarks with a preview as cards, and others as one-line cards", async () => {

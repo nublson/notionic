@@ -12,7 +12,7 @@ import type { NotionBlock, NotionPage } from "./types";
 /**
  * The part of the Notion client notionic uses. A `Client` from
  * `@notionhq/client` satisfies it. Without `pages`, `link_to_page` blocks
- * get no titles.
+ * get no titles and subpages no icons.
  */
 export type NotionClientLike = {
   blocks: {
@@ -124,17 +124,17 @@ export async function fetchBlocks(
       const page = await retrievePage(client, block.link_to_page.page_id);
       return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
     }
+    // A subpage's block holds only its title; its page has the icon.
+    if (block.type === "child_page") {
+      const page = await retrievePage(client, block.id);
+      return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
+    }
     const previewUrl = bookmarkPreviews ? linkedUrl(block) : null;
     if (previewUrl) {
       const preview = await fetchBookmarkPreview(previewUrl);
       return preview ? { ...block, bookmarkPreview: preview } : block;
     }
-    if (
-      !block.has_children ||
-      maxDepth <= 0 ||
-      block.type === "child_page" ||
-      block.type === "child_database"
-    ) {
+    if (!block.has_children || maxDepth <= 0 || block.type === "child_database") {
       return block;
     }
     return {

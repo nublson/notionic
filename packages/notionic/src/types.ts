@@ -9,7 +9,7 @@ import type { PageHeading } from "./headings";
 
 export type PageIcon = PageObjectResponse["icon"];
 
-/** The page a `link_to_page` block points to, attached by `fetchBlocks`. */
+/** The page a `link_to_page` or `child_page` block points to, attached by `fetchBlocks`. */
 export type LinkedPage = { id: string; title: string; icon: PageIcon };
 
 /** What a linked page says about itself, attached by `fetchBlocks` to bookmarks, embeds and link previews. */
@@ -24,7 +24,7 @@ export type BookmarkPreview = {
 
 /**
  * A block from the Notion API, with its nested blocks attached as `children`,
- * for `link_to_page` the linked page as `linkedPage`, and for `bookmark`,
+ * for `link_to_page` and `child_page` the linked page as `linkedPage`, and for `bookmark`,
  * `embed` and `link_preview` the linked page's preview as `bookmarkPreview`.
  */
 export type NotionBlock = BlockObjectResponse & {

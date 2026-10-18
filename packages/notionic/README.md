@@ -157,7 +157,7 @@ Demos render in `DemoFrame`, a bordered stage with the caption centered below. R
 
 ## Supported blocks
 
-Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos), and child page and link to page (titled by `fetchBlocks`). Date mentions render as `<time>`.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`.
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 

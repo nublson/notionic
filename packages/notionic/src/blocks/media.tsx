@@ -6,11 +6,13 @@ import { NotionLink, RichText } from "../rich-text";
 import type {
   BlockProps,
   BookmarkPreview,
+  PageIcon,
   DemoFrameProps,
   RenderContext,
   RichText as RichTextArray,
 } from "../types";
 import { cx, plainText } from "../utils";
+import { BROKEN_IMAGE, IconSlot } from "./icon";
 
 /** An http(s) URL, or a same-site path such as a file proxy route. */
 function isUrl(url: string): boolean {
@@ -314,11 +316,6 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
   );
 }
 
-// Covers the browser's broken-image icon with a muted surface. Browsers draw
-// an image's ::before only when it fails to load.
-const BROKEN_IMAGE =
-  "relative before:absolute before:inset-0 before:rounded-[inherit] before:bg-muted before:content-['']";
-
 /**
  * A link with the linked page's title, description and image, as in Notion's
  * bookmarks: the image sits on the right, or on top when the card is narrow (a
@@ -447,26 +444,94 @@ export function LinkPreview({ block, context }: BlockProps<"link_preview">) {
   );
 }
 
+const PAGE_ICON = (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="size-5 text-muted-foreground"
+  >
+    {FILE_ICON}
+  </svg>
+);
+
+/**
+ * A page as a row: its icon (or a page icon), then its title. Rows that
+ * follow each other sit close together, like a list of subpages in Notion.
+ */
+function PageRow({
+  pageId,
+  title,
+  icon,
+  blockId,
+  context,
+}: {
+  pageId: string;
+  title: string;
+  icon: PageIcon | undefined;
+  blockId: string;
+  context: RenderContext;
+}) {
+  const link = resolvePageLink(pageId, context);
+  const row = "flex flex-1 gap-2 rounded-md px-2 py-1";
+  const content = (
+    <>
+      <IconSlot icon={icon} blockId={blockId} context={context} fallback={PAGE_ICON} />
+      <span className="min-w-0 font-medium underline decoration-muted-foreground/50 decoration-from-font underline-offset-4 group-hover:decoration-foreground">
+        {title || "Untitled"}
+      </span>
+    </>
+  );
+  return (
+    // The row's padding bleeds past the text, so titles align with the text around them.
+    <p data-page-row="" className="-mx-2 flex [[data-page-row]+&]:-mt-3">
+      {link ? (
+        <a
+          href={link.href}
+          {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          className={cx(
+            "group transition-[background-color] hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            row,
+          )}
+        >
+          {content}
+          {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
+        </a>
+      ) : (
+        <span className={row}>{content}</span>
+      )}
+    </p>
+  );
+}
+
+/** A subpage, with its icon when `fetchBlocks` attached it. */
 export function ChildPage({ block, context }: BlockProps<"child_page">) {
-  const link = resolvePageLink(block.id, context);
-  const title = block.child_page.title || "Untitled";
-  return <p>{link ? <NotionLink link={link}>{title}</NotionLink> : title}</p>;
+  return (
+    <PageRow
+      pageId={block.id}
+      title={block.child_page.title}
+      icon={block.linkedPage?.icon}
+      blockId={block.id}
+      context={context}
+    />
+  );
 }
 
 /** A link to another page, titled by `fetchBlocks`. Without a title, nothing renders. */
 export function LinkToPage({ block, context }: BlockProps<"link_to_page">) {
   const page = block.linkedPage;
   if (!page) return null;
-  const link = resolvePageLink(page.id, context);
-  const label = (
-    <>
-      {page.icon?.type === "emoji" ? (
-        <span aria-hidden="true" className="me-1.5">
-          {page.icon.emoji}
-        </span>
-      ) : null}
-      {page.title || "Untitled"}
-    </>
+  return (
+    <PageRow
+      pageId={page.id}
+      title={page.title}
+      icon={page.icon}
+      blockId={block.id}
+      context={context}
+    />
   );
-  return <p>{link ? <NotionLink link={link}>{label}</NotionLink> : label}</p>;
 }
