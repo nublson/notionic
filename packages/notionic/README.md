@@ -161,7 +161,7 @@ Paragraph (with line breaks), headings 1–4 (including toggleable headings), bu
 
 Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
 
-Tabs render as an accordion, one `<details>` per tab, where opening one closes the others, with no JavaScript. For real tabs, use `notion-tabs` from the shadcn registry.
+Tabs render as real tabs with no JavaScript: a row of pills that scrolls sideways, and one panel at a time. To use shadcn's Tabs component instead, add `notion-tabs` from the shadcn registry.
 
 Code renders as plain text. For syntax highlighting, use `notion-code` from the shadcn registry below. Equations, in blocks and inside text, show their LaTeX source; `notion-equation` typesets them with KaTeX.
 
