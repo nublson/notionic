@@ -35,7 +35,7 @@ function UrlLine({ url, label, context }: { url: string; label: string; context:
   const link = resolveLink(url, context);
   if (!link) return null;
   return (
-    <p className="break-words">
+    <p>
       <NotionLink link={link}>{label || url}</NotionLink>
     </p>
   );
@@ -189,7 +189,7 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
-            className="aspect-[1.91/1] w-full border-b border-border object-cover @md:aspect-auto @md:w-1/3 @md:max-w-60 @md:shrink-0 @md:border-b-0 @md:border-l"
+            className="aspect-[1.91/1] w-full border-b border-border object-cover @md:aspect-auto @md:w-1/3 @md:max-w-60 @md:shrink-0 @md:border-b-0 @md:border-s"
           />
         ) : null}
         {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
@@ -250,7 +250,7 @@ export function LinkToPage({ block, context }: BlockProps<"link_to_page">) {
   const label = (
     <>
       {page.icon?.type === "emoji" ? (
-        <span aria-hidden="true" className="mr-1.5">
+        <span aria-hidden="true" className="me-1.5">
           {page.icon.emoji}
         </span>
       ) : null}

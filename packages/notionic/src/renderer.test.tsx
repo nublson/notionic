@@ -69,7 +69,7 @@ describe("NotionRenderer", () => {
     expect(await a({ bold: true })).toContain("<strong");
     expect(await a({ italic: true })).toContain("<em>");
     expect(await a({ strikethrough: true })).toContain("<s>");
-    expect(await a({ underline: true })).toContain("<u>");
+    expect(await a({ underline: true })).toContain("<u ");
     expect(await a({ code: true })).toContain("<code");
     expect(await a({ color: "red" })).toContain("text-(--notionic-red)");
     const bg = await a({ color: "blue_background" });
@@ -237,7 +237,7 @@ describe("NotionRenderer", () => {
     ]);
     expect(html).toContain('<a href="#intro"');
     expect(html).toContain('<a href="#intro-2"');
-    expect(html).toMatch(/<li class="pl-4"><a href="#intro-2"/);
+    expect(html).toMatch(/<li class="ps-4"><a href="#intro-2"/);
     expect(html).toMatch(/<h2 id="intro"/);
     expect(html).toMatch(/<h3 id="intro-2"/);
   });
@@ -321,7 +321,7 @@ describe("NotionRenderer", () => {
     expect(html).toContain("<figcaption");
     // The second bookmark has no preview: a plain link labelled by its URL.
     expect(html).toMatch(
-      /<p class="break-words"><a href="https:\/\/example.com\/post"[^>]*>https:\/\/example.com\/post/,
+      /<p><a href="https:\/\/example.com\/post"[^>]*>https:\/\/example.com\/post/,
     );
   });
 

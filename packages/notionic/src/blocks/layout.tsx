@@ -10,7 +10,7 @@ export function Toggle({ block, context, children }: BlockProps<"toggle">) {
       <summary className="cursor-pointer">
         <RichText text={rich_text} context={context} />
       </summary>
-      {children ? <div className="mt-2 flex flex-col gap-4 pl-5">{children}</div> : null}
+      {children ? <div className="mt-2 flex flex-col gap-4 ps-5">{children}</div> : null}
     </details>
   );
 }

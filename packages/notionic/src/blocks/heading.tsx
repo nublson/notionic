@@ -42,7 +42,7 @@ export function Heading({ block, context, children }: HeadingProps) {
       <details className={cx("group/toggle", className)}>
         <summary className="cursor-pointer [&>*]:inline">{heading}</summary>
         {children ? (
-          <div className="mt-2 flex flex-col gap-4 pl-5 text-base font-normal tracking-normal">
+          <div className="mt-2 flex flex-col gap-4 ps-5 text-base font-normal tracking-normal">
             {children}
           </div>
         ) : null}

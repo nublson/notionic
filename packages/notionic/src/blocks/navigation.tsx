@@ -5,7 +5,7 @@ import type { BlockProps } from "../types";
 import { cx } from "../utils";
 
 // Indent each heading by its level, relative to the page's top level.
-const INDENT = ["", "pl-4", "pl-8", "pl-12"];
+const INDENT = ["", "ps-4", "ps-8", "ps-12"];
 
 /** Links to every heading on the page, indented by level. */
 export function TableOfContents({ block, context }: BlockProps<"table_of_contents">) {
@@ -56,7 +56,7 @@ export function Tab({ block, context }: BlockProps<"tab">) {
           >
             <summary className="cursor-pointer px-4 py-2 font-medium">
               {icon?.type === "emoji" ? (
-                <span aria-hidden="true" className="mr-2">
+                <span aria-hidden="true" className="me-2">
                   {icon.emoji}
                 </span>
               ) : null}

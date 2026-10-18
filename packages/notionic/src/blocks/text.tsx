@@ -1,4 +1,4 @@
-import { blockColorClass } from "../colors";
+import { blockColorClass, colorClass } from "../colors";
 import { resolveFileUrl } from "../files";
 import { CODE_CLASSES, RichText } from "../rich-text";
 import type { BlockProps, InlineEquationProps } from "../types";
@@ -15,7 +15,7 @@ export function Paragraph({ block, context, children }: BlockProps<"paragraph">)
           <RichText text={rich_text} context={context} />
         </p>
       )}
-      {children ? <div className="flex flex-col gap-4 pl-6">{children}</div> : null}
+      {children ? <div className="flex flex-col gap-4 ps-6">{children}</div> : null}
     </>
   );
 }
@@ -23,7 +23,7 @@ export function Paragraph({ block, context, children }: BlockProps<"paragraph">)
 export function Quote({ block, context, children }: BlockProps<"quote">) {
   const { rich_text, color } = block.quote;
   return (
-    <blockquote className={cx("border-l-2 border-border pl-4 italic", blockColorClass(color))}>
+    <blockquote className={cx("border-s-2 border-border ps-4 italic", colorClass(color))}>
       <RichText text={rich_text} context={context} />
       {children ? <div className="mt-4 flex flex-col gap-4">{children}</div> : null}
     </blockquote>
@@ -37,11 +37,11 @@ export function Callout({ block, context, children }: BlockProps<"callout">) {
     <div
       className={cx(
         "flex gap-3 rounded-lg border border-border p-4",
-        blockColorClass(color) ?? "bg-muted/50",
+        colorClass(color) ?? "bg-muted/50",
       )}
     >
       {icon?.type === "emoji" ? (
-        <span aria-hidden="true" className="shrink-0 leading-7">
+        <span aria-hidden="true" className="shrink-0">
           {icon.emoji}
         </span>
       ) : iconUrl ? (

@@ -107,14 +107,14 @@ function List({
     return (
       <ol
         start={first?.list_start_index}
-        className={cx("flex flex-col gap-2 pl-6", NUMBER_FORMATS[first?.list_format ?? "numbers"])}
+        className={cx("flex flex-col gap-2 ps-6", NUMBER_FORMATS[first?.list_format ?? "numbers"])}
       >
         {rendered}
       </ol>
     );
   }
   return (
-    <ul className={cx("flex flex-col gap-2", kind === "bulleted" ? "list-disc pl-6" : "list-none")}>
+    <ul className={cx("flex flex-col gap-2", kind === "bulleted" ? "list-disc ps-6" : "list-none")}>
       {rendered}
     </ul>
   );
@@ -204,7 +204,12 @@ export function NotionRenderer({
     components: { ...defaultComponents, ...components },
   };
   return (
-    <div className={cx("notionic flex flex-col gap-4 leading-7 text-foreground", className)}>
+    <div
+      className={cx(
+        "notionic flex flex-col gap-4 leading-[1.6] wrap-break-word text-foreground",
+        className,
+      )}
+    >
       <BlockList blocks={blocks} context={context} />
     </div>
   );

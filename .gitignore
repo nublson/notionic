@@ -12,3 +12,6 @@ next-env.d.ts
 apps/web/public/r/
 .vercel
 .env*
+
+# Local before/after screenshots from UI reviews
+/.qa
