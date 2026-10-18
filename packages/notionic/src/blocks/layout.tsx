@@ -1,16 +1,23 @@
 import { blockColorClass } from "../colors";
 import { RichText } from "../rich-text";
+import { DISCLOSURE_CONTENT_INDENT, DisclosureChevron, SUMMARY_CLASSES } from "./disclosure";
 import type { BlockProps } from "../types";
 import { cx } from "../utils";
 
 export function Toggle({ block, context, children }: BlockProps<"toggle">) {
   const { rich_text, color } = block.toggle;
   return (
-    <details className={blockColorClass(color)}>
-      <summary className="cursor-pointer">
-        <RichText text={rich_text} context={context} />
+    <details className={cx("group/toggle", blockColorClass(color))}>
+      <summary className={SUMMARY_CLASSES}>
+        <DisclosureChevron />
+        {/* Its own box, so a wrapped summary keeps the text edge. */}
+        <span className="min-w-0">
+          <RichText text={rich_text} context={context} />
+        </span>
       </summary>
-      {children ? <div className="mt-2 flex flex-col gap-4 ps-5">{children}</div> : null}
+      {children ? (
+        <div className={cx("mt-2 flex flex-col gap-4", DISCLOSURE_CONTENT_INDENT)}>{children}</div>
+      ) : null}
     </details>
   );
 }

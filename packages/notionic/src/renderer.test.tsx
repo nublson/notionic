@@ -156,7 +156,7 @@ describe("NotionRenderer", () => {
       ),
       block("quote", { rich_text: [richText("Said")] }, { children: [para(richText("C"))] }),
     ]);
-    expect(html).toMatch(/<details[^>]*><summary[^>]*>Open<\/summary>/);
+    expect(html).toMatch(/<details[^>]*><summary[^>]*><span aria-hidden="true"[\s\S]*?<\/span><span[^>]*>Open<\/span><\/summary>/);
     expect(html).toContain("💡");
     expect(html.match(/<blockquote[\s\S]*<\/blockquote>/)![0]).toContain("C");
   });
@@ -370,7 +370,9 @@ describe("NotionRenderer", () => {
     expect(html).toContain('<img src="https://e.com/n.png" alt=""');
     // A text color keeps the default surface; a background color replaces it.
     expect(html).toMatch(/border border-border bg-muted\/50 text-\(--notionic-red\)/);
-    expect(html).toMatch(/class="flex gap-3 rounded-lg p-4 border border-transparent bg-\(--notionic-yellow-bg\)"/);
+    expect(html).toMatch(
+      /class="flex gap-3 rounded-lg p-4 border border-transparent bg-\(--notionic-yellow-bg\)"/,
+    );
   });
 
   it("passes uploaded files, not external ones, through transformFileUrl", async () => {
