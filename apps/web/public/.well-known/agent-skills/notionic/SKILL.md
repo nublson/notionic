@@ -7,6 +7,8 @@ description: Add notionic to a React or Next.js project to use Notion as a CMS. 
 
 notionic renders blocks from the official Notion API as React Server Components. Full docs: https://notionic.dev/llms.txt (each doc is also Markdown at `https://notionic.dev/docs/<slug>.md`).
 
+The docs are also an MCP server at `https://notionic.dev/api/mcp` (Streamable HTTP, read-only, no auth), with `list_docs`, `search_docs` and `read_doc` tools: `claude mcp add --transport http notionic https://notionic.dev/api/mcp`.
+
 ## Install
 
 ```bash

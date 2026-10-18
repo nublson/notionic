@@ -56,6 +56,16 @@ const catalog = {
       tags: ["api-catalog", "shadcn-registry", "read-only"],
       representativeQueries: ["notionic shadcn registry", "search notionic docs over HTTP"],
     },
+    {
+      identifier: `urn:air:${HOST}:mcp:docs`,
+      displayName: "notionic docs MCP server",
+      description:
+        "A read-only MCP server (Streamable HTTP, no auth) to list, search and read the docs.",
+      type: "application/mcp-server-card+json",
+      url: `${SITE_URL}/.well-known/mcp/server-card.json`,
+      tags: ["mcp", "documentation", "read-only"],
+      representativeQueries: ["notionic MCP server", "search notionic docs from an agent"],
+    },
   ],
 };
 

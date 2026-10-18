@@ -3,7 +3,8 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const revalidatePath = vi.fn();
-vi.mock("next/cache", () => ({ revalidatePath }));
+const revalidateTag = vi.fn();
+vi.mock("next/cache", () => ({ revalidatePath, revalidateTag }));
 
 const { POST } = await import("./route");
 
@@ -31,6 +32,7 @@ describe("POST /api/notion/revalidate", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
     expect(revalidatePath).toHaveBeenCalledWith("/sitemap.xml");
     expect(revalidatePath).toHaveBeenCalledTimes(4);
+    expect(revalidateTag).toHaveBeenCalledWith("docs", "max");
   });
 
   it("rejects a wrong or missing secret", async () => {
