@@ -42,7 +42,7 @@ export function Heading({ block, context, children }: HeadingProps) {
 
   if (data.is_toggleable) {
     return (
-      <details className={cx("group/toggle text-balance", className)}>
+      <details className={cx("group/toggle text-balance [hr+&]:mt-0", className)}>
         <summary className={cx(SUMMARY_CLASSES, blockColorClass(data.color))}>
           <DisclosureChevron />
           {heading}
@@ -65,7 +65,7 @@ export function Heading({ block, context, children }: HeadingProps) {
   // accessible name is only its text.
   return (
     <>
-      <div className={cx("group text-balance", className, blockColorClass(data.color))}>
+      <div className={cx("group text-balance [hr+&]:mt-0", className, blockColorClass(data.color))}>
         {heading}
         {/* biome-ignore lint/a11y/useAnchorContent: aria-label gives the link its accessible name */}
         <a href={`#${id}`} aria-label={`Link to section: ${text}`} className={ANCHOR}>

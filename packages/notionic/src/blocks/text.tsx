@@ -80,8 +80,9 @@ export function Callout({ block, context, children }: BlockProps<"callout">) {
   );
 }
 
+// A section break: twice the space of the gap between blocks on each side.
 export function Divider(_: BlockProps<"divider">) {
-  return <hr className="border-border" />;
+  return <hr className="my-4 border-border" />;
 }
 
 /** An equation's LaTeX source. For formatted math, use `notion-equation` from the shadcn registry. */

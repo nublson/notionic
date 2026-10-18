@@ -156,7 +156,9 @@ describe("NotionRenderer", () => {
       ),
       block("quote", { rich_text: [richText("Said")] }, { children: [para(richText("C"))] }),
     ]);
-    expect(html).toMatch(/<details[^>]*><summary[^>]*><span aria-hidden="true"[\s\S]*?<\/span><span[^>]*>Open<\/span><\/summary>/);
+    expect(html).toMatch(
+      /<details[^>]*><summary[^>]*><span aria-hidden="true"[\s\S]*?<\/span><span[^>]*>Open<\/span><\/summary>/,
+    );
     expect(html).toContain("💡");
     expect(html.match(/<blockquote[\s\S]*<\/blockquote>/)![0]).toContain("C");
   });
