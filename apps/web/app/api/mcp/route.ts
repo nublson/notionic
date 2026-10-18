@@ -23,6 +23,7 @@ const handler = createMcpHandler(
   { responseMode: "json" },
 );
 
-export const GET = handler.fetch;
-export const POST = handler.fetch;
-export const DELETE = handler.fetch;
+// Only the request: Next's second argument is the route context, not the SDK's options.
+const serve = (request: Request) => handler.fetch(request);
+
+export { serve as DELETE, serve as GET, serve as POST };
