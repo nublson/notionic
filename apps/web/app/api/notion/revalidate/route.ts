@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
+import { DOCS_CACHE_TAG } from "@/lib/site";
 
 export const runtime = "nodejs";
 
@@ -81,5 +82,6 @@ export async function POST(request: NextRequest) {
   revalidatePath("/", "layout");
   // Metadata routes are cached apart from the layout tree.
   revalidatePath("/sitemap.xml");
+  revalidateTag(DOCS_CACHE_TAG, "max");
   return NextResponse.json({ revalidated: true, now: Date.now() });
 }
