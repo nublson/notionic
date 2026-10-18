@@ -7,6 +7,7 @@ export function DisclosureChevron() {
   return (
     <span aria-hidden="true" className="flex h-[1lh] shrink-0 items-center text-muted-foreground">
       <svg
+        aria-hidden="true"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

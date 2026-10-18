@@ -187,7 +187,7 @@ describe("NotionRenderer", () => {
         caption: [],
       }),
     ]);
-    expect(html).toContain('aria-label="Code, typescript"');
+    expect(html).toContain('aria-label="Code, TypeScript"');
     expect(html).toContain("const a = &lt;b&gt;1&lt;/b&gt;");
   });
 
