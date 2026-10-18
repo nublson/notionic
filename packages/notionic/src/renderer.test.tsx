@@ -386,6 +386,17 @@ describe("NotionRenderer", () => {
     );
   });
 
+  it("plays external links to video files, and links other videos", async () => {
+    const video = (url: string) =>
+      block("video", { type: "external", external: { url }, caption: [] });
+    const html = await render([
+      video("https://cdn.example.com/clip.mp4?v=2"),
+      video("https://example.com/watch/123"),
+    ]);
+    expect(html).toContain('<video src="https://cdn.example.com/clip.mp4?v=2"');
+    expect(html).toMatch(/<a href="https:\/\/example.com\/watch\/123"/);
+  });
+
   it("passes uploaded files, not external ones, through transformFileUrl", async () => {
     const signed = "https://prod-files-secure.s3.amazonaws.com/a.png?X-Amz-Signature=x";
     const html = await render(

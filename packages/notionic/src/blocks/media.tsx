@@ -8,7 +8,7 @@ import type {
   RenderContext,
   RichText as RichTextArray,
 } from "../types";
-import { plainText } from "../utils";
+import { cx, plainText } from "../utils";
 
 /** An http(s) URL, or a same-site path such as a file proxy route. */
 function isUrl(url: string): boolean {
@@ -51,13 +51,29 @@ export function Image({ block, context }: BlockProps<"image">) {
         alt={plainText(block.image.caption)}
         loading="lazy"
         decoding="async"
-        // An inset hairline (--notionic-image-outline: black at 10%, white in
-        // dark mode) keeps a light image's edge visible against the page.
-        className="h-auto max-w-full rounded-lg outline outline-1 -outline-offset-1 outline-(--notionic-image-outline)"
+        className={cx("h-auto max-w-full", MEDIA_OUTLINE)}
       />
       <Caption caption={block.image.caption} context={context} />
     </figure>
   );
+}
+
+// An inset hairline (--notionic-image-outline) so light media keep an edge.
+const MEDIA_OUTLINE =
+  "rounded-lg outline outline-1 -outline-offset-1 outline-(--notionic-image-outline)";
+// Players and embeds also get a muted fill, so they have a shape while they
+// load. Images don't: it would show through transparent ones.
+const MEDIA_SURFACE = `${MEDIA_OUTLINE} bg-muted`;
+
+// External links to video files play like uploaded ones, as in Notion.
+const VIDEO_FILE = /\.(mp4|webm|mov|m4v|ogv)$/i;
+
+function isVideoFile(url: string): boolean {
+  try {
+    return VIDEO_FILE.test(new URL(url).pathname);
+  } catch {
+    return false;
+  }
 }
 
 /** The embed URL for a YouTube link, or null. */
@@ -95,17 +111,17 @@ export function Video({ block, context }: BlockProps<"video">) {
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
           loading="lazy"
-          className="aspect-video w-full rounded-lg"
+          className={cx("aspect-video w-full", MEDIA_SURFACE)}
         />
         <Caption caption={caption} context={context} />
       </figure>
     );
   }
-  if (block.video.type === "file" && isUrl(src)) {
+  if (isUrl(src) && (block.video.type === "file" || isVideoFile(src))) {
     return (
       <figure>
         {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
-        <video src={src} controls preload="metadata" className="w-full rounded-lg" />
+        <video src={src} controls preload="metadata" className={cx("w-full", MEDIA_SURFACE)} />
         <Caption caption={caption} context={context} />
       </figure>
     );
