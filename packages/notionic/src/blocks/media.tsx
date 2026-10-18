@@ -159,6 +159,20 @@ function fileExtension(name: string): string | null {
   return match?.[1] ? match[1].toUpperCase() : null;
 }
 
+/** The last segment of a URL's path, decoded: "…/files/report.pdf?X=1" is "report.pdf". */
+function fileNameFromUrl(url: string): string {
+  try {
+    return decodeURIComponent(new URL(url, "https://notionic.dev").pathname.split("/").pop() ?? "");
+  } catch {
+    return "";
+  }
+}
+
+/** The URL Notion gave for a file, before `transformFileUrl`. */
+function sourceUrl(file: { external: { url: string } } | { file: { url: string } }) {
+  return "external" in file ? file.external.url : file.file.url;
+}
+
 /**
  * A file as a card: an icon, its name on one line (the full name as a
  * tooltip when it truncates), its type, and the caption below.
@@ -176,12 +190,8 @@ function FileCard({
 }) {
   const link = resolveLink(url, context);
   if (!link) return null;
-  let path = url;
-  try {
-    path = new URL(url, "https://notionic.dev").pathname;
-  } catch {}
-  const title = name || decodeURIComponent(path.split("/").pop() ?? "") || url;
-  const type = fileExtension(name) ?? fileExtension(path);
+  const title = name || url;
+  const type = fileExtension(name);
   return (
     <figure>
       <a
@@ -216,18 +226,21 @@ export function File({ block, context }: BlockProps<"file">) {
   return (
     <FileCard
       url={resolveFileUrl(block.file, block.id, context) ?? ""}
-      name={block.file.name}
+      name={block.file.name || fileNameFromUrl(sourceUrl(block.file))}
       caption={block.file.caption}
       context={context}
     />
   );
 }
 
+// A card rather than an inline viewer, which most phones don't support. The
+// name comes from Notion's URL, since a transformed one may not carry it.
 export function Pdf({ block, context }: BlockProps<"pdf">) {
   return (
-    <UrlLine
+    <FileCard
       url={resolveFileUrl(block.pdf, block.id, context) ?? ""}
-      label={plainText(block.pdf.caption)}
+      name={fileNameFromUrl(sourceUrl(block.pdf))}
+      caption={block.pdf.caption}
       context={context}
     />
   );

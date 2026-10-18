@@ -411,6 +411,28 @@ describe("NotionRenderer", () => {
     expect(html).toMatch(/<figcaption[^>]*>The numbers.<\/figcaption>/);
   });
 
+  it("names a PDF card after Notion's URL, even when transformFileUrl hides it", async () => {
+    const html = await renderToHtml(
+      <NotionRenderer
+        blocks={[
+          block(
+            "pdf",
+            {
+              type: "file",
+              file: { url: "https://s3.example.com/x/team%20handbook.pdf?X=1", expiry_time: "" },
+              caption: [],
+            },
+            { id: "pdf-1" },
+          ),
+        ]}
+        transformFileUrl={({ blockId }) => `/api/file/${blockId}`}
+      />,
+    );
+    expect(html).toContain('href="/api/file/pdf-1"');
+    expect(html).toContain('title="team handbook.pdf"');
+    expect(html).toContain(">PDF</span>");
+  });
+
   it("passes uploaded files, not external ones, through transformFileUrl", async () => {
     const signed = "https://prod-files-secure.s3.amazonaws.com/a.png?X-Amz-Signature=x";
     const html = await render(
