@@ -243,6 +243,15 @@ const LINK_ICON = (
   </>
 );
 
+const EMBED_ICON = (
+  <>
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+    <path d="M10 4v4" />
+    <path d="M2 8h20" />
+    <path d="M6 4v4" />
+  </>
+);
+
 /** A file as a card: its name, its type ("PDF"), and the caption below. */
 function FileCard({
   url,
@@ -375,7 +384,8 @@ export function DemoFrame({ caption, context, children }: DemoFrameProps) {
 }
 
 /**
- * An embed, as a link. An embed of `…/demos/<name>` whose name is one of
+ * An embed, as a one-line card linking to it: embedding any site in an iframe
+ * is unsafe, and most refuse it. An embed of `…/demos/<name>` whose name is one of
  * `demos` renders that demo component instead, in the `demo` frame.
  */
 export function Embed({ block, context }: BlockProps<"embed">) {
@@ -388,7 +398,15 @@ export function Embed({ block, context }: BlockProps<"embed">) {
       </Frame>
     );
   }
-  return <UrlLine url={block.embed.url} label={plainText(block.embed.caption)} context={context} />;
+  return (
+    <CardRow
+      url={block.embed.url}
+      title={displayUrl(block.embed.url)}
+      icon={EMBED_ICON}
+      caption={block.embed.caption}
+      context={context}
+    />
+  );
 }
 
 export function LinkPreview({ block, context }: BlockProps<"link_preview">) {

@@ -337,6 +337,19 @@ describe("NotionRenderer", () => {
     expect(html).toMatch(/<a href="https:\/\/example.com\/post" title="example.com\/post"/);
   });
 
+  it("renders embeds as one-line cards with the caption below", async () => {
+    const html = await render([
+      block("embed", {
+        url: "https://www.figma.com/file/abc/Sample",
+        caption: [richText("The design.")],
+      }),
+    ]);
+    expect(html).toMatch(
+      /<a href="https:\/\/www.figma.com\/file\/abc\/Sample" title="figma.com\/file\/abc\/Sample"/,
+    );
+    expect(html).toMatch(/<figcaption[^>]*>The design.<\/figcaption>/);
+  });
+
   it("renders embeds of /demos/<name> as demos, in a frame with the caption", async () => {
     const Demo = ({ name, params }: DemoProps) => (
       <button type="button">
