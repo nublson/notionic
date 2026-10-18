@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "Changelog",
   alternates: { canonical: "/changelog" },
   description: "What changed in each notionic release.",
+  openGraph: {
+    title: "Changelog",
+    description: "What changed in each notionic release.",
+    url: "/changelog",
+  },
 };
 
 // Written by `changeset version`. Next runs from apps/web, so this is read from

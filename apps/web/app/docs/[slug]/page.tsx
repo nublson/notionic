@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { docsPageHref, getDoc, getDocs, groupBySection, type DocSummary } from "@/lib/docs";
 import { demos } from "@/lib/demos";
 import { notionComponents, notionFileUrl } from "@/lib/notion-components";
+import { docStructuredData, JsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 
 // Built ahead of time, and rebuilt in the background at most once an hour.
@@ -78,6 +79,7 @@ export default async function DocPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-4">
+      <JsonLd data={docStructuredData(doc)} />
       <SiteHeader />
       <div className="flex gap-10 py-10">
         <aside className="hidden w-52 shrink-0 md:block">
