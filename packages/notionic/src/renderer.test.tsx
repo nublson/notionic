@@ -356,6 +356,23 @@ describe("NotionRenderer", () => {
     ).toContain('<section data-demo="morph-button"><button');
   });
 
+  it("renders callout icons in one slot, and keeps the surface for text colors", async () => {
+    const callout = (icon: unknown, color = "default") =>
+      block("callout", { rich_text: [richText("Note")], color, icon });
+    const html = await render([
+      callout({
+        type: "custom_emoji",
+        custom_emoji: { id: "x", name: "notionic", url: "https://e.com/n.png" },
+      }),
+      callout({ type: "emoji", emoji: "💡" }, "red"),
+      callout(null, "yellow_background"),
+    ]);
+    expect(html).toContain('<img src="https://e.com/n.png" alt=""');
+    // A text color keeps the default surface; a background color replaces it.
+    expect(html).toMatch(/border border-border bg-muted\/50 text-\(--notionic-red\)/);
+    expect(html).toMatch(/class="flex gap-3 rounded-lg p-4 border border-transparent bg-\(--notionic-yellow-bg\)"/);
+  });
+
   it("passes uploaded files, not external ones, through transformFileUrl", async () => {
     const signed = "https://prod-files-secure.s3.amazonaws.com/a.png?X-Amz-Signature=x";
     const html = await render(

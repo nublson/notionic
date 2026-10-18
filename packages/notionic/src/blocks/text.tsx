@@ -40,20 +40,33 @@ export function Quote({ block, context, children }: BlockProps<"quote">) {
 
 export function Callout({ block, context, children }: BlockProps<"callout">) {
   const { icon, rich_text, color } = block.callout;
-  const iconUrl = icon?.type === "emoji" ? null : resolveFileUrl(icon, block.id, context);
+  const iconUrl =
+    icon?.type === "emoji"
+      ? null
+      : icon?.type === "custom_emoji"
+        ? icon.custom_emoji.url
+        : resolveFileUrl(icon, block.id, context);
   return (
     <div
       className={cx(
-        "flex gap-3 rounded-lg border border-border p-4",
-        colorClass(color) ?? "bg-muted/50",
+        "flex gap-3 rounded-lg p-4",
+        // A background color replaces the default surface and hides its border; a
+        // text color keeps them, as in Notion.
+        isBackgroundColor(color)
+          ? cx("border border-transparent", colorClass(color))
+          : cx("border border-border bg-muted/50", colorClass(color)),
       )}
     >
-      {icon?.type === "emoji" ? (
-        <span aria-hidden="true" className="shrink-0">
-          {icon.emoji}
+      {icon?.type === "emoji" || iconUrl ? (
+        // A fixed slot, one line tall: icons center on the first line, and the
+        // text starts at the same place whatever the icon.
+        <span aria-hidden="true" className="flex h-[1lh] w-5 shrink-0 items-center justify-center">
+          {icon?.type === "emoji" ? (
+            icon.emoji
+          ) : (
+            <img src={iconUrl ?? ""} alt="" className="size-5 rounded-sm object-contain" />
+          )}
         </span>
-      ) : iconUrl ? (
-        <img src={iconUrl} alt="" className="mt-1 size-5 shrink-0" />
       ) : null}
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         {rich_text.length > 0 ? (
