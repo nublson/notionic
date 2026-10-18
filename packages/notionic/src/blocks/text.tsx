@@ -87,10 +87,15 @@ export function Divider(_: BlockProps<"divider">) {
 
 /** An equation's LaTeX source. For formatted math, use `notion-equation` from the shadcn registry. */
 export function Equation({ block }: BlockProps<"equation">) {
+  // The same surface and type as code blocks. The source wraps rather than
+  // scrolls, and the label tells screen readers what they're hearing.
   return (
-    <div className="overflow-x-auto rounded-md bg-muted px-4 py-3">
-      <code className="font-mono text-sm">{block.equation.expression}</code>
-    </div>
+    <figure
+      aria-label="Equation, LaTeX source"
+      className="rounded-lg border border-border bg-muted px-4 py-3 font-mono text-[0.8125rem] leading-relaxed"
+    >
+      <code>{block.equation.expression}</code>
+    </figure>
   );
 }
 
