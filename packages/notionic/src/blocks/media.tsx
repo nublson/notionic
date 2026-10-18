@@ -153,11 +153,71 @@ export function Audio({ block, context }: BlockProps<"audio">) {
   );
 }
 
+/** The extension of a file name or URL path, upper-cased ("report.pdf" is "PDF"), or null. */
+function fileExtension(name: string): string | null {
+  const match = name.match(/\.([a-z0-9]{1,8})$/i);
+  return match?.[1] ? match[1].toUpperCase() : null;
+}
+
+/**
+ * A file as a card: an icon, its name on one line (the full name as a
+ * tooltip when it truncates), its type, and the caption below.
+ */
+function FileCard({
+  url,
+  name,
+  caption,
+  context,
+}: {
+  url: string;
+  name: string;
+  caption: RichTextArray;
+  context: RenderContext;
+}) {
+  const link = resolveLink(url, context);
+  if (!link) return null;
+  let path = url;
+  try {
+    path = new URL(url, "https://notionic.dev").pathname;
+  } catch {}
+  const title = name || decodeURIComponent(path.split("/").pop() ?? "") || url;
+  const type = fileExtension(name) ?? fileExtension(path);
+  return (
+    <figure>
+      <a
+        href={link.href}
+        title={title}
+        {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 transition-[background-color] hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="size-5 shrink-0 text-muted-foreground"
+        >
+          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+        </svg>
+        <span className="min-w-0 flex-1 truncate font-medium">{title}</span>
+        {type ? <span className="shrink-0 text-xs text-muted-foreground">{type}</span> : null}
+        {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
+      </a>
+      <Caption caption={caption} context={context} />
+    </figure>
+  );
+}
+
 export function File({ block, context }: BlockProps<"file">) {
   return (
-    <UrlLine
+    <FileCard
       url={resolveFileUrl(block.file, block.id, context) ?? ""}
-      label={block.file.name || plainText(block.file.caption)}
+      name={block.file.name}
+      caption={block.file.caption}
       context={context}
     />
   );

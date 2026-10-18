@@ -397,6 +397,20 @@ describe("NotionRenderer", () => {
     expect(html).toMatch(/<a href="https:\/\/example.com\/watch\/123"/);
   });
 
+  it("renders files as cards with their name, type and caption", async () => {
+    const html = await render([
+      block("file", {
+        type: "external",
+        external: { url: "https://example.com/q3-report.xlsx" },
+        name: "q3-report.xlsx",
+        caption: [richText("The numbers.")],
+      }),
+    ]);
+    expect(html).toContain('title="q3-report.xlsx"');
+    expect(html).toContain(">XLSX</span>");
+    expect(html).toMatch(/<figcaption[^>]*>The numbers.<\/figcaption>/);
+  });
+
   it("passes uploaded files, not external ones, through transformFileUrl", async () => {
     const signed = "https://prod-files-secure.s3.amazonaws.com/a.png?X-Amz-Signature=x";
     const html = await render(
