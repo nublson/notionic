@@ -17,12 +17,13 @@ export function TableOfContents({ block, context }: BlockProps<"table_of_content
       aria-label="Table of contents"
       className={cx("text-sm", blockColorClass(block.table_of_contents.color))}
     >
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col">
         {headings.map((heading) => (
           <li key={heading.blockId} className={INDENT[heading.level - top]}>
             <a
               href={`#${heading.id}`}
-              className="rounded-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              // A block with padding: each row is a 28px tap target, with no gaps between.
+              className="block rounded-sm py-1 text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               {heading.text}
             </a>
