@@ -2,8 +2,10 @@ name: CI
 
 on:
   pull_request:
+  # Not main: commits reach it only through the Release workflow, whose Build
+  # Validation job already builds, typechecks and tests the release commit.
   push:
-    branches: [main, develop]
+    branches: [develop]
 
 concurrency:
   group: ci-${{ github.ref }}
