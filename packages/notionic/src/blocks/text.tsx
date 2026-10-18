@@ -1,4 +1,4 @@
-import { blockColorClass, colorClass } from "../colors";
+import { blockColorClass, colorClass, isBackgroundColor } from "../colors";
 import { resolveFileUrl } from "../files";
 import { CODE_CLASSES, RichText } from "../rich-text";
 import type { BlockProps, InlineEquationProps } from "../types";
@@ -23,7 +23,15 @@ export function Paragraph({ block, context, children }: BlockProps<"paragraph">)
 export function Quote({ block, context, children }: BlockProps<"quote">) {
   const { rich_text, color } = block.quote;
   return (
-    <blockquote className={cx("border-s-2 border-border ps-4 italic", colorClass(color))}>
+    // Emphasis inside the italic quote turns roman, so it still stands out.
+    // A background gets padding on its open sides; the bar stays at the start.
+    <blockquote
+      className={cx(
+        "border-s-2 border-border ps-4 italic [&_em]:not-italic",
+        colorClass(color),
+        isBackgroundColor(color) && "rounded-e-md py-1 pe-3",
+      )}
+    >
       <RichText text={rich_text} context={context} />
       {children ? <div className="mt-4 flex flex-col gap-4">{children}</div> : null}
     </blockquote>
