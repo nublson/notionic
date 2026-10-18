@@ -34,9 +34,13 @@ export function isBackgroundColor(color: string | undefined): boolean {
   return Boolean(color && color in BACKGROUND);
 }
 
-/** A block's color: text color, or a padded background. */
+/**
+ * A block's color: text color, or a background that bleeds past the text, so
+ * the text stays on the same edge as the blocks around it. Blocks with a
+ * frame of their own (quote, callout) use `colorClass` instead.
+ */
 export function blockColorClass(color: string | undefined): string | undefined {
   const cls = colorClass(color);
   if (!cls) return undefined;
-  return isBackgroundColor(color) ? `${cls} rounded-md px-3 py-1` : cls;
+  return isBackgroundColor(color) ? `${cls} -mx-2 rounded-md px-2 py-1` : cls;
 }

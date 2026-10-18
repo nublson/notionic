@@ -4,8 +4,10 @@ import { RichText } from "../rich-text";
 import type { BlockProps } from "../types";
 import { cx } from "../utils";
 
-function Nested({ children }: { children?: ReactNode }) {
-  return children ? <div className="mt-2 flex flex-col gap-2">{children}</div> : null;
+function Nested({ children, className }: { children?: ReactNode; className?: string }) {
+  return children ? (
+    <div className={cx("mt-2 flex flex-col gap-2", className)}>{children}</div>
+  ) : null;
 }
 
 export function BulletedListItem({ block, context, children }: BlockProps<"bulleted_list_item">) {
@@ -34,16 +36,34 @@ export function ToDo({ block, context, children }: BlockProps<"to_do">) {
   return (
     <li className={blockColorClass(color)}>
       <label className="flex items-start gap-2">
-        <input
-          type="checkbox"
-          checked={checked}
-          disabled
-          readOnly
-          className="mt-1.5 size-4 shrink-0 accent-primary"
-        />
+        {/* A real, read-only checkbox, drawn like shadcn's Checkbox rather than
+            dimmed like a disabled control; one line tall, so it centers on the
+            first line of text. */}
+        <span className="relative flex h-[1lh] shrink-0 items-center">
+          <input
+            type="checkbox"
+            checked={checked}
+            disabled
+            readOnly
+            className="peer size-4 appearance-none rounded-[4px] border border-muted-foreground/80 bg-background checked:border-primary checked:bg-primary"
+          />
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="pointer-events-none absolute inset-x-0.5 size-3 text-primary-foreground opacity-0 peer-checked:opacity-100"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        </span>
         <span className={cx(checked && "text-muted-foreground line-through")}>{text}</span>
       </label>
-      <Nested>{children}</Nested>
+      {/* Nested to-dos line up with this one's text, past the checkbox. */}
+      <Nested className="ps-6">{children}</Nested>
     </li>
   );
 }

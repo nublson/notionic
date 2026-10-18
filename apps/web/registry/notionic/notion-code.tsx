@@ -1,4 +1,4 @@
-import { plainText, RichText, type BlockProps } from "notionic"
+import { plainText, RichText, type BlockProps, languageName } from "notionic"
 
 import {
   CodeBlock,
@@ -11,22 +11,6 @@ import {
   CodeBlockTitle,
 } from "@/components/ui/code-block"
 import { highlightCode } from "@/lib/highlighter"
-
-// Notion's language names, as titles. Others show as Notion writes them.
-const TITLES: Record<string, string> = {
-  "plain text": "Plain text",
-  javascript: "JavaScript",
-  typescript: "TypeScript",
-  json: "JSON",
-  html: "HTML",
-  css: "CSS",
-  sql: "SQL",
-  yaml: "YAML",
-  bash: "Bash",
-  shell: "Shell",
-  python: "Python",
-  markdown: "Markdown",
-}
 
 // Not code to highlight: Notion draws mermaid as a diagram.
 const PLAIN = new Set(["plain text", "mermaid"])
@@ -46,12 +30,12 @@ export async function NotionCode({ block, context }: BlockProps<"code">) {
   return (
     <CodeBlock>
       <CodeBlockHeader>
-        <CodeBlockTitle>{TITLES[language] ?? language}</CodeBlockTitle>
+        <CodeBlockTitle>{languageName(language)}</CodeBlockTitle>
         <CodeBlockActions>
           <CodeBlockCopyButton value={code} />
         </CodeBlockActions>
       </CodeBlockHeader>
-      <CodeBlockContent aria-label={`Code, ${TITLES[language] ?? language}`}>
+      <CodeBlockContent aria-label={`Code, ${languageName(language)}`}>
         {lines
           ? lines.map((line, index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: lines have no identity beyond their position

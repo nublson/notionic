@@ -92,6 +92,14 @@ const NUMBER_FORMATS = {
   roman: "list-[lower-roman]",
 } as const;
 
+// Notion numbers nested lists 1., a., i. and bullets them disc, circle, square,
+// though the API reports the default format at every level. A nested list's
+// own style class loses to these more specific descendant selectors.
+const NESTED_NUMBERS =
+  "[&_[data-list=numbers]]:list-[lower-alpha] [&_[data-list=numbers]_[data-list=numbers]]:list-[lower-roman]";
+const NESTED_BULLETS =
+  "[&_[data-list=bulleted]]:list-[circle] [&_[data-list=bulleted]_[data-list=bulleted]]:list-[square]";
+
 function List({
   kind,
   items,
@@ -104,17 +112,27 @@ function List({
   const rendered = items.map((item) => <Block key={item.id} block={item} context={context} />);
   if (kind === "numbered") {
     const first = items[0].type === "numbered_list_item" ? items[0].numbered_list_item : undefined;
+    const format = first?.list_format ?? "numbers";
     return (
       <ol
         start={first?.list_start_index}
-        className={cx("flex flex-col gap-2 pl-6", NUMBER_FORMATS[first?.list_format ?? "numbers"])}
+        data-list={format}
+        className={cx("flex flex-col gap-2 ps-6", NUMBER_FORMATS[format], NESTED_NUMBERS)}
       >
         {rendered}
       </ol>
     );
   }
   return (
-    <ul className={cx("flex flex-col gap-2", kind === "bulleted" ? "list-disc pl-6" : "list-none")}>
+    <ul
+      data-list={kind}
+      className={cx(
+        "flex flex-col gap-2",
+        kind === "bulleted"
+          ? cx("list-disc ps-6 marker:text-muted-foreground", NESTED_BULLETS)
+          : "list-none",
+      )}
+    >
       {rendered}
     </ul>
   );
@@ -204,7 +222,12 @@ export function NotionRenderer({
     components: { ...defaultComponents, ...components },
   };
   return (
-    <div className={cx("notionic flex flex-col gap-4 leading-7 text-foreground", className)}>
+    <div
+      className={cx(
+        "notionic flex flex-col gap-4 leading-[1.6] wrap-break-word text-foreground",
+        className,
+      )}
+    >
       <BlockList blocks={blocks} context={context} />
     </div>
   );

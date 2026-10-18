@@ -9,6 +9,7 @@ export { plainText } from "./utils";
 export { pageTitle } from "./page";
 export { resolveFileUrl } from "./files";
 export { DemoFrame } from "./blocks/media";
+export { languageName } from "./blocks/code";
 export type { HostedFile } from "./files";
 export type {
   NotionBlock,

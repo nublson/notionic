@@ -49,7 +49,7 @@ describe("NotionRenderer", () => {
         list_format: "roman",
       }),
     ]);
-    expect(html).toMatch(/<ol start="3" class="[^"]*list-\[lower-roman\]/);
+    expect(html).toMatch(/<ol start="3" data-list="roman" class="[^"]*list-\[lower-roman\]/);
   });
 
   it("renders to-dos as disabled checkboxes", async () => {
@@ -69,7 +69,7 @@ describe("NotionRenderer", () => {
     expect(await a({ bold: true })).toContain("<strong");
     expect(await a({ italic: true })).toContain("<em>");
     expect(await a({ strikethrough: true })).toContain("<s>");
-    expect(await a({ underline: true })).toContain("<u>");
+    expect(await a({ underline: true })).toContain("<u ");
     expect(await a({ code: true })).toContain("<code");
     expect(await a({ color: "red" })).toContain("text-(--notionic-red)");
     const bg = await a({ color: "blue_background" });
@@ -134,7 +134,9 @@ describe("NotionRenderer", () => {
         { children: [para(richText("Inside"))] },
       ),
     ]);
-    expect(toggle).toMatch(/<details[^>]*><summary[^>]*><h3/);
+    expect(toggle).toMatch(
+      /<details[^>]*><summary[^>]*><span aria-hidden="true"[^>]*><svg[\s\S]*<\/span><h3 id="more"/,
+    );
     expect(toggle).toContain("Inside");
 
     const blank = await render([
@@ -154,7 +156,9 @@ describe("NotionRenderer", () => {
       ),
       block("quote", { rich_text: [richText("Said")] }, { children: [para(richText("C"))] }),
     ]);
-    expect(html).toMatch(/<details[^>]*><summary[^>]*>Open<\/summary>/);
+    expect(html).toMatch(
+      /<details[^>]*><summary[^>]*><span aria-hidden="true"[\s\S]*?<\/span><span[^>]*>Open<\/span><\/summary>/,
+    );
     expect(html).toContain("💡");
     expect(html.match(/<blockquote[\s\S]*<\/blockquote>/)![0]).toContain("C");
   });
@@ -183,7 +187,7 @@ describe("NotionRenderer", () => {
         caption: [],
       }),
     ]);
-    expect(html).toContain('aria-label="Code, typescript"');
+    expect(html).toContain('aria-label="Code, TypeScript"');
     expect(html).toContain("const a = &lt;b&gt;1&lt;/b&gt;");
   });
 
@@ -219,7 +223,7 @@ describe("NotionRenderer", () => {
         },
       ),
     ]);
-    expect(html).toContain("md:flex-row");
+    expect(html).toContain('<div class="@container"><div class="flex flex-col gap-4 @xl:flex-row');
     expect(html).toContain("flex:0.25 1 0%");
     expect(html.indexOf("R")).toBeGreaterThan(html.indexOf("L"));
   });
@@ -237,12 +241,12 @@ describe("NotionRenderer", () => {
     ]);
     expect(html).toContain('<a href="#intro"');
     expect(html).toContain('<a href="#intro-2"');
-    expect(html).toMatch(/<li class="pl-4"><a href="#intro-2"/);
+    expect(html).toMatch(/<li class="ps-4"><a href="#intro-2"/);
     expect(html).toMatch(/<h2 id="intro"/);
     expect(html).toMatch(/<h3 id="intro-2"/);
   });
 
-  it("renders tabs as an exclusive accordion with the first open", async () => {
+  it("renders tabs as radio pills with panels, the first selected", async () => {
     const tab = (title: string, body: string) =>
       block(
         "paragraph",
@@ -254,10 +258,19 @@ describe("NotionRenderer", () => {
     const html = await render([
       block("tab", {}, { children: [tab("One", "First"), tab("Two", "Second")] }),
     ]);
-    const names = html.match(/<details name="([^"]+)"/g) ?? [];
-    expect(names).toHaveLength(2);
-    expect(new Set(names).size).toBe(1);
-    expect(html).toMatch(/<details name="[^"]+" open=""/);
+    const radios = [...html.matchAll(/<input[^>]*>/g)].map(([tag]) => ({
+      radio: tag.includes('type="radio"'),
+      name: tag.match(/name="([^"]+)"/)?.[1],
+      id: tag.match(/id="([^"]+)"/)?.[1],
+      checked: /\bchecked=""/.test(tag),
+    }));
+    expect(radios).toHaveLength(2);
+    expect(radios.every((r) => r.radio)).toBe(true);
+    expect(new Set(radios.map((r) => r.name)).size).toBe(1);
+    expect(radios.map((r) => r.checked)).toEqual([true, false]);
+    // Each pill labels its own radio.
+    for (const radio of radios) expect(html).toContain(`<label for="${radio.id}"`);
+    expect(html).toContain("First");
     expect(html).toContain("Second");
   });
 
@@ -295,12 +308,29 @@ describe("NotionRenderer", () => {
       },
     );
     expect(html).toMatch(
-      /<a href="\/docs\/244b"[^>]*><span aria-hidden="true"[^>]*>📦<\/span>Install<\/a>/,
+      /<a href="\/docs\/244b"[^>]*><span aria-hidden="true"[^>]*>📦<\/span><span[^>]*>Install<\/span><\/a>/,
     );
     expect(html.match(/<a /g)).toHaveLength(1);
   });
 
-  it("renders bookmarks with a preview as cards, and others as links", async () => {
+  it("renders subpages with their icon, or a page icon, as rows", async () => {
+    const html = await render([
+      block("child_page", { title: "Plain" }),
+      {
+        ...block("child_page", { title: "Iconic" }),
+        linkedPage: {
+          id: PAGE_ID,
+          title: "Iconic",
+          icon: { type: "external", external: { url: "https://e.com/i.svg" } },
+        },
+      } as NotionBlock,
+    ]);
+    expect(html.match(/data-page-row=""/g)).toHaveLength(2);
+    expect(html).toMatch(/<svg aria-hidden="true"[^>]*>.*<\/svg><\/span><span[^>]*>Plain<\/span>/);
+    expect(html).toContain('src="https://e.com/i.svg"');
+  });
+
+  it("renders bookmarks with a preview as cards, and others as one-line cards", async () => {
     const url = "https://example.com/post";
     const card = {
       ...block("bookmark", { url, caption: [richText("Worth reading")] }),
@@ -319,10 +349,39 @@ describe("NotionRenderer", () => {
     expect(html).toContain("What it&#x27;s about.");
     expect(html).toContain('src="https://example.com/cover.png"');
     expect(html).toContain("<figcaption");
-    // The second bookmark has no preview: a plain link labelled by its URL.
+    expect(html).toContain('<span class="truncate">example.com/post</span>');
+    // The second bookmark has no preview: a one-line card titled by its URL.
+    expect(html).toMatch(/<a href="https:\/\/example.com\/post" title="example.com\/post"/);
+  });
+
+  it("renders link previews as one-line cards", async () => {
+    const url = "https://github.com/nublson/notionic/pull/31";
+    const html = await render([block("link_preview", { url })]);
+    expect(html).toContain(`<a href="${url}" title="github.com/nublson/notionic/pull/31"`);
+  });
+
+  it("renders embeds and link previews with a preview as cards", async () => {
+    const bookmarkPreview = { title: "A pen", description: "Some CSS." };
+    const html = await render([
+      { ...block("embed", { url: "https://codepen.io/pen", caption: [] }), bookmarkPreview },
+      { ...block("link_preview", { url: "https://github.com/pr" }), bookmarkPreview },
+    ] as NotionBlock[]);
+    expect(html.match(/>A pen<\/span>/g)).toHaveLength(2);
+    expect(html).toContain('<span class="truncate">codepen.io/pen</span>');
+    expect(html).toContain('<span class="truncate">github.com/pr</span>');
+  });
+
+  it("renders embeds as one-line cards with the caption below", async () => {
+    const html = await render([
+      block("embed", {
+        url: "https://www.figma.com/file/abc/Sample",
+        caption: [richText("The design.")],
+      }),
+    ]);
     expect(html).toMatch(
-      /<p class="break-words"><a href="https:\/\/example.com\/post"[^>]*>https:\/\/example.com\/post/,
+      /<a href="https:\/\/www.figma.com\/file\/abc\/Sample" title="figma.com\/file\/abc\/Sample"/,
     );
+    expect(html).toMatch(/<figcaption[^>]*>The design.<\/figcaption>/);
   });
 
   it("renders embeds of /demos/<name> as demos, in a frame with the caption", async () => {
@@ -352,6 +411,72 @@ describe("NotionRenderer", () => {
     expect(
       await render(blocks, { demos: { "morph-button": Demo }, components: { demo: Frame } }),
     ).toContain('<section data-demo="morph-button"><button');
+  });
+
+  it("renders callout icons in one slot, and keeps the surface for text colors", async () => {
+    const callout = (icon: unknown, color = "default") =>
+      block("callout", { rich_text: [richText("Note")], color, icon });
+    const html = await render([
+      callout({
+        type: "custom_emoji",
+        custom_emoji: { id: "x", name: "notionic", url: "https://e.com/n.png" },
+      }),
+      callout({ type: "emoji", emoji: "💡" }, "red"),
+      callout(null, "yellow_background"),
+    ]);
+    expect(html).toContain('<img src="https://e.com/n.png" alt=""');
+    // A text color keeps the default surface; a background color replaces it.
+    expect(html).toMatch(/border border-border bg-muted\/50 text-\(--notionic-red\)/);
+    expect(html).toMatch(
+      /class="flex gap-3 rounded-lg p-4 border border-transparent bg-\(--notionic-yellow-bg\)"/,
+    );
+  });
+
+  it("plays external links to video files, and links other videos", async () => {
+    const video = (url: string) =>
+      block("video", { type: "external", external: { url }, caption: [] });
+    const html = await render([
+      video("https://cdn.example.com/clip.mp4?v=2"),
+      video("https://example.com/watch/123"),
+    ]);
+    expect(html).toContain('<video src="https://cdn.example.com/clip.mp4?v=2"');
+    expect(html).toMatch(/<a href="https:\/\/example.com\/watch\/123"/);
+  });
+
+  it("renders files as cards with their name, type and caption", async () => {
+    const html = await render([
+      block("file", {
+        type: "external",
+        external: { url: "https://example.com/q3-report.xlsx" },
+        name: "q3-report.xlsx",
+        caption: [richText("The numbers.")],
+      }),
+    ]);
+    expect(html).toContain('title="q3-report.xlsx"');
+    expect(html).toContain(">XLSX</span>");
+    expect(html).toMatch(/<figcaption[^>]*>The numbers.<\/figcaption>/);
+  });
+
+  it("names a PDF card after Notion's URL, even when transformFileUrl hides it", async () => {
+    const html = await renderToHtml(
+      <NotionRenderer
+        blocks={[
+          block(
+            "pdf",
+            {
+              type: "file",
+              file: { url: "https://s3.example.com/x/team%20handbook.pdf?X=1", expiry_time: "" },
+              caption: [],
+            },
+            { id: "pdf-1" },
+          ),
+        ]}
+        transformFileUrl={({ blockId }) => `/api/file/${blockId}`}
+      />,
+    );
+    expect(html).toContain('href="/api/file/pdf-1"');
+    expect(html).toContain('title="team handbook.pdf"');
+    expect(html).toContain(">PDF</span>");
   });
 
   it("passes uploaded files, not external ones, through transformFileUrl", async () => {
