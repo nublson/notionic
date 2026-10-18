@@ -134,7 +134,7 @@ describe("NotionRenderer", () => {
         { children: [para(richText("Inside"))] },
       ),
     ]);
-    expect(toggle).toMatch(/<details[^>]*><summary[^>]*><h3/);
+    expect(toggle).toMatch(/<details[^>]*><summary[^>]*><span aria-hidden="true"[^>]*><svg[\s\S]*<\/span><h3 id="more"/);
     expect(toggle).toContain("Inside");
 
     const blank = await render([
