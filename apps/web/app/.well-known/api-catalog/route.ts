@@ -18,6 +18,16 @@ const catalog = {
       "service-desc": [{ href: `${SITE_URL}/llms.txt`, type: "text/plain" }],
       "service-doc": [{ href: `${SITE_URL}/llms-full.txt`, type: "text/plain" }],
     },
+    {
+      anchor: `${SITE_URL}/api/mcp`,
+      "service-desc": [
+        {
+          href: `${SITE_URL}/.well-known/mcp/server-card.json`,
+          type: "application/mcp-server-card+json",
+        },
+      ],
+      "service-doc": [{ href: `${SITE_URL}/llms.txt`, type: "text/plain" }],
+    },
   ],
 };
 

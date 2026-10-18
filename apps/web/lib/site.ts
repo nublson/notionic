@@ -11,3 +11,6 @@ export const SITE_DESCRIPTION =
 export const SITE_AUTHOR = process.env.AUTHOR_NAME
   ? { name: process.env.AUTHOR_NAME, url: process.env.AUTHOR_URL || undefined }
   : null;
+
+/** Tags Notion data cached outside the pages (the MCP server's), revalidated with them. */
+export const DOCS_CACHE_TAG = "docs";
