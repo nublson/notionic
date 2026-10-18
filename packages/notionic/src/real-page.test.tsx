@@ -21,7 +21,7 @@ describe("a real Notion page", () => {
     expect(html).toContain('<nav aria-label="Table of contents"');
     expect(html).toContain('<time dateTime="2026-10-19">2026-10-19</time>');
     expect(html).toContain("A multi-line quote<br/>with a second line");
-    expect(html.match(/<details name="notionic-tabs-/g)).toHaveLength(2);
+    expect(html.match(/<input[^>]*name="notionic-tabs-/g)).toHaveLength(2);
     expect(html).toContain("Content of the second tab.");
     expect(html).toContain('href="https://www.notion.so/3fcb17268ab381d995c6ff3f97dc741b"');
     expect(html).toContain("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");

@@ -246,7 +246,7 @@ describe("NotionRenderer", () => {
     expect(html).toMatch(/<h3 id="intro-2"/);
   });
 
-  it("renders tabs as an exclusive accordion with the first open", async () => {
+  it("renders tabs as radio pills with panels, the first selected", async () => {
     const tab = (title: string, body: string) =>
       block(
         "paragraph",
@@ -258,10 +258,19 @@ describe("NotionRenderer", () => {
     const html = await render([
       block("tab", {}, { children: [tab("One", "First"), tab("Two", "Second")] }),
     ]);
-    const names = html.match(/<details name="([^"]+)"/g) ?? [];
-    expect(names).toHaveLength(2);
-    expect(new Set(names).size).toBe(1);
-    expect(html).toMatch(/<details name="[^"]+" open=""/);
+    const radios = [...html.matchAll(/<input[^>]*>/g)].map(([tag]) => ({
+      radio: tag.includes('type="radio"'),
+      name: tag.match(/name="([^"]+)"/)?.[1],
+      id: tag.match(/id="([^"]+)"/)?.[1],
+      checked: /\bchecked=""/.test(tag),
+    }));
+    expect(radios).toHaveLength(2);
+    expect(radios.every((r) => r.radio)).toBe(true);
+    expect(new Set(radios.map((r) => r.name)).size).toBe(1);
+    expect(radios.map((r) => r.checked)).toEqual([true, false]);
+    // Each pill labels its own radio.
+    for (const radio of radios) expect(html).toContain(`<label for="${radio.id}"`);
+    expect(html).toContain("First");
     expect(html).toContain("Second");
   });
 
