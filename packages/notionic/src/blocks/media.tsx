@@ -51,7 +51,9 @@ export function Image({ block, context }: BlockProps<"image">) {
         alt={plainText(block.image.caption)}
         loading="lazy"
         decoding="async"
-        className="h-auto max-w-full rounded-lg"
+        // An inset hairline (--notionic-image-outline: black at 10%, white in
+        // dark mode) keeps a light image's edge visible against the page.
+        className="h-auto max-w-full rounded-lg outline outline-1 -outline-offset-1 outline-(--notionic-image-outline)"
       />
       <Caption caption={block.image.caption} context={context} />
     </figure>
