@@ -22,15 +22,25 @@ export function Toggle({ block, context, children }: BlockProps<"toggle">) {
   );
 }
 
+/**
+ * Columns sit side by side once the space they're in is 36rem wide, whatever
+ * the screen: a renderer in a sidebar or card stacks them. The container is a
+ * wrapper inside the block flow, where its width is always defined; on the
+ * renderer's root, size containment would collapse it inside a flex row.
+ */
 export function ColumnList({ children }: BlockProps<"column_list">) {
-  return <div className="flex flex-col gap-4 md:flex-row md:gap-6">{children}</div>;
+  return (
+    <div className="@container">
+      <div className="flex flex-col gap-4 @xl:flex-row @xl:gap-6">{children}</div>
+    </div>
+  );
 }
 
 export function Column({ block, children }: BlockProps<"column">) {
   const ratio = block.column.width_ratio;
   return (
     <div
-      className={cx("flex min-w-0 flex-col gap-4", !ratio && "md:flex-1")}
+      className={cx("flex min-w-0 flex-col gap-4", !ratio && "@xl:flex-1")}
       style={ratio ? { flex: `${ratio} 1 0%` } : undefined}
     >
       {children}

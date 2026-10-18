@@ -223,7 +223,7 @@ describe("NotionRenderer", () => {
         },
       ),
     ]);
-    expect(html).toContain("md:flex-row");
+    expect(html).toContain('<div class="@container"><div class="flex flex-col gap-4 @xl:flex-row');
     expect(html).toContain("flex:0.25 1 0%");
     expect(html.indexOf("R")).toBeGreaterThan(html.indexOf("L"));
   });
