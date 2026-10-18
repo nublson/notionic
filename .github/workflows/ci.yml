@@ -1,9 +1,11 @@
 name: CI
 
 on:
+  # Pull requests only. develop's code changes only through merged PRs, which
+  # ran this already (its other pushes are changeset notes and Release's version
+  # bump); main changes only through Release, whose Build Validation job builds,
+  # typechecks and tests the release commit before it deploys or publishes.
   pull_request:
-  push:
-    branches: [main, develop]
 
 concurrency:
   group: ci-${{ github.ref }}
