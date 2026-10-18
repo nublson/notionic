@@ -118,6 +118,20 @@ describe("linked pages", () => {
     expect(b!.linkedPage).toBeUndefined();
   });
 
+  it("attaches each subpage's icon", async () => {
+    const { client } = fakeClient({
+      root: [[block("child_page", { title: "Intro" }, { id: "p1" })]],
+    });
+    const withPages = {
+      ...client,
+      pages: {
+        retrieve: async ({ page_id }: { page_id: string }) => page(page_id, "Intro") as never,
+      },
+    };
+    const [child] = await fetchBlocks(withPages, "root");
+    expect(child!.linkedPage?.icon).toEqual({ type: "emoji", emoji: "📘" });
+  });
+
   describe("bookmarks", () => {
     afterEach(() => vi.unstubAllGlobals());
     const bookmark = (id: string, url: string) => block("bookmark", { url, caption: [] }, { id });
@@ -141,6 +155,29 @@ describe("linked pages", () => {
       const [a, b] = await fetchBlocks(client, "root");
       expect(a!.bookmarkPreview).toMatchObject({ title: "A post" });
       expect(b!.bookmarkPreview).toBeUndefined();
+    });
+
+    it("attaches previews to embeds and link previews too", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(
+          async () =>
+            new Response('<head><meta property="og:title" content="A pen"></head>', {
+              headers: { "content-type": "text/html" },
+            }),
+        ),
+      );
+      const { client } = fakeClient({
+        root: [
+          [
+            block("embed", { url: "https://example.com/pen", caption: [] }, { id: "e" }),
+            block("link_preview", { url: "https://example.com/pr" }, { id: "l" }),
+          ],
+        ],
+      });
+      const [embed, preview] = await fetchBlocks(client, "root");
+      expect(embed!.bookmarkPreview).toMatchObject({ title: "A pen" });
+      expect(preview!.bookmarkPreview).toMatchObject({ title: "A pen" });
     });
 
     it("makes no requests outside Notion with bookmarkPreviews: false", async () => {

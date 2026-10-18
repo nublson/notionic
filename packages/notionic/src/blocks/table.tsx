@@ -3,7 +3,10 @@ import { RichText } from "../rich-text";
 import type { BlockProps, NotionBlock } from "../types";
 import { plainText } from "../utils";
 
-const CELL = "border border-border px-4 py-2 text-left align-top";
+// Columns size to their content, up to 16rem before text wraps, and the table
+// scrolls sideways when it's wider than the page, as Notion's tables do,
+// rather than squeezing every column to its narrowest.
+const CELL = "max-w-64 border border-border px-4 py-2 text-start align-top";
 const HEADER_CELL = `${CELL} bg-muted font-semibold`;
 
 function cells(row: NotionBlock) {
@@ -55,7 +58,7 @@ export function Table({ block, context }: BlockProps<"table">) {
       tabIndex={0}
       className="overflow-x-auto rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      <table className="w-full border-collapse text-sm">
+      <table className="w-max min-w-full border-collapse text-sm tabular-nums">
         {has_column_header ? (
           <>
             <thead>{renderRow(first, true)}</thead>

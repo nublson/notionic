@@ -1,5 +1,55 @@
 # notionic
 
+## 0.8.0
+
+### Minor Changes
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Tabs render as real tabs instead of an accordion: a row of pills that scrolls sideways when the tabs don't fit, and the selected tab's content below. Still no JavaScript: each tab is a radio button, so the arrow keys switch tabs and scroll the selected one into view. Up to 20 tabs per block.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Code blocks name their language as people write it ("TypeScript", "Plain text", "CSS") instead of Notion's lowercase API value, in the label and the accessible name. `languageName` is exported for custom code components; the registry's `notion-code` uses it.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Child pages and links to pages render as rows with the page's icon (emoji, custom emoji or image, or a page icon without one) and a hover surface, and rows that follow each other sit close together, like subpages in Notion. `fetchBlocks` now fetches each subpage to attach its icon as `linkedPage`. Image icons on linked pages, dropped before, now render.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Embeds and link previews get preview cards like bookmarks: `fetchBlocks` now fetches the page behind each one and attaches its title, description and image as `bookmarkPreview`. Without a preview, they render as a one-line card with a link icon instead of a bare URL that wraps. `bookmarkPreviews: false` turns all of these requests off.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Videos: external links to video files (.mp4, .webm, .mov, .m4v, .ogv) play in a video player, as in Notion, instead of rendering as links. Players and YouTube embeds share the image outline and get a muted fill, so they keep their shape while loading.
+
+### Patch Changes
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Native audio and video players turn dark with the page under the `dark` class, `data-theme="dark"` or `data-mode="dark"`, and are named by their caption for screen readers.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Bookmarks without a preview render as a one-line card with a link icon instead of a bare URL that wraps. Preview cards show the URL without its protocol, let the title wrap to two lines on narrow cards, and give the image a muted surface while it loads.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Refined callouts: icons sit in a fixed slot centered on the first line, so text lines up across callouts; callouts with a text color keep the default surface, and those with a background color drop the border; custom emoji icons now render.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Columns go side by side based on the space they're in (36rem), not the screen width, so a renderer in a sidebar or a card stacks them instead of squeezing them.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Refined dividers: twice the usual space on each side, so they read as section breaks; a heading right after a divider drops its own top margin.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Embeds render as a one-line card with the URL and the caption below, instead of a bare link labelled by the caption or the raw URL.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - The plain equation block shares the code block's surface and type, and tells screen readers it's an equation's LaTeX source.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Files render as cards: an icon, the file name on one line (the full name as a tooltip when it truncates), its type, and the caption below, which was dropped before when a file had a name.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Refined headings: the anchor link follows the last word when a heading wraps, with a larger hit area; headings balance their lines and use a tighter line height; every level keeps twice as much space above as below; colored headings span the full width; toggleable headings use a chevron that rotates when open, with their content aligned to the heading text.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Images get an inset 1px outline, black at 10% (white at 10% in dark mode), so light images keep their edge against the page. It's the `--notionic-image-outline` variable, to change or turn off.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Refined lists: nested bullets go disc, circle, square and nested numbers 1., a., i., as in Notion; bullets use the muted color; to-do checkboxes are drawn like shadcn's Checkbox instead of a dimmed disabled control, centered on the first line; nested to-dos are indented under their parent's text. The theme now also uses `primary-foreground` (see "Use your own theme tokens").
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Refined text rendering: long words, URLs and inline code wrap instead of overflowing narrow screens; body line height is 1.6; colored backgrounds bleed past the text so it stays aligned with the blocks around it; inline code and highlights keep their padding and corners across line breaks; underlines use the font's thickness; indents and borders use logical properties, so they mirror in right-to-left languages.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - PDFs render as file cards, named after the file and typed "PDF", with the caption below, instead of a bare link showing the caption or the raw URL. Uploaded files keep their name when `transformFileUrl` returns a URL without one.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Refined quotes: emphasis inside a quote turns roman so it still stands out against the italic, and quotes with a background color get padding on their open sides and rounded end corners.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Refined tables: columns size to their content, up to 16rem before text wraps, and a table wider than the page scrolls sideways instead of squeezing every column to its narrowest; cells align to the start edge and numbers use tabular figures.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Table of contents entries are 28px tap targets with no gaps between them.
+
+- [#37](https://github.com/nublson/notionic/pull/37) [`c2161d2`](https://github.com/nublson/notionic/commit/c2161d22c411df042ea3ec3d3224c602a2e8d1c6) Thanks [@nublson](https://github.com/nublson)! - Refined toggles: the same chevron as toggleable headings replaces the browser's triangle, and a wrapped summary and the toggle's content line up on one edge.
+
 ## 0.7.0
 
 ### Minor Changes

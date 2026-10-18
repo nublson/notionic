@@ -5,10 +5,11 @@ import { resolveLink } from "./links";
 import type { RenderContext, ResolvedLink, RichText as RichTextArray } from "./types";
 import { cx } from "./utils";
 
-export const CODE_CLASSES = "rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[0.875em]";
+export const CODE_CLASSES =
+  "rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[0.875em] box-decoration-clone";
 
 const LINK_CLASSES =
-  "font-medium underline underline-offset-4 decoration-muted-foreground/50 hover:decoration-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+  "font-medium underline underline-offset-4 decoration-from-font decoration-muted-foreground/50 hover:decoration-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 /** An anchor with notionic's link styling; external links open in a new tab. */
 export function NotionLink({
@@ -56,12 +57,15 @@ function RichTextItem({ item, context }: { item: RichTextItemResponse; context: 
   if (annotations.bold) node = <strong className="font-semibold">{node}</strong>;
   if (annotations.italic) node = <em>{node}</em>;
   if (annotations.strikethrough) node = <s>{node}</s>;
-  if (annotations.underline) node = <u>{node}</u>;
+  if (annotations.underline)
+    node = <u className="underline-offset-4 decoration-from-font">{node}</u>;
 
   const color = colorClass(annotations.color);
   if (color) {
     node = isBackgroundColor(annotations.color) ? (
-      <mark className={cx("rounded-sm px-0.5 text-inherit", color)}>{node}</mark>
+      <mark className={cx("rounded-sm px-0.5 text-inherit box-decoration-clone", color)}>
+        {node}
+      </mark>
     ) : (
       <span className={color}>{node}</span>
     );

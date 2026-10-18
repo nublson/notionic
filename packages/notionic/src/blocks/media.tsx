@@ -1,14 +1,18 @@
+import type { ReactNode } from "react";
 import { matchDemo } from "../demos";
 import { resolveFileUrl } from "../files";
 import { resolveLink, resolvePageLink } from "../links";
 import { NotionLink, RichText } from "../rich-text";
 import type {
   BlockProps,
+  BookmarkPreview,
+  PageIcon,
   DemoFrameProps,
   RenderContext,
   RichText as RichTextArray,
 } from "../types";
-import { plainText } from "../utils";
+import { cx, plainText } from "../utils";
+import { BROKEN_IMAGE, IconSlot } from "./icon";
 
 /** An http(s) URL, or a same-site path such as a file proxy route. */
 function isUrl(url: string): boolean {
@@ -35,7 +39,7 @@ function UrlLine({ url, label, context }: { url: string; label: string; context:
   const link = resolveLink(url, context);
   if (!link) return null;
   return (
-    <p className="break-words">
+    <p>
       <NotionLink link={link}>{label || url}</NotionLink>
     </p>
   );
@@ -51,11 +55,29 @@ export function Image({ block, context }: BlockProps<"image">) {
         alt={plainText(block.image.caption)}
         loading="lazy"
         decoding="async"
-        className="h-auto max-w-full rounded-lg"
+        className={cx("h-auto max-w-full", MEDIA_OUTLINE)}
       />
       <Caption caption={block.image.caption} context={context} />
     </figure>
   );
+}
+
+// An inset hairline (--notionic-image-outline) so light media keep an edge.
+const MEDIA_OUTLINE =
+  "rounded-lg outline outline-1 -outline-offset-1 outline-(--notionic-image-outline)";
+// Players and embeds also get a muted fill, so they have a shape while they
+// load. Images don't: it would show through transparent ones.
+const MEDIA_SURFACE = `${MEDIA_OUTLINE} bg-muted`;
+
+// External links to video files play like uploaded ones, as in Notion.
+const VIDEO_FILE = /\.(mp4|webm|mov|m4v|ogv)$/i;
+
+function isVideoFile(url: string): boolean {
+  try {
+    return VIDEO_FILE.test(new URL(url).pathname);
+  } catch {
+    return false;
+  }
 }
 
 /** The embed URL for a YouTube link, or null. */
@@ -93,17 +115,23 @@ export function Video({ block, context }: BlockProps<"video">) {
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
           loading="lazy"
-          className="aspect-video w-full rounded-lg"
+          className={cx("aspect-video w-full", MEDIA_SURFACE)}
         />
         <Caption caption={caption} context={context} />
       </figure>
     );
   }
-  if (block.video.type === "file" && isUrl(src)) {
+  if (isUrl(src) && (block.video.type === "file" || isVideoFile(src))) {
     return (
       <figure>
         {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
-        <video src={src} controls preload="metadata" className="w-full rounded-lg" />
+        <video
+          src={src}
+          controls
+          preload="metadata"
+          aria-label={label || "Video"}
+          className={cx("w-full", MEDIA_SURFACE)}
+        />
         <Caption caption={caption} context={context} />
       </figure>
     );
@@ -117,42 +145,202 @@ export function Audio({ block, context }: BlockProps<"audio">) {
   return (
     <figure>
       {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
-      <audio src={src} controls preload="metadata" className="w-full" />
+      <audio
+        src={src}
+        controls
+        preload="metadata"
+        aria-label={plainText(block.audio.caption) || "Audio"}
+        className="w-full"
+      />
       <Caption caption={block.audio.caption} context={context} />
     </figure>
   );
 }
 
-export function File({ block, context }: BlockProps<"file">) {
+/** The extension of a file name or URL path, upper-cased ("report.pdf" is "PDF"), or null. */
+function fileExtension(name: string): string | null {
+  const match = name.match(/\.([a-z0-9]{1,8})$/i);
+  return match?.[1] ? match[1].toUpperCase() : null;
+}
+
+/** The last segment of a URL's path, decoded: "…/files/report.pdf?X=1" is "report.pdf". */
+function fileNameFromUrl(url: string): string {
+  try {
+    return decodeURIComponent(new URL(url, "https://notionic.dev").pathname.split("/").pop() ?? "");
+  } catch {
+    return "";
+  }
+}
+
+/** The URL Notion gave for a file, before `transformFileUrl`. */
+function sourceUrl(file: { external: { url: string } } | { file: { url: string } }) {
+  return "external" in file ? file.external.url : file.file.url;
+}
+
+/** A URL without its protocol, `www.` or a trailing slash: "github.com/vercel/next.js". */
+function displayUrl(url: string): string {
+  return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+}
+
+/**
+ * A link as a one-line bordered row: an icon, a title that truncates (the full
+ * title as a tooltip), an optional detail at the end, and the caption below.
+ */
+function CardRow({
+  url,
+  title,
+  icon,
+  detail,
+  caption,
+  context,
+}: {
+  url: string;
+  title: string;
+  icon: ReactNode;
+  detail?: string | null;
+  caption: RichTextArray;
+  context: RenderContext;
+}) {
+  const link = resolveLink(url, context);
+  if (!link) return null;
   return (
-    <UrlLine
-      url={resolveFileUrl(block.file, block.id, context) ?? ""}
-      label={block.file.name || plainText(block.file.caption)}
+    <figure>
+      <a
+        href={link.href}
+        title={title}
+        {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 transition-[background-color] hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="size-5 shrink-0 text-muted-foreground"
+        >
+          {icon}
+        </svg>
+        <span className="min-w-0 flex-1 truncate font-medium">{title}</span>
+        {detail ? <span className="shrink-0 text-xs text-muted-foreground">{detail}</span> : null}
+        {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
+      </a>
+      <Caption caption={caption} context={context} />
+    </figure>
+  );
+}
+
+const FILE_ICON = (
+  <>
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+  </>
+);
+
+const LINK_ICON = (
+  <>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </>
+);
+
+const EMBED_ICON = (
+  <>
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+    <path d="M10 4v4" />
+    <path d="M2 8h20" />
+    <path d="M6 4v4" />
+  </>
+);
+
+/** A file as a card: its name, its type ("PDF"), and the caption below. */
+function FileCard({
+  url,
+  name,
+  caption,
+  context,
+}: {
+  url: string;
+  name: string;
+  caption: RichTextArray;
+  context: RenderContext;
+}) {
+  return (
+    <CardRow
+      url={url}
+      title={name || url}
+      icon={FILE_ICON}
+      detail={fileExtension(name)}
+      caption={caption}
       context={context}
     />
   );
 }
 
+export function File({ block, context }: BlockProps<"file">) {
+  return (
+    <FileCard
+      url={resolveFileUrl(block.file, block.id, context) ?? ""}
+      name={block.file.name || fileNameFromUrl(sourceUrl(block.file))}
+      caption={block.file.caption}
+      context={context}
+    />
+  );
+}
+
+// A card rather than an inline viewer, which most phones don't support. The
+// name comes from Notion's URL, since a transformed one may not carry it.
 export function Pdf({ block, context }: BlockProps<"pdf">) {
   return (
-    <UrlLine
+    <FileCard
       url={resolveFileUrl(block.pdf, block.id, context) ?? ""}
-      label={plainText(block.pdf.caption)}
+      name={fileNameFromUrl(sourceUrl(block.pdf))}
+      caption={block.pdf.caption}
+      context={context}
+    />
+  );
+}
+
+export function Bookmark({ block, context }: BlockProps<"bookmark">) {
+  const { url, caption } = block.bookmark;
+  return (
+    <PreviewCard
+      url={url}
+      preview={block.bookmarkPreview}
+      icon={LINK_ICON}
+      caption={caption}
       context={context}
     />
   );
 }
 
 /**
- * A bookmark as a card with the page's title, description and image, as in
- * Notion: the image sits on the right, or on top when the card is narrow (a
- * phone, a column). Without a preview from `fetchBlocks`, a plain link.
+ * A link with the linked page's title, description and image, as in Notion's
+ * bookmarks: the image sits on the right, or on top when the card is narrow (a
+ * phone, a column). Without a preview from `fetchBlocks` (none fetched, or the
+ * page had no title), a one-line card.
  */
-export function Bookmark({ block, context }: BlockProps<"bookmark">) {
-  const { url, caption } = block.bookmark;
-  const preview = block.bookmarkPreview;
+function PreviewCard({
+  url,
+  preview,
+  icon,
+  caption,
+  context,
+}: {
+  url: string;
+  preview: BookmarkPreview | undefined;
+  icon: ReactNode;
+  caption: RichTextArray;
+  context: RenderContext;
+}) {
   const link = resolveLink(url, context);
-  if (!preview || !link) return <UrlLine url={url} label={plainText(caption)} context={context} />;
+  if (!preview || !link) {
+    return (
+      <CardRow url={url} title={displayUrl(url)} icon={icon} caption={caption} context={context} />
+    );
+  }
   return (
     <figure className="@container">
       <a
@@ -161,7 +349,7 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
         className="flex flex-col-reverse overflow-hidden rounded-lg border border-border transition-[background-color] @md:min-h-26 @md:flex-row hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-1 p-3.5">
-          <span className="truncate text-sm font-medium">{preview.title}</span>
+          <span className="line-clamp-2 text-sm font-medium @md:line-clamp-1">{preview.title}</span>
           {preview.description ? (
             <span className="line-clamp-2 text-xs text-muted-foreground">
               {preview.description}
@@ -176,10 +364,10 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
                 height={16}
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                className="size-4 shrink-0 rounded-sm"
+                className={cx("size-4 shrink-0 rounded-sm", BROKEN_IMAGE)}
               />
             ) : null}
-            <span className="truncate">{url}</span>
+            <span className="truncate">{displayUrl(url)}</span>
           </span>
         </span>
         {preview.image ? (
@@ -189,7 +377,10 @@ export function Bookmark({ block, context }: BlockProps<"bookmark">) {
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
-            className="aspect-[1.91/1] w-full border-b border-border object-cover @md:aspect-auto @md:w-1/3 @md:max-w-60 @md:shrink-0 @md:border-b-0 @md:border-l"
+            className={cx(
+              "aspect-[1.91/1] w-full border-b border-border bg-muted object-cover @md:aspect-auto @md:w-1/3 @md:max-w-60 @md:shrink-0 @md:border-b-0 @md:border-s",
+              BROKEN_IMAGE,
+            )}
           />
         ) : null}
         {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
@@ -216,7 +407,8 @@ export function DemoFrame({ caption, context, children }: DemoFrameProps) {
 }
 
 /**
- * An embed, as a link. An embed of `…/demos/<name>` whose name is one of
+ * An embed, as a preview card linking to it: embedding any site in an iframe
+ * is unsafe, and most refuse it. An embed of `…/demos/<name>` whose name is one of
  * `demos` renders that demo component instead, in the `demo` frame.
  */
 export function Embed({ block, context }: BlockProps<"embed">) {
@@ -229,33 +421,117 @@ export function Embed({ block, context }: BlockProps<"embed">) {
       </Frame>
     );
   }
-  return <UrlLine url={block.embed.url} label={plainText(block.embed.caption)} context={context} />;
+  return (
+    <PreviewCard
+      url={block.embed.url}
+      preview={block.bookmarkPreview}
+      icon={EMBED_ICON}
+      caption={block.embed.caption}
+      context={context}
+    />
+  );
 }
 
 export function LinkPreview({ block, context }: BlockProps<"link_preview">) {
-  return <UrlLine url={block.link_preview.url} label="" context={context} />;
+  return (
+    <PreviewCard
+      url={block.link_preview.url}
+      preview={block.bookmarkPreview}
+      icon={LINK_ICON}
+      caption={[]}
+      context={context}
+    />
+  );
 }
 
+const PAGE_ICON = (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="size-5 text-muted-foreground"
+  >
+    {FILE_ICON}
+  </svg>
+);
+
+/**
+ * A page as a row: its icon (or a page icon), then its title. Rows that
+ * follow each other sit close together, like a list of subpages in Notion.
+ */
+function PageRow({
+  pageId,
+  title,
+  icon,
+  blockId,
+  context,
+}: {
+  pageId: string;
+  title: string;
+  icon: PageIcon | undefined;
+  blockId: string;
+  context: RenderContext;
+}) {
+  const link = resolvePageLink(pageId, context);
+  const row = "flex flex-1 gap-2 rounded-md px-2 py-1";
+  const content = (
+    <>
+      <IconSlot icon={icon} blockId={blockId} context={context} fallback={PAGE_ICON} />
+      <span className="min-w-0 font-medium underline decoration-muted-foreground/50 decoration-from-font underline-offset-4 group-hover:decoration-foreground">
+        {title || "Untitled"}
+      </span>
+    </>
+  );
+  return (
+    // The row's padding bleeds past the text, so titles align with the text around them.
+    <p data-page-row="" className="-mx-2 flex [[data-page-row]+&]:-mt-3">
+      {link ? (
+        <a
+          href={link.href}
+          {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          className={cx(
+            "group transition-[background-color] hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            row,
+          )}
+        >
+          {content}
+          {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
+        </a>
+      ) : (
+        <span className={row}>{content}</span>
+      )}
+    </p>
+  );
+}
+
+/** A subpage, with its icon when `fetchBlocks` attached it. */
 export function ChildPage({ block, context }: BlockProps<"child_page">) {
-  const link = resolvePageLink(block.id, context);
-  const title = block.child_page.title || "Untitled";
-  return <p>{link ? <NotionLink link={link}>{title}</NotionLink> : title}</p>;
+  return (
+    <PageRow
+      pageId={block.id}
+      title={block.child_page.title}
+      icon={block.linkedPage?.icon}
+      blockId={block.id}
+      context={context}
+    />
+  );
 }
 
 /** A link to another page, titled by `fetchBlocks`. Without a title, nothing renders. */
 export function LinkToPage({ block, context }: BlockProps<"link_to_page">) {
   const page = block.linkedPage;
   if (!page) return null;
-  const link = resolvePageLink(page.id, context);
-  const label = (
-    <>
-      {page.icon?.type === "emoji" ? (
-        <span aria-hidden="true" className="mr-1.5">
-          {page.icon.emoji}
-        </span>
-      ) : null}
-      {page.title || "Untitled"}
-    </>
+  return (
+    <PageRow
+      pageId={page.id}
+      title={page.title}
+      icon={page.icon}
+      blockId={block.id}
+      context={context}
+    />
   );
-  return <p>{link ? <NotionLink link={link}>{label}</NotionLink> : label}</p>;
 }
