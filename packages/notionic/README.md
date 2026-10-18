@@ -48,7 +48,7 @@ Mapping to tokens that already switch in dark mode, like shadcn's, keeps both mo
 
 ### Use your own theme tokens
 
-The components use shadcn/ui's color tokens, and Tailwind only generates their classes if your theme defines them. If your design system names them differently, map yours to these seven, after importing notionic:
+The components use shadcn/ui's color tokens, and Tailwind only generates their classes if your theme defines them. If your design system names them differently, map yours to these eight, after importing notionic:
 
 ```css
 @theme inline {
@@ -59,6 +59,7 @@ The components use shadcn/ui's color tokens, and Tailwind only generates their c
   --color-border: var(--color-line);
   --color-ring: var(--color-focus);
   --color-primary: var(--color-brand);
+  --color-primary-foreground: var(--color-on-brand);
 }
 ```
 

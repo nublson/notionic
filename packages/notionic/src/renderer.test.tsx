@@ -49,7 +49,7 @@ describe("NotionRenderer", () => {
         list_format: "roman",
       }),
     ]);
-    expect(html).toMatch(/<ol start="3" class="[^"]*list-\[lower-roman\]/);
+    expect(html).toMatch(/<ol start="3" data-list="roman" class="[^"]*list-\[lower-roman\]/);
   });
 
   it("renders to-dos as disabled checkboxes", async () => {
@@ -134,7 +134,9 @@ describe("NotionRenderer", () => {
         { children: [para(richText("Inside"))] },
       ),
     ]);
-    expect(toggle).toMatch(/<details[^>]*><summary[^>]*><span aria-hidden="true"[^>]*><svg[\s\S]*<\/span><h3 id="more"/);
+    expect(toggle).toMatch(
+      /<details[^>]*><summary[^>]*><span aria-hidden="true"[^>]*><svg[\s\S]*<\/span><h3 id="more"/,
+    );
     expect(toggle).toContain("Inside");
 
     const blank = await render([
