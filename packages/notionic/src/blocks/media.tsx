@@ -121,7 +121,13 @@ export function Video({ block, context }: BlockProps<"video">) {
     return (
       <figure>
         {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
-        <video src={src} controls preload="metadata" className={cx("w-full", MEDIA_SURFACE)} />
+        <video
+          src={src}
+          controls
+          preload="metadata"
+          aria-label={label || "Video"}
+          className={cx("w-full", MEDIA_SURFACE)}
+        />
         <Caption caption={caption} context={context} />
       </figure>
     );
@@ -135,7 +141,13 @@ export function Audio({ block, context }: BlockProps<"audio">) {
   return (
     <figure>
       {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
-      <audio src={src} controls preload="metadata" className="w-full" />
+      <audio
+        src={src}
+        controls
+        preload="metadata"
+        aria-label={plainText(block.audio.caption) || "Audio"}
+        className="w-full"
+      />
       <Caption caption={block.audio.caption} context={context} />
     </figure>
   );

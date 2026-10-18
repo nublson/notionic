@@ -97,3 +97,12 @@
 [data-mode="dark"] {
   --notionic-bg-mix: 22%;
 }
+
+/*
+ * Native audio and video controls only turn dark when the page's color-scheme
+ * is dark. Under the dark selectors, tell the browser so, or a bright player
+ * sits on a dark page.
+ */
+:is(.dark, [data-theme="dark"], [data-mode="dark"]) .notionic :is(audio, video) {
+  color-scheme: dark;
+}
