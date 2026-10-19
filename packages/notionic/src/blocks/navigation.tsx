@@ -23,7 +23,8 @@ export function TableOfContents({ block, context }: BlockProps<"table_of_content
             <a
               href={`#${heading.id}`}
               // A block with padding: each row is a 28px tap target, with no gaps between.
-              className="block rounded-sm py-1 text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              // The underline is always drawn, transparent until hover, so it can fade in.
+              className="block rounded-sm py-1 text-muted-foreground underline decoration-transparent underline-offset-4 transition-[color,text-decoration-color] duration-150 hover:text-foreground hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               {heading.text}
             </a>
