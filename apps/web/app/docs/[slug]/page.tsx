@@ -68,8 +68,10 @@ function Sidebar({
                   aria-current={doc.slug === current ? "page" : undefined}
                   className={cn(
                     FOCUS,
-                    "-ml-px block border-l border-transparent pl-3 text-muted-foreground transition-colors hover:text-foreground",
-                    "aria-[current=page]:border-foreground aria-[current=page]:font-medium aria-[current=page]:text-foreground",
+                    "relative block pl-3 text-muted-foreground transition-colors hover:text-foreground",
+                    // The marker is its own straight line over the rail: a border
+                    // on the link would bend around its focus-ring corners.
+                    "before:absolute before:inset-y-0 before:-left-px before:w-px aria-[current=page]:font-medium aria-[current=page]:text-foreground aria-[current=page]:before:bg-foreground",
                   )}
                 >
                   {doc.title}
@@ -100,7 +102,8 @@ export default async function DocPage({ params }: Props) {
       <SiteHeader />
       <div className="flex gap-10 py-10">
         <aside className="hidden w-52 shrink-0 md:block">
-          <div className="sticky top-8">
+          {/* Scrolls on its own when taller than the screen; faded edges show there is more, and the 4px inset keeps focus rings clear of the scroll box. */}
+          <div className="sticky top-8 -m-1 max-h-[calc(100svh-4rem)] scroll-fade-y overflow-y-auto p-1">
             <Sidebar docs={docs} current={slug} idPrefix="sidebar" />
           </div>
         </aside>
