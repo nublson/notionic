@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { CheckIcon, CopyIcon } from "lucide-react"
 
 const codeBlockVariants = cva(
-  "group/code-block relative flex w-full min-w-0 flex-col overflow-hidden rounded-lg text-sm has-[>[data-slot=code-block-content]:focus-visible]:ring-3 has-[>[data-slot=code-block-content]:focus-visible]:ring-ring/50 data-[size=sm]:text-xs",
+  "group/code-block relative flex w-full min-w-0 flex-col overflow-hidden rounded-lg text-sm has-[>[data-slot=code-block-content]:focus-visible]:ring-2 has-[>[data-slot=code-block-content]:focus-visible]:ring-ring data-[size=sm]:text-xs",
   {
     variants: {
       variant: {
@@ -84,6 +84,9 @@ function CodeBlockActions({
   )
 }
 
+const copyIconClassName =
+  "transition-[opacity,scale,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)] data-hidden:scale-25 data-hidden:opacity-0 data-hidden:blur-xs motion-reduce:transition-none"
+
 function CodeBlockCopyButton({
   value,
   variant = "ghost",
@@ -111,7 +114,7 @@ function CodeBlockCopyButton({
         variant={variant}
         size={size}
         aria-label={copied ? "Copied" : "Copy"}
-        className={cn(className)}
+        className={cn("relative", className)}
         onClick={(event) => {
           onClick?.(event)
           navigator.clipboard
@@ -121,7 +124,17 @@ function CodeBlockCopyButton({
         }}
         {...props}
       >
-        {copied ? <CheckIcon /> : <CopyIcon />}
+        {/* Both icons stay mounted so the swap can cross-fade. */}
+        <CopyIcon
+          aria-hidden="true"
+          data-hidden={copied || undefined}
+          className={copyIconClassName}
+        />
+        <CheckIcon
+          aria-hidden="true"
+          data-hidden={!copied || undefined}
+          className={cn("absolute", copyIconClassName)}
+        />
       </Button>
       <span aria-live="polite" className="sr-only">
         {copied ? "Copied" : ""}

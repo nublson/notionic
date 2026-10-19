@@ -46,50 +46,62 @@ export default async function Home() {
       <JsonLd data={homeStructuredData} />
       <SiteHeader />
 
-      <main className="flex-1">
-        <section className="flex flex-col gap-6 py-16 sm:py-24">
+      <main id="main" className="flex-1">
+        <section className="py-16 sm:py-24">
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
             Notion pages, rendered as React Server Components
           </h1>
-          <p className="max-w-xl text-lg text-pretty text-muted-foreground">
+          <p className="mt-4 max-w-xl text-lg text-pretty text-muted-foreground">
             Use Notion as your CMS. notionic renders blocks from the official Notion API on the
             server, styled with Tailwind CSS and shadcn/ui.
           </p>
-          <CodeBlock className="max-w-md">
-            <CodeBlockActions>
-              <CodeBlockCopyButton value={INSTALL} />
-            </CodeBlockActions>
-            <CodeBlockContent aria-label="Install command" className="pr-12">
-              {INSTALL}
-            </CodeBlockContent>
-          </CodeBlock>
-          <div className="flex flex-wrap gap-3">
-            <a href="/docs" className={cn(buttonVariants({ size: "lg" }), "px-4")}>
-              Read the docs
-            </a>
-            <a
-              href="https://github.com/nublson/notionic"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "px-4")}
-            >
-              View on GitHub
-            </a>
+          <div className="mt-10 flex flex-col gap-4">
+            <CodeBlock className="max-w-md">
+              {/* Always shown: copying the command is the page's first action. */}
+              <CodeBlockActions className="[[data-slot=code-block]>&]:opacity-100">
+                <CodeBlockCopyButton value={INSTALL} />
+              </CodeBlockActions>
+              <CodeBlockContent aria-label="Install command" className="pr-10">
+                {INSTALL}
+              </CodeBlockContent>
+            </CodeBlock>
+            <div className="flex flex-wrap gap-3">
+              <a href="/docs" className={cn(buttonVariants({ size: "lg" }), "px-4")}>
+                Read the docs
+              </a>
+              <a
+                href="https://github.com/nublson/notionic"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }), "px-4")}
+              >
+                View on GitHub
+              </a>
+            </div>
           </div>
         </section>
 
-        <section aria-labelledby="live-from-notion" className="border-t border-border py-12">
-          <p
-            id="live-from-notion"
-            className="mb-8 flex items-center gap-2 text-sm font-medium text-muted-foreground"
-          >
-            <span
-              aria-hidden="true"
-              className={cn(
-                "size-2 rounded-full",
-                live ? "bg-emerald-500" : "bg-muted-foreground/50",
-              )}
-            />
-            {live ? "Live from Notion" : "Sample blocks"}
-          </p>
+        <section aria-labelledby="demo-title" className="border-t border-border py-16">
+          <div className="mb-12">
+            <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "size-2 rounded-full",
+                  live ? "bg-emerald-500" : "bg-muted-foreground/50",
+                )}
+              />
+              {live ? "Live from Notion" : "Sample blocks"}
+            </p>
+            <h2 id="demo-title" className="mt-3 text-2xl font-semibold tracking-tight text-balance">
+              {live
+                ? "Everything below is a Notion page"
+                : "Everything below is rendered by notionic"}
+            </h2>
+            <p className="mt-2 max-w-xl text-pretty text-muted-foreground">
+              {live
+                ? "Fetched from the Notion API and rendered by notionic on the server. It refreshes at most once an hour."
+                : "Sample blocks shaped like the Notion API's, rendered by notionic on the server."}
+            </p>
+          </div>
           <NotionRenderer
             blocks={blocks}
             components={notionComponents}
