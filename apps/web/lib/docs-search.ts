@@ -9,14 +9,20 @@ const HEADINGS = new Set(["heading_1", "heading_2", "heading_3", "heading_4"]);
 
 /** Markdown down to searchable words: link text kept, syntax and URLs dropped. */
 function plain(markdown: string): string {
-  return markdown
-    .replace(/^`{3,}[\w-]*$/gm, " ")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/<\/?(details|summary)>/g, " ")
-    .replace(/[`*_#>|~$]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return (
+    markdown
+      .replace(/^`{3,}[\w-]*$/gm, " ")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/<\/?(details|summary)>/g, " ")
+      // Table separator rows (| --- | :---: |) and blockquote markers; a ">"
+      // elsewhere stays, so inline code like <p> reads whole.
+      .replace(/^\|?(\s*:?-{3,}:?\s*\|?)+$/gm, " ")
+      .replace(/^>+ ?/gm, "")
+      .replace(/[`*_#|~$]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 /** Splits a doc at its top-level headings, so results can link to a section. */

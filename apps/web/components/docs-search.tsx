@@ -85,12 +85,12 @@ export function DocsSearch() {
                 {failed
                   ? "Search isn't available right now."
                   : entries
-                    ? "No results."
+                    ? `No results for “${query.trim()}”.`
                     : "Loading…"}
               </CommandEmpty>
             ) : null}
             {results.length > 0 ? (
-              <CommandGroup heading="Docs">
+              <CommandGroup>
                 {results.map((result) => (
                   <CommandItem
                     key={result.href}

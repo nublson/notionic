@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
 import { SearchIcon, CheckIcon } from "lucide-react"
 
 function Command({
@@ -48,7 +47,7 @@ function CommandDialog({
     <Dialog {...props}>
       <DialogContent
         className={cn(
-          "top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0",
+          "top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0 sm:max-w-xl",
           // Opened from the keyboard many times a day, so it appears and
           // closes instantly, backdrop included.
           "data-open:animate-none data-closed:animate-none",
@@ -72,21 +71,25 @@ function CommandInput({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
+  // The input is the palette's header rather than a box inside it. 16px on
+  // small screens, so iOS Safari doesn't zoom the page when it gets focus.
   return (
-    <div data-slot="command-input-wrapper" className="p-1 pb-0">
-      <InputGroup className="h-8! rounded-lg! border-input/30 bg-input/30 shadow-none! *:data-[slot=input-group-addon]:pl-2!">
-        <CommandPrimitive.Input
-          data-slot="command-input"
-          className={cn(
-            "w-full text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
-            className
-          )}
-          {...props}
-        />
-        <InputGroupAddon>
-          <SearchIcon className="size-4 shrink-0 opacity-50" />
-        </InputGroupAddon>
-      </InputGroup>
+    <div
+      data-slot="command-input-wrapper"
+      className="flex items-center gap-2 px-3"
+    >
+      <SearchIcon
+        aria-hidden="true"
+        className="size-4 shrink-0 text-muted-foreground"
+      />
+      <CommandPrimitive.Input
+        data-slot="command-input"
+        className={cn(
+          "h-11 w-full bg-transparent text-base outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm",
+          className
+        )}
+        {...props}
+      />
     </div>
   )
 }
@@ -99,7 +102,8 @@ function CommandList({
     <CommandPrimitive.List
       data-slot="command-list"
       className={cn(
-        "no-scrollbar max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto outline-none",
+        // A divider under the input only once there are results or a message.
+        "no-scrollbar max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto outline-none has-[[cmdk-item],[data-slot=command-empty]]:-mx-1 has-[[cmdk-item],[data-slot=command-empty]]:border-t has-[[cmdk-item],[data-slot=command-empty]]:border-border has-[[cmdk-item],[data-slot=command-empty]]:px-1",
         className
       )}
       {...props}
