@@ -30,9 +30,6 @@ export function SiteHeader() {
         <Link href="/changelog" className={NAV_LINK}>
           Changelog
         </Link>
-        <a href="https://www.npmjs.com/package/notionic" className={`${NAV_LINK} hidden sm:inline`}>
-          npm
-        </a>
         <a href="https://github.com/nublson/notionic" className={NAV_LINK}>
           GitHub
         </a>

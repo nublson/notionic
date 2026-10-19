@@ -65,11 +65,11 @@ export function DocsSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-md border border-border px-2 py-1 sm:px-2.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="relative flex items-center gap-2 rounded-sm text-muted-foreground transition-colors after:absolute after:-inset-2 after:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <SearchIcon aria-hidden="true" className="size-3.5" />
         <span className="sr-only sm:not-sr-only">Search</span>
-        <kbd className="hidden rounded-sm bg-muted px-1.5 font-sans text-xs sm:inline">⌘K</kbd>
+        <kbd className="hidden font-sans text-xs sm:inline">⌘K</kbd>
       </button>
       <CommandDialog
         open={open}
