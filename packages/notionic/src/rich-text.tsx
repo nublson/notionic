@@ -9,7 +9,7 @@ export const CODE_CLASSES =
   "rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[0.875em] box-decoration-clone";
 
 const LINK_CLASSES =
-  "font-medium underline underline-offset-4 decoration-from-font decoration-muted-foreground/50 hover:decoration-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+  "font-medium underline underline-offset-4 decoration-from-font decoration-muted-foreground/50 transition-[text-decoration-color] hover:decoration-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 /** An anchor with notionic's link styling; external links open in a new tab. */
 export function NotionLink({
