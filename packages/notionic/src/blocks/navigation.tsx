@@ -75,7 +75,12 @@ export function Tab({ block, context }: BlockProps<"tab">) {
   if (tabs.length === 0) return null;
   const name = `notionic-tabs-${block.id}`;
   return (
-    <div className={cx("rounded-xl border border-border p-2", ...SHOW_PANEL.slice(0, tabs.length))}>
+    <div
+      className={cx(
+        "group/tabs rounded-xl border border-border p-2",
+        ...SHOW_PANEL.slice(0, tabs.length),
+      )}
+    >
       <div className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((tab, index) => {
           if (tab.type !== "paragraph") return null;
@@ -106,7 +111,13 @@ export function Tab({ block, context }: BlockProps<"tab">) {
         })}
       </div>
       {tabs.map((tab, index) => (
-        <div key={tab.id} data-panel={index} className="hidden flex-col gap-4 px-3 pt-3 pb-2">
+        // Fades in when shown (@starting-style), so switching tabs doesn't snap;
+        // only with focus inside the tabs, so the first panel doesn't fade in on load.
+        <div
+          key={tab.id}
+          data-panel={index}
+          className="hidden flex-col gap-4 px-3 pt-3 pb-2 transition-opacity duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-focus-within/tabs:starting:opacity-0"
+        >
           <BlockList blocks={tab.children} context={context} />
         </div>
       ))}
