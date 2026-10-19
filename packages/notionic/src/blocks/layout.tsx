@@ -1,13 +1,18 @@
 import { blockColorClass } from "../colors";
 import { RichText } from "../rich-text";
-import { DISCLOSURE_CONTENT_INDENT, DisclosureChevron, SUMMARY_CLASSES } from "./disclosure";
+import {
+  DISCLOSURE_CLASSES,
+  DISCLOSURE_CONTENT_INDENT,
+  DisclosureChevron,
+  SUMMARY_CLASSES,
+} from "./disclosure";
 import type { BlockProps } from "../types";
 import { cx } from "../utils";
 
 export function Toggle({ block, context, children }: BlockProps<"toggle">) {
   const { rich_text, color } = block.toggle;
   return (
-    <details className={cx("group/toggle", blockColorClass(color))}>
+    <details className={cx("group/toggle", DISCLOSURE_CLASSES, blockColorClass(color))}>
       <summary className={SUMMARY_CLASSES}>
         <DisclosureChevron />
         {/* Its own box, so a wrapped summary keeps the text edge. */}

@@ -11,6 +11,9 @@ import { cn } from "@/lib/utils"
 const CHEVRON =
   "size-4 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/toggle:rotate-90"
 
+const PANEL =
+  "h-(--collapsible-panel-height) overflow-x-visible overflow-y-clip transition-[height,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0 motion-reduce:transition-opacity"
+
 /** A Notion toggle, as shadcn/ui's Collapsible. */
 export function NotionToggle({
   block,
@@ -45,11 +48,13 @@ export function NotionToggle({
       </div>
       {children ? (
         // Stays in the HTML while closed, so search engines and find-in-page see it.
+        // Grows open and shrinks closed with a fade; the gap above grows with it.
+        // Only the height clips, so colored children still bleed sideways.
         <CollapsibleContent
           hiddenUntilFound
-          className="mt-2 flex flex-col gap-4 pl-5.5"
+          className={PANEL}
         >
-          {children}
+          <div className="flex flex-col gap-4 pt-2 pl-5.5">{children}</div>
         </CollapsibleContent>
       ) : null}
     </Collapsible>
