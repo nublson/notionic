@@ -21,9 +21,11 @@ const LEVELS = {
 } as const;
 
 // Inline after the heading, so it follows the last word when the heading
-// wraps. The pseudo-element widens its hit area past the narrow "#".
+// wraps. The pseudo-element widens its hit area past the narrow "#". On touch,
+// where it is always shown, it is smaller and lighter so it reads apart from
+// the heading.
 const ANCHOR =
-  "relative ms-2 rounded-sm text-muted-foreground no-underline opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 focus-visible:transition-none focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-coarse:opacity-100 after:absolute after:-inset-2 after:content-['']";
+  "relative ms-2 rounded-sm text-muted-foreground no-underline opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 focus-visible:transition-none focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-coarse:text-[0.75em] pointer-coarse:font-normal pointer-coarse:opacity-100 after:absolute after:-inset-2 after:content-['']";
 
 export function Heading({ block, context, children }: HeadingProps) {
   const data =

@@ -87,6 +87,22 @@ const THEME_CSS = `
   .nodeLabel, .edgeLabel, .label { font-weight: 500; }
 `
 
+// Mermaid scales a diagram down to fit its container. Below this share of its
+// natural size the labels get too small to read, so the card scrolls instead.
+const MIN_SCALE = 0.75
+
+/** Sets a min-width on the root <svg> from its viewBox, at MIN_SCALE. */
+function withMinWidth(svg: string) {
+  return svg.replace(/<svg\b[^>]*>/, (tag) => {
+    const width = Number(tag.match(/viewBox="[^"]*?\S+\s+\S+\s+([\d.]+)/)?.[1])
+    if (!width) return tag
+    const minWidth = `min-width: ${Math.round(width * MIN_SCALE)}px;`
+    return /\sstyle="/.test(tag)
+      ? tag.replace(/\sstyle="/, ` style="${minWidth} `)
+      : tag.replace(/^<svg/, `<svg style="${minWidth}"`)
+  })
+}
+
 /**
  * A Mermaid diagram, drawn in the browser. Mermaid loads only when a diagram
  * is on the page. Until it draws, and if the source doesn't parse,
@@ -135,7 +151,7 @@ export function MermaidDiagram({
           flowchart: { curve: "basis", padding: 16 },
         })
         const { svg } = await mermaid.render(id, code)
-        if (!cancelled) setSvg(svg)
+        if (!cancelled) setSvg(withMinWidth(svg))
       })
       .catch(() => {
         if (!cancelled) setSvg(null)
@@ -147,15 +163,20 @@ export function MermaidDiagram({
 
   if (!svg) return fallback
   return (
+    // The same card as shadcn/ui's Code Block, so diagrams sit with code. It
+    // fades in over the code fallback it replaces; a theme change reuses the
+    // element, so it doesn't fade again. A diagram too wide to read at
+    // MIN_SCALE scrolls inside the card, faded at the edges it continues past.
     <div
       role="img"
       aria-label={label}
-      // The same card as shadcn/ui's Code Block, so diagrams sit with code. It
-      // fades in over the code fallback it replaces; a theme change reuses the
-      // element, so it doesn't fade again.
-      className="flex justify-center overflow-x-auto rounded-lg border border-input p-6 transition-opacity duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:opacity-0 dark:bg-input/30 [&_svg]:h-auto [&_svg]:max-w-full"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG from mermaid.render with securityLevel "strict", which sanitizes it
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+      className="overflow-hidden rounded-lg border border-input transition-opacity duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:opacity-0 dark:bg-input/30"
+    >
+      <div
+        className="flex justify-center-safe scroll-fade-x overflow-x-auto p-6 [&_svg]:h-auto [&_svg]:max-w-full"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG from mermaid.render with securityLevel "strict", which sanitizes it
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+    </div>
   )
 }
