@@ -5,6 +5,7 @@
   "license": "MIT",
   "author": "Nubelson Fernandes",
   "homepage": "https://notionic.dev",
+  "bugs": "https://github.com/nublson/notionic/issues",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nublson/notionic.git",
@@ -12,8 +13,11 @@
   },
   "keywords": [
     "notion",
+    "notion-api",
+    "notion-renderer",
     "react",
     "react-server-components",
+    "nextjs",
     "tailwindcss",
     "shadcn",
     "cms",
