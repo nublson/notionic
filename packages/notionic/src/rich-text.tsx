@@ -8,6 +8,10 @@ import { cx } from "./utils";
 export const CODE_CLASSES =
   "rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[0.875em] box-decoration-clone";
 
+// Inline code up to this length never breaks across lines, so short names like
+// `notion-callout` don't split at a hyphen; longer code still wraps.
+const NOWRAP_CODE_LENGTH = 24;
+
 const LINK_CLASSES =
   "font-medium underline underline-offset-4 decoration-from-font decoration-muted-foreground/50 transition-[text-decoration-color] hover:decoration-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
@@ -52,7 +56,8 @@ function RichTextItem({ item, context }: { item: RichTextItemResponse; context: 
       node = <InlineEquation expression={item.equation.expression} context={context} />;
     }
   } else if (annotations.code) {
-    node = <code className={CODE_CLASSES}>{node}</code>;
+    const short = item.plain_text.length <= NOWRAP_CODE_LENGTH;
+    node = <code className={cx(CODE_CLASSES, short && "whitespace-nowrap")}>{node}</code>;
   }
   if (annotations.bold) node = <strong className="font-semibold">{node}</strong>;
   if (annotations.italic) node = <em>{node}</em>;

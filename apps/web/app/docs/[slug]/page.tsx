@@ -88,7 +88,7 @@ export default async function DocPage({ params }: Props) {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1">
+        <main id="main" className="min-w-0 flex-1">
           {/* On small screens, the sidebar folds into a menu above the page. */}
           <details className="mb-8 rounded-lg border border-border px-4 py-3 md:hidden">
             <summary className="cursor-pointer text-sm font-medium">Docs menu</summary>

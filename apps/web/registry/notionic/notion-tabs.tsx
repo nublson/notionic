@@ -15,7 +15,8 @@ export function NotionTabs({ block, context }: BlockProps<"tab">) {
 
   return (
     <Tabs defaultValue={first.id}>
-      <TabsList className="max-w-full overflow-x-auto">
+      {/* Scrolls when the tabs don't fit, with faded edges as the cue. */}
+      <TabsList className="max-w-full scroll-fade-x justify-start overflow-x-auto [scrollbar-width:none]">
         {tabs.map((tab) => {
           const { rich_text, icon } = tab.paragraph
           const iconUrl =
