@@ -1,5 +1,11 @@
 # notionic
 
+## 0.8.3
+
+### Patch Changes
+
+- [#42](https://github.com/nublson/notionic/pull/42) [`7d202c2`](https://github.com/nublson/notionic/commit/7d202c2bd121d6d6ca94cd0f951ee6ffb72f8cdd) Thanks [@nublson](https://github.com/nublson)! - Adds npm search keywords (`notion-api`, `notion-renderer`, `nextjs`) and a link to GitHub issues to the package metadata.
+
 ## 0.8.2
 
 ### Patch Changes
