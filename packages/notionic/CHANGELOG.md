@@ -1,5 +1,13 @@
 # notionic
 
+## 0.8.2
+
+### Patch Changes
+
+- [#39](https://github.com/nublson/notionic/pull/39) [`2d6256c`](https://github.com/nublson/notionic/commit/2d6256c46055aa99c61e7e786a7c3dd03542cad1) Thanks [@nublson](https://github.com/nublson)! - Inline code of up to 24 characters no longer breaks across lines, so short names like `notion-callout` stay whole instead of splitting at a hyphen in narrow columns. Longer code still wraps.
+
+- [#39](https://github.com/nublson/notionic/pull/39) [`2d6256c`](https://github.com/nublson/notionic/commit/2d6256c46055aa99c61e7e786a7c3dd03542cad1) Thanks [@nublson](https://github.com/nublson)! - On touch screens, where heading anchors are always shown, the `#` is smaller and regular weight, so it reads apart from the heading instead of as part of it.
+
 ## 0.8.1
 
 ### Patch Changes
