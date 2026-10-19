@@ -46,39 +46,42 @@ export default async function Home() {
       <JsonLd data={homeStructuredData} />
       <SiteHeader />
 
-      <main className="flex-1">
-        <section className="flex flex-col gap-6 py-16 sm:py-24">
+      <main id="main" className="flex-1">
+        <section className="py-16 sm:py-24">
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
             Notion pages, rendered as React Server Components
           </h1>
-          <p className="max-w-xl text-lg text-pretty text-muted-foreground">
+          <p className="mt-4 max-w-xl text-lg text-pretty text-muted-foreground">
             Use Notion as your CMS. notionic renders blocks from the official Notion API on the
             server, styled with Tailwind CSS and shadcn/ui.
           </p>
-          <CodeBlock className="max-w-md">
-            <CodeBlockActions>
-              <CodeBlockCopyButton value={INSTALL} />
-            </CodeBlockActions>
-            <CodeBlockContent aria-label="Install command" className="pr-12">
-              {INSTALL}
-            </CodeBlockContent>
-          </CodeBlock>
-          <div className="flex flex-wrap gap-3">
-            <a href="/docs" className={cn(buttonVariants({ size: "lg" }), "px-4")}>
-              Read the docs
-            </a>
-            <a
-              href="https://github.com/nublson/notionic"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "px-4")}
-            >
-              View on GitHub
-            </a>
+          <div className="mt-10 flex flex-col gap-4">
+            <CodeBlock className="max-w-md">
+              {/* Always shown: copying the command is the page's first action. */}
+              <CodeBlockActions className="[[data-slot=code-block]>&]:opacity-100">
+                <CodeBlockCopyButton value={INSTALL} />
+              </CodeBlockActions>
+              <CodeBlockContent aria-label="Install command" className="pr-10">
+                {INSTALL}
+              </CodeBlockContent>
+            </CodeBlock>
+            <div className="flex flex-wrap gap-3">
+              <a href="/docs" className={cn(buttonVariants({ size: "lg" }), "px-4")}>
+                Read the docs
+              </a>
+              <a
+                href="https://github.com/nublson/notionic"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }), "px-4")}
+              >
+                View on GitHub
+              </a>
+            </div>
           </div>
         </section>
 
-        <section aria-labelledby="live-from-notion" className="border-t border-border py-12">
+        <section aria-labelledby="demo-label" className="border-t border-border py-12">
           <p
-            id="live-from-notion"
+            id="demo-label"
             className="mb-8 flex items-center gap-2 text-sm font-medium text-muted-foreground"
           >
             <span
