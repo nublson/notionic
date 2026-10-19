@@ -22,7 +22,23 @@ function isTyping(target: EventTarget | null) {
   );
 }
 
-/** Docs search: a ⌘K dialog over /docs/search.json, loaded on first open. */
+// The index, fetched once per page load and shared by every open. Starts on
+// the first sign of intent (hovering or focusing the button, or the
+// shortcut), so it's usually ready by the time the dialog is.
+let indexRequest: Promise<SearchEntry[]> | null = null;
+
+function loadIndex() {
+  indexRequest ??= fetch("/docs/search.json").then((response) =>
+    response.ok ? response.json() : Promise.reject(response.status),
+  );
+  // A failed request can be tried again on the next open.
+  indexRequest.catch(() => {
+    indexRequest = null;
+  });
+  return indexRequest;
+}
+
+/** Docs search: a ⌘K dialog over /docs/search.json, loaded on first intent. */
 export function DocsSearch() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -46,10 +62,18 @@ export function DocsSearch() {
 
   useEffect(() => {
     if (!open || entries) return;
-    fetch("/docs/search.json")
-      .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
-      .then((data: SearchEntry[]) => setEntries(data))
-      .catch(() => setFailed(true));
+    setFailed(false);
+    let cancelled = false;
+    loadIndex()
+      .then((data) => {
+        if (!cancelled) setEntries(data);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open, entries]);
 
   const results = useMemo(() => (entries ? search(entries, query) : []), [entries, query]);
@@ -65,6 +89,8 @@ export function DocsSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        onPointerEnter={loadIndex}
+        onFocus={loadIndex}
         className="relative flex items-center gap-2 rounded-sm text-muted-foreground transition-colors after:absolute after:-inset-2 after:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <SearchIcon aria-hidden="true" className="size-3.5" />

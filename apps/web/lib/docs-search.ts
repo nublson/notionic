@@ -43,13 +43,33 @@ function sections(blocks: NotionBlock[]) {
   return parts;
 }
 
+// Docs fetched at once. Each doc is a page request plus its block requests,
+// so two in flight stay near Notion's ~3 requests a second (the token is
+// shared with production); the client retries the odd 429.
+const CONCURRENCY = 2;
+
+/** `fn` over `items`, at most `limit` at a time, results in input order. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>) {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index] as T);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
 /** Every published doc, split into sections, for the client-side search. */
 export async function searchIndex(): Promise<SearchEntry[]> {
+  const summaries = await getDocs();
+  const docs = await mapLimit(summaries, CONCURRENCY, (summary) => getDoc(summary.slug));
   const entries: SearchEntry[] = [];
-  for (const summary of await getDocs()) {
-    // One doc at a time, to stay under Notion's rate limit.
-    const doc = await getDoc(summary.slug);
-    if (!doc) continue;
+  summaries.forEach((summary, index) => {
+    const doc = docs[index];
+    if (!doc) return;
     for (const part of sections(doc.blocks)) {
       const text = plain(blocksToMarkdown(part.blocks));
       if (!part.heading && !text && entries.some((e) => e.slug === summary.slug)) continue;
@@ -62,6 +82,6 @@ export async function searchIndex(): Promise<SearchEntry[]> {
         text,
       });
     }
-  }
+  });
   return entries;
 }
