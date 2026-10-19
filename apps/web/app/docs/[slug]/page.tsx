@@ -110,7 +110,9 @@ export default async function DocPage({ params }: Props) {
 
         <main id="main" className="min-w-0 flex-1">
           {/* On small screens, the sidebar folds into a menu above the page. */}
-          <details className="group mb-8 rounded-lg border border-border md:hidden">
+          {/* Opens and closes like Notion toggles (notionic's DISCLOSURE_CLASSES):
+              200ms grow and fade, only the fade with reduced motion. */}
+          <details className="group mb-8 rounded-lg border border-border [interpolate-size:allow-keywords] details-content:h-0 details-content:overflow-y-clip details-content:opacity-0 details-content:transition-[height,opacity,content-visibility] details-content:transition-discrete details-content:duration-200 details-content:ease-[cubic-bezier(0.23,1,0.32,1)] open:details-content:h-auto open:details-content:opacity-100 motion-reduce:details-content:transition-[opacity,content-visibility] md:hidden">
             {/* The whole row is the target, with a chevron like Notion toggles. */}
             <summary
               className={cn(

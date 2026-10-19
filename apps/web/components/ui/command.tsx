@@ -49,8 +49,12 @@ function CommandDialog({
       <DialogContent
         className={cn(
           "top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0",
+          // Opened from the keyboard many times a day, so it appears and
+          // closes instantly, backdrop included.
+          "data-open:animate-none data-closed:animate-none",
           className
         )}
+        overlayClassName="data-open:animate-none data-closed:animate-none"
         showCloseButton={showCloseButton}
       >
         {/* Inside the popup, so the title only renders while the dialog is open. */}
