@@ -37,12 +37,14 @@ export function NotionTabs({ block, context }: BlockProps<"tab">) {
         })}
       </TabsList>
       {tabs.map((tab) => (
-        // Hidden panels stay in the HTML, so search engines see them.
+        // Hidden panels stay in the HTML, so search engines see them. A panel
+        // fades in when shown (@starting-style), so switching tabs doesn't snap;
+        // only with focus inside the tabs, so the first panel doesn't fade in on load.
         <TabsContent
           key={tab.id}
           value={tab.id}
           keepMounted
-          className="flex flex-col gap-4 pt-2 text-base data-hidden:hidden"
+          className="flex flex-col gap-4 pt-2 text-base transition-opacity duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-focus-within/tabs:starting:opacity-0 data-hidden:hidden"
         >
           <BlockList blocks={tab.children} context={context} />
         </TabsContent>
