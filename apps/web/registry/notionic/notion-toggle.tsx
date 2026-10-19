@@ -50,10 +50,7 @@ export function NotionToggle({
         // Stays in the HTML while closed, so search engines and find-in-page see it.
         // Grows open and shrinks closed with a fade; the gap above grows with it.
         // Only the height clips, so colored children still bleed sideways.
-        <CollapsibleContent
-          hiddenUntilFound
-          className={PANEL}
-        >
+        <CollapsibleContent hiddenUntilFound className={PANEL}>
           <div className="flex flex-col gap-4 pt-2 pl-5.5">{children}</div>
         </CollapsibleContent>
       ) : null}
