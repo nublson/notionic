@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { collectHeadings, NotionRenderer } from "notionic";
@@ -37,13 +38,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const FOCUS =
   "rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
-function Sidebar({ docs, current }: { docs: DocSummary[]; current: string }) {
+// Rendered twice (the desktop column and the mobile menu), so `idPrefix` keeps
+// the section labels' ids unique.
+function Sidebar({
+  docs,
+  current,
+  idPrefix,
+}: {
+  docs: DocSummary[];
+  current: string;
+  idPrefix: string;
+}) {
   return (
     <nav aria-label="Docs" className="flex flex-col gap-6 text-sm">
-      {groupBySection(docs).map(([section, items]) => (
+      {groupBySection(docs).map(([section, items], index) => (
+        // A label rather than a heading, so the page's outline starts at its h1.
         <div key={section} className="flex flex-col gap-2">
-          <h2 className="font-medium">{section}</h2>
-          <ul className="flex flex-col gap-1.5 border-l border-border">
+          <p id={`${idPrefix}-${index}`} className="font-medium">
+            {section}
+          </p>
+          <ul
+            aria-labelledby={`${idPrefix}-${index}`}
+            className="flex flex-col gap-1.5 border-l border-border"
+          >
             {items.map((doc) => (
               <li key={doc.id}>
                 <Link
@@ -51,8 +68,10 @@ function Sidebar({ docs, current }: { docs: DocSummary[]; current: string }) {
                   aria-current={doc.slug === current ? "page" : undefined}
                   className={cn(
                     FOCUS,
-                    "-ml-px block border-l border-transparent pl-3 text-muted-foreground transition-colors hover:text-foreground",
-                    "aria-[current=page]:border-foreground aria-[current=page]:font-medium aria-[current=page]:text-foreground",
+                    "relative block pl-3 text-muted-foreground transition-colors hover:text-foreground",
+                    // The marker is its own straight line over the rail: a border
+                    // on the link would bend around its focus-ring corners.
+                    "before:absolute before:inset-y-0 before:-left-px before:w-px aria-[current=page]:font-medium aria-[current=page]:text-foreground aria-[current=page]:before:bg-foreground",
                   )}
                 >
                   {doc.title}
@@ -83,17 +102,32 @@ export default async function DocPage({ params }: Props) {
       <SiteHeader />
       <div className="flex gap-10 py-10">
         <aside className="hidden w-52 shrink-0 md:block">
-          <div className="sticky top-8">
-            <Sidebar docs={docs} current={slug} />
+          {/* Scrolls on its own when taller than the screen; faded edges show there is more, and the 4px inset keeps focus rings clear of the scroll box. */}
+          <div className="sticky top-8 -m-1 max-h-[calc(100svh-4rem)] scroll-fade-y overflow-y-auto p-1">
+            <Sidebar docs={docs} current={slug} idPrefix="sidebar" />
           </div>
         </aside>
 
         <main id="main" className="min-w-0 flex-1">
           {/* On small screens, the sidebar folds into a menu above the page. */}
-          <details className="mb-8 rounded-lg border border-border px-4 py-3 md:hidden">
-            <summary className="cursor-pointer text-sm font-medium">Docs menu</summary>
-            <div className="mt-4">
-              <Sidebar docs={docs} current={slug} />
+          {/* Opens and closes like Notion toggles (notionic's DISCLOSURE_CLASSES):
+              200ms grow and fade, only the fade with reduced motion. */}
+          <details className="group mb-8 rounded-lg border border-border [interpolate-size:allow-keywords] details-content:h-0 details-content:overflow-y-clip details-content:opacity-0 details-content:transition-[height,opacity,content-visibility] details-content:transition-discrete details-content:duration-200 details-content:ease-[cubic-bezier(0.23,1,0.32,1)] open:details-content:h-auto open:details-content:opacity-100 motion-reduce:details-content:transition-[opacity,content-visibility] md:hidden">
+            {/* The whole row is the target, with a chevron like Notion toggles. */}
+            <summary
+              className={cn(
+                FOCUS,
+                "flex cursor-pointer list-none items-center justify-between rounded-lg px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden",
+              )}
+            >
+              Docs menu
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground transition-transform duration-150 ease-out group-open:rotate-180 motion-reduce:transition-none"
+              />
+            </summary>
+            <div className="px-4 pb-4">
+              <Sidebar docs={docs} current={slug} idPrefix="menu" />
             </div>
           </details>
 
@@ -120,14 +154,16 @@ export default async function DocPage({ params }: Props) {
             demos={demos}
           />
 
-          <nav
-            aria-label="Previous and next"
-            className="mt-16 grid grid-cols-2 gap-4 border-t border-border pt-6 text-sm"
-          >
+          <nav aria-label="Previous and next" className="mt-16 grid grid-cols-2 gap-4 text-sm">
             {previous ? (
-              <Link href={`/docs/${previous.slug}`} className={cn(FOCUS, "flex flex-col gap-1")}>
+              <Link
+                href={`/docs/${previous.slug}`}
+                className={cn(FOCUS, "group/link flex flex-col gap-1")}
+              >
                 <span className="text-muted-foreground">Previous</span>
-                <span className="font-medium">{previous.title}</span>
+                <span className="font-medium underline-offset-4 group-hover/link:underline">
+                  {previous.title}
+                </span>
               </Link>
             ) : (
               <span />
@@ -135,10 +171,12 @@ export default async function DocPage({ params }: Props) {
             {next ? (
               <Link
                 href={`/docs/${next.slug}`}
-                className={cn(FOCUS, "flex flex-col items-end gap-1 text-right")}
+                className={cn(FOCUS, "group/link flex flex-col items-end gap-1 text-right")}
               >
                 <span className="text-muted-foreground">Next</span>
-                <span className="font-medium">{next.title}</span>
+                <span className="font-medium underline-offset-4 group-hover/link:underline">
+                  {next.title}
+                </span>
               </Link>
             ) : null}
           </nav>
