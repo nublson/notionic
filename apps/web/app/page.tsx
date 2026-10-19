@@ -79,29 +79,20 @@ export default async function Home() {
           </div>
         </section>
 
-        <section aria-labelledby="demo-title" className="border-t border-border py-16">
-          <div className="mb-12">
-            <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "size-2 rounded-full",
-                  live ? "bg-emerald-500" : "bg-muted-foreground/50",
-                )}
-              />
-              {live ? "Live from Notion" : "Sample blocks"}
-            </p>
-            <h2 id="demo-title" className="mt-3 text-2xl font-semibold tracking-tight text-balance">
-              {live
-                ? "Everything below is a Notion page"
-                : "Everything below is rendered by notionic"}
-            </h2>
-            <p className="mt-2 max-w-xl text-pretty text-muted-foreground">
-              {live
-                ? "Fetched from the Notion API and rendered by notionic on the server. It refreshes at most once an hour."
-                : "Sample blocks shaped like the Notion API's, rendered by notionic on the server."}
-            </p>
-          </div>
+        <section aria-labelledby="demo-label" className="border-t border-border py-12">
+          <p
+            id="demo-label"
+            className="mb-8 flex items-center gap-2 text-sm font-medium text-muted-foreground"
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                "size-2 rounded-full",
+                live ? "bg-emerald-500" : "bg-muted-foreground/50",
+              )}
+            />
+            {live ? "Live from Notion" : "Sample blocks"}
+          </p>
           <NotionRenderer
             blocks={blocks}
             components={notionComponents}
