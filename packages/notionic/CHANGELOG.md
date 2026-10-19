@@ -1,5 +1,21 @@
 # notionic
 
+## 0.8.1
+
+### Patch Changes
+
+- [#38](https://github.com/nublson/notionic/pull/38) [`32e56af`](https://github.com/nublson/notionic/commit/32e56afcbfec9ae5c7c1906cfc0d5c80797d8354) Thanks [@nublson](https://github.com/nublson)! - File, PDF, bookmark, embed and link preview cards press in slightly (scale 0.99, 150ms) when clicked; reduced motion keeps only the hover fill. Page link titles fade their underline on hover (150ms) like other links.
+
+- [#38](https://github.com/nublson/notionic/pull/38) [`32e56af`](https://github.com/nublson/notionic/commit/32e56afcbfec9ae5c7c1906cfc0d5c80797d8354) Thanks [@nublson](https://github.com/nublson)! - Heading anchors fade in on hover (150ms) instead of popping in, and toggleable headings grow open and shrink closed with a fade (200ms) in browsers that support `::details-content` and `interpolate-size`; others open instantly as before. Reduced motion keeps only the fade.
+
+- [#38](https://github.com/nublson/notionic/pull/38) [`32e56af`](https://github.com/nublson/notionic/commit/32e56afcbfec9ae5c7c1906cfc0d5c80797d8354) Thanks [@nublson](https://github.com/nublson)! - Links fade their underline to the text color on hover (150ms) instead of switching instantly.
+
+- [#38](https://github.com/nublson/notionic/pull/38) [`32e56af`](https://github.com/nublson/notionic/commit/32e56afcbfec9ae5c7c1906cfc0d5c80797d8354) Thanks [@nublson](https://github.com/nublson)! - Switching tabs fades the new panel in (150ms) instead of swapping it instantly; the first panel still shows at once on page load. The registry's `notion-tabs` does the same.
+
+- [#38](https://github.com/nublson/notionic/pull/38) [`32e56af`](https://github.com/nublson/notionic/commit/32e56afcbfec9ae5c7c1906cfc0d5c80797d8354) Thanks [@nublson](https://github.com/nublson)! - Table of contents entries fade their text and underline in on hover (150ms) instead of switching instantly.
+
+- [#38](https://github.com/nublson/notionic/pull/38) [`32e56af`](https://github.com/nublson/notionic/commit/32e56afcbfec9ae5c7c1906cfc0d5c80797d8354) Thanks [@nublson](https://github.com/nublson)! - Toggles grow open and shrink closed with a fade (200ms), like toggleable headings, in browsers that support `::details-content` and `interpolate-size`. The registry's `notion-toggle` animates its Collapsible panel the same way, and a closed panel no longer leaves an 8px gap.
+
 ## 0.8.0
 
 ### Minor Changes
