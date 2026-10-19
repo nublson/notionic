@@ -209,7 +209,7 @@ function CardRow({
         href={link.href}
         title={title}
         {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 transition-[background-color] hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 transition-[background-color,scale] hover:bg-muted/50 active:scale-[0.99] motion-reduce:active:scale-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <svg
           aria-hidden="true"
@@ -346,7 +346,7 @@ function PreviewCard({
       <a
         href={link.href}
         {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="flex flex-col-reverse overflow-hidden rounded-lg border border-border transition-[background-color] @md:min-h-26 @md:flex-row hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="flex flex-col-reverse overflow-hidden rounded-lg border border-border transition-[background-color,scale] @md:min-h-26 @md:flex-row hover:bg-muted/50 active:scale-[0.99] motion-reduce:active:scale-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-1 p-3.5">
           <span className="line-clamp-2 text-sm font-medium @md:line-clamp-1">{preview.title}</span>
@@ -481,7 +481,7 @@ function PageRow({
   const content = (
     <>
       <IconSlot icon={icon} blockId={blockId} context={context} fallback={PAGE_ICON} />
-      <span className="min-w-0 font-medium underline decoration-muted-foreground/50 decoration-from-font underline-offset-4 group-hover:decoration-foreground">
+      <span className="min-w-0 font-medium underline decoration-muted-foreground/50 decoration-from-font underline-offset-4 transition-[text-decoration-color] group-hover:decoration-foreground">
         {title || "Untitled"}
       </span>
     </>

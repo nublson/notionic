@@ -1,6 +1,11 @@
 import { blockColorClass } from "../colors";
 import { RichText } from "../rich-text";
-import { DISCLOSURE_CONTENT_INDENT, DisclosureChevron, SUMMARY_CLASSES } from "./disclosure";
+import {
+  DISCLOSURE_CLASSES,
+  DISCLOSURE_CONTENT_INDENT,
+  DisclosureChevron,
+  SUMMARY_CLASSES,
+} from "./disclosure";
 import type { BlockProps } from "../types";
 import { cx, plainText } from "../utils";
 
@@ -18,7 +23,7 @@ const LEVELS = {
 // Inline after the heading, so it follows the last word when the heading
 // wraps. The pseudo-element widens its hit area past the narrow "#".
 const ANCHOR =
-  "relative ms-2 rounded-sm text-muted-foreground no-underline opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-coarse:opacity-100 after:absolute after:-inset-2 after:content-['']";
+  "relative ms-2 rounded-sm text-muted-foreground no-underline opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 focus-visible:transition-none focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-coarse:opacity-100 after:absolute after:-inset-2 after:content-['']";
 
 export function Heading({ block, context, children }: HeadingProps) {
   const data =
@@ -42,7 +47,9 @@ export function Heading({ block, context, children }: HeadingProps) {
 
   if (data.is_toggleable) {
     return (
-      <details className={cx("group/toggle text-balance [hr+&]:mt-0", className)}>
+      <details
+        className={cx("group/toggle text-balance [hr+&]:mt-0", DISCLOSURE_CLASSES, className)}
+      >
         <summary className={cx(SUMMARY_CLASSES, blockColorClass(data.color))}>
           <DisclosureChevron />
           {heading}

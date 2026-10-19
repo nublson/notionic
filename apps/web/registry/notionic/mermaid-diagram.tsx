@@ -150,8 +150,10 @@ export function MermaidDiagram({
     <div
       role="img"
       aria-label={label}
-      // The same card as shadcn/ui's Code Block, so diagrams sit with code.
-      className="flex justify-center overflow-x-auto rounded-lg border border-input p-6 dark:bg-input/30 [&_svg]:h-auto [&_svg]:max-w-full"
+      // The same card as shadcn/ui's Code Block, so diagrams sit with code. It
+      // fades in over the code fallback it replaces; a theme change reuses the
+      // element, so it doesn't fade again.
+      className="flex justify-center overflow-x-auto rounded-lg border border-input p-6 transition-opacity duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:opacity-0 dark:bg-input/30 [&_svg]:h-auto [&_svg]:max-w-full"
       // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG from mermaid.render with securityLevel "strict", which sanitizes it
       dangerouslySetInnerHTML={{ __html: svg }}
     />
