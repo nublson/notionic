@@ -1,5 +1,11 @@
 # notionic
 
+## 0.9.0
+
+### Minor Changes
+
+- [#43](https://github.com/nublson/notionic/pull/43) [`31d8a75`](https://github.com/nublson/notionic/commit/31d8a75aecd9164cb532950f6663f60aaed93b78) Thanks [@nublson](https://github.com/nublson)! - Add a `link` key to `components` for links inside text, such as adding a favicon to external links. Its component gets `link`, `children` and `context`; the default is `NotionLink`. `LinkProps` is exported. `notionic/fetch` exports `fetchBookmarkPreview(url)`, to preview any link the way bookmarks are.
+
 ## 0.8.3
 
 ### Patch Changes

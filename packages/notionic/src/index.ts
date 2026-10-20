@@ -20,6 +20,7 @@ export type {
   RenderContext,
   ResolvedLink,
   InlineEquationProps,
+  LinkProps,
   LinkedPage,
   BookmarkPreview,
   Demos,

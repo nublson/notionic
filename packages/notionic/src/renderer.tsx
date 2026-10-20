@@ -21,6 +21,7 @@ import { Callout, Divider, Equation, InlineEquation, Paragraph, Quote } from "./
 import { defaultPageHref } from "./links";
 import type { HostedFile } from "./files";
 import { collectHeadings } from "./headings";
+import { NotionLink } from "./rich-text";
 import type { BlockComponents, BlockProps, Demos, NotionBlock, RenderContext } from "./types";
 import { cx, warnOnce } from "./utils";
 
@@ -56,6 +57,7 @@ export const defaultComponents: BlockComponents = {
   table_of_contents: TableOfContents,
   tab: Tab,
   inline_equation: InlineEquation,
+  link: NotionLink,
 };
 
 type ListKind = "bulleted" | "numbered" | "todo";

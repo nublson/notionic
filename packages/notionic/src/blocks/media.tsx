@@ -38,9 +38,12 @@ function Caption({ caption, context }: { caption: RichTextArray; context: Render
 function UrlLine({ url, label, context }: { url: string; label: string; context: RenderContext }) {
   const link = resolveLink(url, context);
   if (!link) return null;
+  const Link = context.components.link ?? NotionLink;
   return (
     <p>
-      <NotionLink link={link}>{label || url}</NotionLink>
+      <Link link={link} context={context}>
+        {label || url}
+      </Link>
     </p>
   );
 }

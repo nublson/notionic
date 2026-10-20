@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { NotionRenderer, type NotionRendererProps } from "./renderer";
-import { RichText } from "./rich-text";
+import { defaultComponents, NotionRenderer, type NotionRendererProps } from "./renderer";
+import { NotionLink, RichText } from "./rich-text";
 import { block, renderToHtml, richText } from "./test-utils";
-import type { BlockProps, DemoFrameProps, DemoProps, NotionBlock } from "./types";
+import type { BlockProps, DemoFrameProps, DemoProps, LinkProps, NotionBlock } from "./types";
 
 const PAGE_ID = "244b17268ab383c3938887a7a5748b73";
 
@@ -82,6 +82,34 @@ describe("NotionRenderer", () => {
     expect(html).toContain('target="_blank"');
     expect(html).toContain('rel="noopener noreferrer"');
     expect(html).toContain("opens in a new tab");
+  });
+
+  it("renders links inside text with components.link", async () => {
+    const Link = ({ link, children }: LinkProps) => (
+      <a href={link.href} data-external={link.external}>
+        ★{children}
+      </a>
+    );
+    const html = await render(
+      [
+        para(richText("e", { href: "https://example.com", annotations: { bold: true } })),
+        block("video", {
+          type: "external",
+          external: { url: "https://example.com/watch" },
+          caption: [],
+        }),
+      ],
+      { components: { link: Link } },
+    );
+    expect(html).toContain(
+      '<a href="https://example.com" data-external="true">★<strong class="font-semibold">e</strong></a>',
+    );
+    expect(html).toContain('<a href="https://example.com/watch" data-external="true">★');
+    expect(html).not.toContain("opens in a new tab");
+  });
+
+  it("keeps NotionLink as the default link component", () => {
+    expect(defaultComponents.link).toBe(NotionLink);
   });
 
   it("escapes HTML-looking text and drops unsafe links", async () => {
