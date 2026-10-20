@@ -77,7 +77,14 @@ function RichTextItem({ item, context }: { item: RichTextItemResponse; context: 
   }
 
   const link = resolveLink(item.href, context);
-  if (link) node = <NotionLink link={link}>{node}</NotionLink>;
+  if (link) {
+    const Link = context.components.link ?? NotionLink;
+    node = (
+      <Link link={link} context={context}>
+        {node}
+      </Link>
+    );
+  }
 
   return node;
 }

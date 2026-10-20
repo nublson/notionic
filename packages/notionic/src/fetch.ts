@@ -166,3 +166,6 @@ export async function fetchPage(
   }
   return { page: toNotionPage(page), blocks };
 }
+
+/** A page's title, description, image and favicon, read from its HTML; null if it has none. */
+export { fetchBookmarkPreview };

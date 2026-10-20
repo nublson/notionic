@@ -86,6 +86,8 @@ To also get the page's title, icon, cover and properties, use `fetchPage(notion,
 
 For bookmarks, embeds and link previews, `fetchBlocks` also fetches the linked page and reads its title, description, image and favicon, so the block renders as a card like a Notion bookmark. A page that's slow (over 5 seconds), unreachable or untitled renders as a one-line card with the URL, and private network addresses are never fetched. Pass `bookmarkPreviews: false` to make no requests outside Notion.
 
+To preview any other link the same way, use `fetchBookmarkPreview(url)` from `notionic/fetch`. It returns the page's `title`, `description`, `image`, `favicon` and `siteName`, or `null`, under the same rules. It doesn't cache either.
+
 You can also pass blocks you fetched yourself: `NotionRenderer` takes the API's block objects with nested blocks attached as `children` (the `NotionBlock` type).
 
 ## Options
@@ -125,6 +127,23 @@ function Callout({ block, context, children }: BlockProps<"callout">) {
 `notion-mermaid` loads Mermaid in the browser only on pages with a diagram, follows the `dark` class, and keeps showing the code until the diagram draws, or if its source doesn't parse. Wrap the code component you use: `withMermaid(NotionCode)`, or `withMermaid(defaultComponents.code)`.
 
 Equations inside text have their own key, `inline_equation`, whose component gets the equation's LaTeX as `expression`.
+
+Links inside text have their own key too, `link`. Its component gets the resolved `link` (`href`, and `external` for other sites), the formatted text as `children`, and `context`. Wrap `NotionLink` to keep notionic's styling and new-tab behavior:
+
+```tsx
+import { NotionLink, type LinkProps } from "notionic";
+
+function Link({ link, children }: LinkProps) {
+  return (
+    <NotionLink link={link}>
+      {link.external ? <Favicon href={link.href} /> : null}
+      {children}
+    </NotionLink>
+  );
+}
+
+<NotionRenderer blocks={blocks} components={{ link: Link }} />;
+```
 
 ### Interactive demos
 

@@ -104,14 +104,24 @@ export type InlineEquationProps = {
   context: RenderContext;
 };
 
+/** Props of the component that renders a link inside text. */
+export type LinkProps = {
+  /** Where the link goes, and whether it opens in a new tab. */
+  link: ResolvedLink;
+  /** The linked text, already formatted. */
+  children: ReactNode;
+  context: RenderContext;
+};
+
 /**
  * Replacements for the built-in components: one per block type, plus
- * `inline_equation` for equations inside text and `demo` for the frame
- * around demos.
+ * `inline_equation` for equations inside text, `link` for links inside text,
+ * and `demo` for the frame around demos.
  */
 export type BlockComponents = {
   [T in NotionBlockType]?: ComponentType<BlockProps<T>>;
 } & {
   inline_equation?: ComponentType<InlineEquationProps>;
+  link?: ComponentType<LinkProps>;
   demo?: ComponentType<DemoFrameProps>;
 };
