@@ -126,6 +126,23 @@ function Callout({ block, context, children }: BlockProps<"callout">) {
 
 Equations inside text have their own key, `inline_equation`, whose component gets the equation's LaTeX as `expression`.
 
+Links inside text have their own key too, `link`. Its component gets the resolved `link` (`href`, and `external` for other sites), the formatted text as `children`, and `context`. Wrap `NotionLink` to keep notionic's styling and new-tab behavior:
+
+```tsx
+import { NotionLink, type LinkProps } from "notionic";
+
+function Link({ link, children }: LinkProps) {
+  return (
+    <NotionLink link={link}>
+      {link.external ? <Favicon href={link.href} /> : null}
+      {children}
+    </NotionLink>
+  );
+}
+
+<NotionRenderer blocks={blocks} components={{ link: Link }} />;
+```
+
 ### Interactive demos
 
 Put your own React components in a page, like the demos in a design engineering blog. Each demo is a component in your project, so it can use anything you install (Motion, Sonner, charts, 3D). In Notion, an embed of a URL ending in `/demos/<name>` marks where it goes, and its caption goes below it.
