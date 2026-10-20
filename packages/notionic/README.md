@@ -86,6 +86,8 @@ To also get the page's title, icon, cover and properties, use `fetchPage(notion,
 
 For bookmarks, embeds and link previews, `fetchBlocks` also fetches the linked page and reads its title, description, image and favicon, so the block renders as a card like a Notion bookmark. A page that's slow (over 5 seconds), unreachable or untitled renders as a one-line card with the URL, and private network addresses are never fetched. Pass `bookmarkPreviews: false` to make no requests outside Notion.
 
+To preview any other link the same way, use `fetchBookmarkPreview(url)` from `notionic/fetch`. It returns the page's `title`, `description`, `image`, `favicon` and `siteName`, or `null`, under the same rules. It doesn't cache either.
+
 You can also pass blocks you fetched yourself: `NotionRenderer` takes the API's block objects with nested blocks attached as `children` (the `NotionBlock` type).
 
 ## Options
