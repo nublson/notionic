@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultComponents } from "./renderer";
-import { defaultPageHref, resolveLink } from "./links";
+import { defaultPageHref, linkedBlockId, resolveLink } from "./links";
 import type { RenderContext } from "./types";
 
 const ID = "244b17268ab383c3938887a7a5748b73";
@@ -71,5 +71,24 @@ describe("resolveLink", () => {
       href: `https://www.notion.so/${ID}`,
       external: true,
     });
+  });
+});
+
+describe("linkedBlockId", () => {
+  const block = "1a2b3c4d5e6f40718293a4b5c6d7e8f9";
+  it("reads the block id from a workspace path", () => {
+    expect(linkedBlockId(`/3fcb17268ab381d995c6ff3f97dc741b#${block}`)).toBe(block);
+  });
+  it("reads a dashed block id from a notion.so URL", () => {
+    expect(
+      linkedBlockId(
+        "https://www.notion.so/Title-3fcb17268ab381d995c6ff3f97dc741b#1a2b3c4d-5e6f-4071-8293-a4b5c6d7e8f9",
+      ),
+    ).toBe(block);
+  });
+  it("is null without a fragment, for other sites, and for empty links", () => {
+    expect(linkedBlockId("/3fcb17268ab381d995c6ff3f97dc741b")).toBeNull();
+    expect(linkedBlockId(`https://example.com/page#${block}`)).toBeNull();
+    expect(linkedBlockId(null)).toBeNull();
   });
 });

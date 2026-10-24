@@ -80,6 +80,20 @@ function linkedPageId(href: string): string | null {
   return notionPageIdFromUrl(value);
 }
 
+/**
+ * The block id a link to a block points to: a link to a Notion page (a
+ * `/<id>` path or a Notion URL) with the block's id as its `#fragment`.
+ * Null for any other link.
+ */
+export function linkedBlockId(href: string | null | undefined): string | null {
+  if (!href) return null;
+  const hash = href.indexOf("#");
+  if (hash === -1 || !linkedPageId(href.slice(0, hash))) return null;
+  const fragment = href.slice(hash + 1);
+  const match = fragment.match(/^[0-9a-f]{32}$/i) ?? fragment.match(DASHED_ID);
+  return match && match[0] === fragment ? normalizePageId(fragment) : null;
+}
+
 /** Where a link to a Notion page renders, or null to show its text without a link. */
 export function resolvePageLink(pageId: string, context: RenderContext): ResolvedLink | null {
   const href = context.pageHref(normalizePageId(pageId));
