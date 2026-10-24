@@ -105,3 +105,72 @@ describe("blocksToMarkdown", () => {
     expect(md).not.toMatch(/\n{3,}/);
   });
 });
+
+describe("footnotes", () => {
+  const PAGE = "3fcb17268ab381d995c6ff3f97dc741b";
+  const A = "f00d0000000000000000000000000001";
+  const B = "f00d0000000000000000000000000002";
+  const C = "f00d0000000000000000000000000003";
+  const ref = (text: string, id: string) => richText(text, { href: `/${PAGE}#${id}` });
+  const note = (id: string, text: string) =>
+    block("paragraph", { rich_text: [richText(text)] }, { id });
+  const page = [
+    block("paragraph", {
+      rich_text: [richText("Blocks are "), ref("nested", A), richText(" and "), ref("flat", B)],
+    }),
+    block("heading_2", { rich_text: [richText("Footnotes")], color: "default" }),
+    note(A, "Note A"),
+    note(B, "Note B"),
+    note(C, "Note C"),
+  ];
+
+  it("writes GFM footnotes", () => {
+    const markdown = blocksToMarkdown(page);
+    expect(markdown).toContain("Blocks are nested[^1] and flat[^2]");
+    expect(markdown.endsWith("[^1]: Note A\n[^2]: Note B\n\nNote C")).toBe(true);
+    expect(markdown).not.toContain("Footnotes");
+  });
+
+  it("writes list-item notes as footnotes", () => {
+    const listNote = block("bulleted_list_item", { rich_text: [richText("Listed")] }, { id: A });
+    const markdown = blocksToMarkdown([page[0]!, page[1]!, listNote]);
+    expect(markdown).toContain("[^1]: Listed");
+  });
+
+  it("keeps blocks nested under a note", () => {
+    const withChild = {
+      ...note(B, "Note B"),
+      children: [block("bulleted_list_item", { rich_text: [richText("Sub point")] })],
+    } as NotionBlock;
+    expect(blocksToMarkdown([page[0]!, page[1]!, page[2]!, withChild])).toContain(
+      "[^2]: Note B\n\n    - Sub point",
+    );
+  });
+
+  it("writes to-do notes as footnotes", () => {
+    const todo = block("to_do", { rich_text: [richText("Buy milk")], checked: false }, { id: A });
+    expect(blocksToMarkdown([page[0]!, page[1]!, todo])).toContain("[^1]: Buy milk");
+  });
+
+  it("keeps references from captions and toggle titles", () => {
+    const image = block("image", {
+      type: "external",
+      external: { url: "https://e.com/a.png" },
+      caption: [richText("A diagram"), ref("", A)],
+    });
+    const toggle = block(
+      "toggle",
+      { rich_text: [richText("More"), ref("", B)] },
+      { children: [block("paragraph", { rich_text: [richText("Inside")] })] },
+    );
+    const markdown = blocksToMarkdown([image, toggle, page[1]!, page[2]!, page[3]!]);
+    expect(markdown).toContain("![A diagram](https://e.com/a.png)[^1]");
+    expect(markdown).toContain("<summary>More[^2]</summary>");
+  });
+
+  it("leaves Markdown unchanged without a footnotes heading", () => {
+    expect(blocksToMarkdown(page, { footnotes: { headings: ["Notes"] } })).toContain(
+      `[nested](https://www.notion.so/${PAGE})`,
+    );
+  });
+});

@@ -1,5 +1,6 @@
 import { createSlugger } from "./slug";
-import type { NotionBlock } from "./types";
+import { collectFootnotes } from "./footnotes";
+import type { FootnotesOptions, NotionBlock } from "./types";
 import { plainText } from "./utils";
 
 export type PageHeading = {
@@ -17,9 +18,15 @@ const LEVELS = { heading_1: 1, heading_2: 2, heading_3: 3, heading_4: 4 } as con
 /**
  * Every non-blank heading on the page, in reading order (headings nested in
  * toggles, columns and callouts included), with unique anchor ids. Use it for
- * a table of contents or a sidebar outline.
+ * a table of contents or a sidebar outline. The footnotes heading is left
+ * out, unless the footnotes title shows; pass the same `footnotes` option as
+ * to `NotionRenderer`.
  */
-export function collectHeadings(blocks: NotionBlock[]): PageHeading[] {
+export function collectHeadings(
+  blocks: NotionBlock[],
+  options: { footnotes?: FootnotesOptions } = {},
+): PageHeading[] {
+  const footnotes = collectFootnotes(blocks, options.footnotes);
   const slug = createSlugger();
   const headings: PageHeading[] = [];
   const walk = (list: NotionBlock[]) => {
@@ -39,7 +46,17 @@ export function collectHeadings(blocks: NotionBlock[]): PageHeading[] {
                 ? block.heading_3
                 : block.heading_4;
         const text = plainText(data.rich_text).trim();
-        if (text) {
+        if (footnotes && block.id === footnotes.heading.blockId) {
+          if (footnotes.showTitle) {
+            const { level } = footnotes.heading;
+            headings.push({
+              blockId: block.id,
+              id: "footnotes-label",
+              text: footnotes.title,
+              level,
+            });
+          }
+        } else if (text) {
           headings.push({ blockId: block.id, id: slug(text), text, level: LEVELS[block.type] });
         }
       }

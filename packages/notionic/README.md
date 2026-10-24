@@ -174,6 +174,29 @@ export default async function DemoPage({ params }: { params: Promise<{ name: str
 
 Demos render in `DemoFrame`, a bordered stage with the caption centered below. Replace it with `components={{ demo: MyFrame }}`; it gets the demo as `children`, plus `name`, `caption` and `context`. Only the demos a page uses send JavaScript to the browser.
 
+### Footnotes
+
+Notion has no footnote block, so notionic reads them from a section:
+
+1. At the end of the page, add a heading named "Footnotes", at any level.
+2. Under it, write each note as its own paragraph or list item.
+3. In the text, select the word and link it to its note: on the note, ⋯ › Copy link to block, then paste it as the link.
+
+Links into that section render as numbered superscripts, in reading order. The section renders as a footnote list with links back to each reference. Clicking a footnote in Notion still jumps to the note.
+
+```tsx
+<NotionRenderer
+  blocks={blocks}
+  footnotes={{
+    headings: ["Footnotes", "Referências", "Références"], // default ["Footnotes"]; [] turns footnotes off
+    showTitle: true, // show the heading above the list instead of a separator
+    title: "Notes", // instead of the heading's text
+  }}
+/>
+```
+
+Headings match ignoring case. The section runs to the next heading of the same or a higher level, or, under a toggleable heading, is the toggle's content. A section nothing links to renders as ordinary content. Notes nothing links to are listed after the numbered ones. Replace the list through `components={{ footnotes: MyFootnotes }}`. Pass the same option to `collectHeadings` and `blocksToMarkdown`, which writes GFM footnotes.
+
 ## Supported blocks
 
 Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`.
