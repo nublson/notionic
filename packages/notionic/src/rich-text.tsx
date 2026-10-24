@@ -12,10 +12,9 @@ export const CODE_CLASSES =
 // `notion-callout` don't split at a hyphen; longer code still wraps.
 const NOWRAP_CODE_LENGTH = 24;
 
-// Muted and tabular, with a hit area wider than the digit, and the same
-// highlight as the note when a back-link lands on it.
+// Muted and tabular, with a hit area wider than the digit.
 const FOOTNOTE_REF_CLASSES =
-  "relative scroll-mt-8 rounded-sm font-medium text-muted-foreground tabular-nums no-underline hover:text-foreground target:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring after:absolute after:-inset-1 after:content-['']";
+  "relative scroll-mt-8 rounded-sm font-medium text-muted-foreground tabular-nums no-underline hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring after:absolute after:-inset-1 after:content-['']";
 
 const LINK_CLASSES =
   "font-medium underline underline-offset-4 decoration-from-font decoration-muted-foreground/50 transition-[text-decoration-color] hover:decoration-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";

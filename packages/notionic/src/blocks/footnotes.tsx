@@ -6,9 +6,10 @@ import { HEADING_LEVELS } from "./heading";
 
 const TEXT_TYPES = new Set(["paragraph", "bulleted_list_item", "numbered_list_item"]);
 
-// A short lift on the note or reference the reader jumped to, so the eye
-// finds it; CSS only.
-export const FOOTNOTE_TARGET = "-mx-1 scroll-mt-8 rounded-sm px-1 target:bg-muted";
+// The note the reader jumped to lights up and fades out (see styles.css);
+// with reduced motion, it doesn't.
+const FOOTNOTE_TARGET =
+  "-mx-1 scroll-mt-8 rounded-sm px-1 motion-safe:target:animate-[notionic-footnote-target_1.5s_ease-out]";
 
 const BACK_LINK =
   "relative ms-1 rounded-sm text-muted-foreground no-underline hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring after:absolute after:-inset-1 after:content-['']";
