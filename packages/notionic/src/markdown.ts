@@ -1,6 +1,13 @@
 import { resolveFileUrl } from "./files";
-import { defaultPageHref, resolveLink, resolvePageLink } from "./links";
-import type { NotionBlock, RenderContext, RichText } from "./types";
+import { collectFootnotes } from "./footnotes";
+import { defaultPageHref, normalizePageId, resolveLink, resolvePageLink } from "./links";
+import type {
+  FootnotesOptions,
+  NotionBlock,
+  PageFootnotes,
+  RenderContext,
+  RichText,
+} from "./types";
 import { plainText } from "./utils";
 
 export type MarkdownOptions = {
@@ -8,6 +15,8 @@ export type MarkdownOptions = {
   pageHref?: (pageId: string) => string | null;
   /** Rewrites URLs of files uploaded to Notion, as in `NotionRenderer`. */
   transformFileUrl?: RenderContext["transformFileUrl"];
+  /** Footnotes, as in `NotionRenderer`: written as GFM footnotes (`word[^1]`). */
+  footnotes?: FootnotesOptions;
 };
 
 type Context = RenderContext;
@@ -23,8 +32,10 @@ function inline(text: RichText, context: Context): string {
       if (annotations.bold) value = `**${value}**`;
       if (annotations.italic) value = `*${value}*`;
       if (annotations.strikethrough) value = `~~${value}~~`;
-      const link = resolveLink(item.href, context);
+      const footnote = context.footnotes?.refs.get(item);
+      const link = footnote ? null : resolveLink(item.href, context);
       if (link) value = `[${value}](${link.href})`;
+      if (footnote) value = `${value}[^${footnote.number}]`;
       // A line break within a block (Shift+Enter) is a hard break.
       return value.replace(/\n/g, "  \n");
     })
@@ -255,6 +266,38 @@ export function blocksToMarkdown(blocks: NotionBlock[], options: MarkdownOptions
     transformFileUrl: options.transformFileUrl,
     headings: [],
     components: {},
+    footnotes: collectFootnotes(blocks, options.footnotes) ?? undefined,
   };
-  return render(blocks, context);
+  const { footnotes } = context;
+  if (!footnotes) return render(blocks, context);
+  const page = blocks.filter((item) => !footnotes.sectionBlockIds.has(normalizePageId(item.id)));
+  return [render(page, context), footnoteDefinitions(footnotes, context)]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+/** `[^1]: The note` for each numbered note, then any note nothing references, as is. */
+function footnoteDefinitions(footnotes: PageFootnotes, context: Context): string {
+  const definitions = footnotes.notes.flatMap((note) => {
+    if (note.number === null) return [];
+    // A text note is its rich text; any other block continues on lines
+    // indented by four spaces.
+    const { block: item } = note;
+    const markdown =
+      item.type === "paragraph" ||
+      item.type === "bulleted_list_item" ||
+      item.type === "numbered_list_item"
+        ? inline(
+            (item as unknown as Record<string, { rich_text: RichText }>)[item.type]?.rich_text ??
+              [],
+            context,
+          )
+        : block(item, context);
+    return [`[^${note.number}]: ${indent(markdown, "    ").trimStart()}`];
+  });
+  const unreferenced = render(
+    footnotes.notes.filter((note) => note.number === null).map((note) => note.block),
+    context,
+  );
+  return [definitions.join("\n"), unreferenced].filter(Boolean).join("\n\n");
 }

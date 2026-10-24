@@ -105,3 +105,41 @@ describe("blocksToMarkdown", () => {
     expect(md).not.toMatch(/\n{3,}/);
   });
 });
+
+describe("footnotes", () => {
+  const PAGE = "3fcb17268ab381d995c6ff3f97dc741b";
+  const A = "f00d0000000000000000000000000001";
+  const B = "f00d0000000000000000000000000002";
+  const C = "f00d0000000000000000000000000003";
+  const ref = (text: string, id: string) => richText(text, { href: `/${PAGE}#${id}` });
+  const note = (id: string, text: string) =>
+    block("paragraph", { rich_text: [richText(text)] }, { id });
+  const page = [
+    block("paragraph", {
+      rich_text: [richText("Blocks are "), ref("nested", A), richText(" and "), ref("flat", B)],
+    }),
+    block("heading_2", { rich_text: [richText("Footnotes")], color: "default" }),
+    note(A, "Note A"),
+    note(B, "Note B"),
+    note(C, "Note C"),
+  ];
+
+  it("writes GFM footnotes", () => {
+    const markdown = blocksToMarkdown(page);
+    expect(markdown).toContain("Blocks are nested[^1] and flat[^2]");
+    expect(markdown.endsWith("[^1]: Note A\n[^2]: Note B\n\nNote C")).toBe(true);
+    expect(markdown).not.toContain("Footnotes");
+  });
+
+  it("writes list-item notes as footnotes", () => {
+    const listNote = block("bulleted_list_item", { rich_text: [richText("Listed")] }, { id: A });
+    const markdown = blocksToMarkdown([page[0]!, page[1]!, listNote]);
+    expect(markdown).toContain("[^1]: Listed");
+  });
+
+  it("leaves Markdown unchanged without a footnotes heading", () => {
+    expect(blocksToMarkdown(page, { footnotes: { headings: ["Notes"] } })).toContain(
+      `[nested](https://www.notion.so/${PAGE})`,
+    );
+  });
+});
