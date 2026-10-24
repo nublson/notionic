@@ -1,4 +1,4 @@
-import { Block } from "../renderer";
+import { Block, BlockList } from "../renderer";
 import { RichText } from "../rich-text";
 import type { Footnote, FootnotesProps, RenderContext, RichText as RichTextArray } from "../types";
 import { cx } from "../utils";
@@ -17,7 +17,16 @@ function NoteContent({ note, context }: { note: Footnote; context: RenderContext
   const { block } = note;
   if (TEXT_TYPES.has(block.type)) {
     const data = (block as unknown as Record<string, { rich_text: RichTextArray }>)[block.type];
-    return <RichText text={data?.rich_text ?? []} context={context} />;
+    return (
+      <>
+        <RichText text={data?.rich_text ?? []} context={context} />
+        {block.children?.length ? (
+          <div className="mt-1.5 flex flex-col gap-1.5">
+            <BlockList blocks={block.children} context={context} />
+          </div>
+        ) : null}
+      </>
+    );
   }
   return <Block block={block} context={context} />;
 }

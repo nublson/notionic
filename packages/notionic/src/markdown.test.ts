@@ -137,6 +137,16 @@ describe("footnotes", () => {
     expect(markdown).toContain("[^1]: Listed");
   });
 
+  it("keeps blocks nested under a note", () => {
+    const withChild = {
+      ...note(B, "Note B"),
+      children: [block("bulleted_list_item", { rich_text: [richText("Sub point")] })],
+    } as NotionBlock;
+    expect(blocksToMarkdown([page[0]!, page[1]!, page[2]!, withChild])).toContain(
+      "[^2]: Note B\n\n    - Sub point",
+    );
+  });
+
   it("leaves Markdown unchanged without a footnotes heading", () => {
     expect(blocksToMarkdown(page, { footnotes: { headings: ["Notes"] } })).toContain(
       `[nested](https://www.notion.so/${PAGE})`,

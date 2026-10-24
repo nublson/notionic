@@ -276,6 +276,8 @@ export function blocksToMarkdown(blocks: NotionBlock[], options: MarkdownOptions
     .join("\n\n");
 }
 
+const TEXT_NOTES = new Set(["paragraph", "bulleted_list_item", "numbered_list_item"]);
+
 /** `[^1]: The note` for each numbered note, then any note nothing references, as is. */
 function footnoteDefinitions(footnotes: PageFootnotes, context: Context): string {
   const definitions = footnotes.notes.flatMap((note) => {
@@ -283,17 +285,16 @@ function footnoteDefinitions(footnotes: PageFootnotes, context: Context): string
     // A text note is its rich text; any other block continues on lines
     // indented by four spaces.
     const { block: item } = note;
-    const markdown =
-      item.type === "paragraph" ||
-      item.type === "bulleted_list_item" ||
-      item.type === "numbered_list_item"
-        ? inline(
-            (item as unknown as Record<string, { rich_text: RichText }>)[item.type]?.rich_text ??
-              [],
-            context,
-          )
-        : block(item, context);
-    return [`[^${note.number}]: ${indent(markdown, "    ").trimStart()}`];
+    const markdown = TEXT_NOTES.has(item.type)
+      ? inline(
+          (item as unknown as Record<string, { rich_text: RichText }>)[item.type]?.rich_text ?? [],
+          context,
+        )
+      : block(item, context);
+    // Text notes are written from their rich text, so their nested blocks follow.
+    const nested = TEXT_NOTES.has(item.type) ? render(item.children ?? [], context) : "";
+    const body = [markdown, nested].filter(Boolean).join("\n\n");
+    return [`[^${note.number}]: ${indent(body, "    ").trimStart()}`];
   });
   const unreferenced = render(
     footnotes.notes.filter((note) => note.number === null).map((note) => note.block),

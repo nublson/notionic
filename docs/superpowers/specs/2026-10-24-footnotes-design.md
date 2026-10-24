@@ -105,7 +105,9 @@ The section's blocks render as one list, in place of the section:
 | --- | --- |
 | No footnotes heading | Nothing changes. |
 | `headings: []` | Footnotes are off. |
-| Heading with no blocks under it | Nothing renders for the section. |
+| Heading with no blocks under it, or nothing links to its notes | The section renders as ordinary content, as before footnotes. |
+| Toggleable footnotes heading | Its children are the notes. |
+| Link written as `#<blockId>` | Recognised as a link to that block. |
 | Note with no reference | Listed after the numbered notes, without a back-link. |
 | Link to a block outside the section | An ordinary link, as today. |
 | Note referenced twice | One number, two back-links. |

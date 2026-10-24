@@ -21,6 +21,22 @@ describe("collectFootnotes", () => {
     expect(collectFootnotes([p(ref("a", id(1))), note(1)])).toBeNull();
   });
 
+  it("returns null when nothing references the section", () => {
+    expect(collectFootnotes([heading("Footnotes"), note(1), note(2)])).toBeNull();
+  });
+
+  it("reads the notes of a toggleable footnotes heading from its children", () => {
+    const marker = block(
+      "heading_2",
+      { rich_text: [richText("Footnotes")], color: "default", is_toggleable: true },
+      { children: [note(1)] },
+    );
+    const after = p(richText("After"));
+    const result = collectFootnotes([p(ref("a", id(1))), marker, after]);
+    expect(ids(result)).toEqual([[id(1), 1]]);
+    expect(result?.sectionBlockIds.size).toBe(1);
+  });
+
   it("returns null with headings: []", () => {
     expect(collectFootnotes([heading("Footnotes"), note(1)], { headings: [] })).toBeNull();
   });
@@ -95,6 +111,7 @@ describe("collectFootnotes", () => {
     const sub = heading("Sources", 3);
     const next = heading("Appendix", 2);
     const result = collectFootnotes([
+      p(ref("a", id(1))),
       heading("Footnotes", 2),
       note(1),
       sub,
@@ -117,12 +134,18 @@ describe("collectFootnotes", () => {
 
   it("uses the first matching heading", () => {
     const later = heading("Footnotes");
-    const result = collectFootnotes([heading("Footnotes"), note(1), later, note(2)]);
+    const result = collectFootnotes([
+      p(ref("a", id(1))),
+      heading("Footnotes"),
+      note(1),
+      later,
+      note(2),
+    ]);
     expect(result?.notes.map((footnote) => footnote.block.id)).toEqual([id(1)]);
   });
 
   it("uses title over the heading text, and showTitle defaults to false", () => {
-    const blocks = [heading("Footnotes", 3), note(1)];
+    const blocks = [p(ref("a", id(1))), heading("Footnotes", 3), note(1)];
     expect(collectFootnotes(blocks)).toMatchObject({
       title: "Footnotes",
       showTitle: false,
@@ -140,11 +163,17 @@ describe("collectFootnotes", () => {
       { rich_text: [ref("see", id(1))], color: "default" },
       { id: id(2) },
     );
-    const result = collectFootnotes([heading("Footnotes"), note(1), note(3, ""), inner]);
-    expect(ids(result)).toEqual([
-      [id(1), null],
-      [id(2), null],
+    const result = collectFootnotes([
+      p(ref("b", id(2))),
+      heading("Footnotes"),
+      note(1),
+      note(3, ""),
+      inner,
     ]);
-    expect(result?.refs.size).toBe(0);
+    expect(ids(result)).toEqual([
+      [id(2), 1],
+      [id(1), null],
+    ]);
+    expect(result?.refs.size).toBe(1);
   });
 });

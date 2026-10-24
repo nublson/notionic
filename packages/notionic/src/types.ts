@@ -77,7 +77,7 @@ export type PageFootnotes = {
   showTitle: boolean;
   /** `title`, or the heading's text. */
   title: string;
-  /** The heading and every block of the section, by id without dashes. */
+  /** The heading and the top-level blocks after it that the section replaces, by id without dashes. */
   sectionBlockIds: Set<string>;
   /** Numbered notes by number, then unreferenced notes in page order. */
   notes: Footnote[];

@@ -195,7 +195,7 @@ Links into that section render as numbered superscripts, in reading order. The s
 />
 ```
 
-Headings match ignoring case. The section runs to the next heading of the same or a higher level. Notes nothing links to are listed after the numbered ones. Replace the list through `components={{ footnotes: MyFootnotes }}`. Pass the same option to `collectHeadings` and `blocksToMarkdown`, which writes GFM footnotes.
+Headings match ignoring case. The section runs to the next heading of the same or a higher level, or, under a toggleable heading, is the toggle's content. A section nothing links to renders as ordinary content. Notes nothing links to are listed after the numbered ones. Replace the list through `components={{ footnotes: MyFootnotes }}`. Pass the same option to `collectHeadings` and `blocksToMarkdown`, which writes GFM footnotes.
 
 ## Supported blocks
 

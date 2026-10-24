@@ -86,6 +86,10 @@ describe("linkedBlockId", () => {
       ),
     ).toBe(block);
   });
+  it("reads a fragment-only link to a block on the same page", () => {
+    expect(linkedBlockId(`#${block}`)).toBe(block);
+    expect(linkedBlockId("#intro")).toBeNull();
+  });
   it("is null without a fragment, for other sites, and for empty links", () => {
     expect(linkedBlockId("/3fcb17268ab381d995c6ff3f97dc741b")).toBeNull();
     expect(linkedBlockId(`https://example.com/page#${block}`)).toBeNull();

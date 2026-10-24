@@ -661,6 +661,16 @@ describe("footnotes", () => {
     expect(await render(blocks)).not.toContain("<sup>");
   });
 
+  it("keeps blocks nested under a note", async () => {
+    const withChild = {
+      ...note(B, "Note B"),
+      has_children: true,
+      children: [block("bulleted_list_item", { rich_text: [richText("Sub point")] })],
+    } as NotionBlock;
+    const html = await render([page[0]!, page[1]!, page[2]!, withChild]);
+    expect(html).toContain("Sub point");
+  });
+
   it("uses components.footnotes", async () => {
     const html = await render(page, {
       components: {

@@ -88,7 +88,8 @@ function linkedPageId(href: string): string | null {
 export function linkedBlockId(href: string | null | undefined): string | null {
   if (!href) return null;
   const hash = href.indexOf("#");
-  if (hash === -1 || !linkedPageId(href.slice(0, hash))) return null;
+  // `#<id>` alone links to a block on the same page.
+  if (hash === -1 || (hash > 0 && !linkedPageId(href.slice(0, hash)))) return null;
   const fragment = href.slice(hash + 1);
   const match = fragment.match(/^[0-9a-f]{32}$/i) ?? fragment.match(DASHED_ID);
   return match && match[0] === fragment ? normalizePageId(fragment) : null;

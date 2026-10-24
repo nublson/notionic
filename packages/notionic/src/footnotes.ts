@@ -38,8 +38,9 @@ function isEmpty(block: NotionBlock): boolean {
  * The page's footnotes: a top-level heading named one of `headings` starts
  * a section that runs to the next heading of the same or a higher level.
  * Its blocks are the notes, and links to them elsewhere on the page are the
- * references, numbered in reading order. Null when the page has no such
- * heading.
+ * references, numbered in reading order. A toggleable heading holds its
+ * notes as its children. Null when the page has no such heading, or nothing
+ * links to its notes.
  */
 export function collectFootnotes(
   blocks: NotionBlock[],
@@ -56,14 +57,20 @@ export function collectFootnotes(
   const markerHeading = marker ? heading(marker) : null;
   if (!marker || !markerHeading) return null;
 
-  let end = blocks.findIndex(
-    (block, i) => i > start && (heading(block)?.level ?? 5) <= markerHeading.level,
-  );
+  // A toggleable heading holds its notes; otherwise they follow it, up to
+  // the next heading of the same or a higher level.
+  const toggleable = Boolean(data(marker).is_toggleable);
+  let end = toggleable
+    ? start + 1
+    : blocks.findIndex(
+        (block, i) => i > start && (heading(block)?.level ?? 5) <= markerHeading.level,
+      );
   if (end === -1) end = blocks.length;
   const section = blocks.slice(start + 1, end);
+  const noteBlocks = toggleable ? (marker.children ?? []) : section;
 
   const notes = new Map<string, Footnote>();
-  for (const block of section) {
+  for (const block of noteBlocks) {
     if (!isEmpty(block)) notes.set(normalizePageId(block.id), { block, number: null, refIds: [] });
   }
 
@@ -88,6 +95,9 @@ export function collectFootnotes(
   };
   // Links inside the notes themselves stay plain links.
   walk([...blocks.slice(0, start), ...blocks.slice(end)]);
+
+  // A section nothing links to is ordinary content, as it was before footnotes.
+  if (refs.size === 0) return null;
 
   const all = [...notes.values()];
   return {
