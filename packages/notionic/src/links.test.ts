@@ -88,6 +88,15 @@ describe("linkedBlockId", () => {
       ),
     ).toBe(block);
   });
+  it("keeps site paths that end in an id-shaped segment", () => {
+    const href = "/orders/244b17268ab383c3938887a7a5748b73";
+    expect(
+      resolveLink(
+        href,
+        context(() => "/elsewhere"),
+      ),
+    ).toEqual({ href, external: false });
+  });
   it("reads Notion's /p/<page>#<block> links, as the API returns them", () => {
     expect(
       linkedBlockId("/p/3fcb17268ab381d7b265ff9229b44af9#403b17268ab38071a858e39d5b8b27c0"),

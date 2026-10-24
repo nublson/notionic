@@ -147,6 +147,27 @@ describe("footnotes", () => {
     );
   });
 
+  it("writes to-do notes as footnotes", () => {
+    const todo = block("to_do", { rich_text: [richText("Buy milk")], checked: false }, { id: A });
+    expect(blocksToMarkdown([page[0]!, page[1]!, todo])).toContain("[^1]: Buy milk");
+  });
+
+  it("keeps references from captions and toggle titles", () => {
+    const image = block("image", {
+      type: "external",
+      external: { url: "https://e.com/a.png" },
+      caption: [richText("A diagram"), ref("", A)],
+    });
+    const toggle = block(
+      "toggle",
+      { rich_text: [richText("More"), ref("", B)] },
+      { children: [block("paragraph", { rich_text: [richText("Inside")] })] },
+    );
+    const markdown = blocksToMarkdown([image, toggle, page[1]!, page[2]!, page[3]!]);
+    expect(markdown).toContain("![A diagram](https://e.com/a.png)[^1]");
+    expect(markdown).toContain("<summary>More[^2]</summary>");
+  });
+
   it("leaves Markdown unchanged without a footnotes heading", () => {
     expect(blocksToMarkdown(page, { footnotes: { headings: ["Notes"] } })).toContain(
       `[nested](https://www.notion.so/${PAGE})`,

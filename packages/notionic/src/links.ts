@@ -76,8 +76,10 @@ function linkedPageId(href: string): string | null {
   if (value.startsWith("/")) {
     // Notion writes in-text links to workspace pages as `/<id>`,
     // `/Title-<id>?pvs=4` or, for links to a block, `/p/<id>#<block>`.
+    // Only those shapes: `/orders/<id>` on your site stays your path.
     const segments = (value.split(/[?#]/)[0] ?? "").split("/").filter(Boolean);
-    return matchPageId(segments[segments.length - 1] ?? "");
+    const page = segments[0] === "p" ? segments[1] : segments[0];
+    return matchPageId(page ?? "");
   }
   return notionPageIdFromUrl(value);
 }
