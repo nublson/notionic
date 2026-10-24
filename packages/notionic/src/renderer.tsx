@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { Code } from "./blocks/code";
+import { Footnotes } from "./blocks/footnotes";
 import { Heading } from "./blocks/heading";
 import { Column, ColumnList, SyncedBlock, Toggle } from "./blocks/layout";
 import { BulletedListItem, NumberedListItem, ToDo } from "./blocks/list";
@@ -18,11 +19,20 @@ import {
 import { Table } from "./blocks/table";
 import { Tab, TableOfContents } from "./blocks/navigation";
 import { Callout, Divider, Equation, InlineEquation, Paragraph, Quote } from "./blocks/text";
-import { defaultPageHref } from "./links";
+import { collectFootnotes } from "./footnotes";
+import { defaultPageHref, normalizePageId } from "./links";
 import type { HostedFile } from "./files";
 import { collectHeadings } from "./headings";
 import { NotionLink } from "./rich-text";
-import type { BlockComponents, BlockProps, Demos, NotionBlock, RenderContext } from "./types";
+import type {
+  BlockComponents,
+  BlockProps,
+  Demos,
+  FootnotesOptions,
+  NotionBlock,
+  PageFootnotes,
+  RenderContext,
+} from "./types";
 import { cx, warnOnce } from "./utils";
 
 export const defaultComponents: BlockComponents = {
@@ -177,6 +187,37 @@ export function Block({ block, context }: { block: NotionBlock; context: RenderC
   );
 }
 
+/** The page with its footnotes section replaced by the footnote list. */
+function PageWithFootnotes({
+  blocks,
+  footnotes,
+  context,
+}: {
+  blocks: NotionBlock[];
+  footnotes: PageFootnotes;
+  context: RenderContext;
+}) {
+  // The section is a run of top-level blocks, starting at its heading.
+  const start = blocks.findIndex((block) =>
+    footnotes.sectionBlockIds.has(normalizePageId(block.id)),
+  );
+  const end = start + footnotes.sectionBlockIds.size;
+  const List = context.components.footnotes ?? Footnotes;
+  return (
+    <>
+      <BlockList blocks={blocks.slice(0, start)} context={context} />
+      <List
+        notes={footnotes.notes}
+        title={footnotes.title}
+        showTitle={footnotes.showTitle}
+        level={footnotes.heading.level}
+        context={context}
+      />
+      <BlockList blocks={blocks.slice(end)} context={context} />
+    </>
+  );
+}
+
 export type NotionRendererProps = {
   /** Blocks from the Notion API, with nested blocks as `children` (see `fetchBlocks`). */
   blocks: NotionBlock[];
@@ -201,6 +242,13 @@ export type NotionRendererProps = {
    * caption below. They can be Client Components.
    */
   demos?: Demos;
+  /**
+   * Footnotes: links to blocks under a "Footnotes" heading become numbered
+   * references, and those blocks a footnote list. `headings` names the
+   * heading (default ["Footnotes"]), `showTitle` shows it above the list
+   * instead of a separator, and `title` replaces its text.
+   */
+  footnotes?: FootnotesOptions;
   className?: string;
 };
 
@@ -214,13 +262,16 @@ export function NotionRenderer({
   pageHref = defaultPageHref,
   transformFileUrl,
   demos,
+  footnotes: footnotesOptions,
   className,
 }: NotionRendererProps) {
+  const footnotes = collectFootnotes(blocks, footnotesOptions) ?? undefined;
   const context: RenderContext = {
     pageHref,
     transformFileUrl,
     demos,
-    headings: collectHeadings(blocks),
+    footnotes,
+    headings: collectHeadings(blocks, { footnotes: footnotesOptions }),
     components: { ...defaultComponents, ...components },
   };
   return (
@@ -230,7 +281,11 @@ export function NotionRenderer({
         className,
       )}
     >
-      <BlockList blocks={blocks} context={context} />
+      {footnotes ? (
+        <PageWithFootnotes blocks={blocks} footnotes={footnotes} context={context} />
+      ) : (
+        <BlockList blocks={blocks} context={context} />
+      )}
     </div>
   );
 }

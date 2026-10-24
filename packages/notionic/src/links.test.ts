@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultComponents } from "./renderer";
-import { defaultPageHref, resolveLink } from "./links";
+import { defaultPageHref, linkedBlockId, resolveLink } from "./links";
 import type { RenderContext } from "./types";
 
 const ID = "244b17268ab383c3938887a7a5748b73";
@@ -50,6 +50,8 @@ describe("resolveLink", () => {
     for (const href of [
       `/${ID}`,
       `/Pricing-${ID}?pvs=4`,
+      `/p/${ID}`,
+      `/p/${ID}#403b17268ab38071a858e39d5b8b27c0`,
       `https://www.notion.so/${DASHED}`,
       `https://www.notion.so/team/Pricing-${ID}`,
       `https://app.notion.com/p/${ID}`,
@@ -71,5 +73,42 @@ describe("resolveLink", () => {
       href: `https://www.notion.so/${ID}`,
       external: true,
     });
+  });
+});
+
+describe("linkedBlockId", () => {
+  const block = "1a2b3c4d5e6f40718293a4b5c6d7e8f9";
+  it("reads the block id from a workspace path", () => {
+    expect(linkedBlockId(`/3fcb17268ab381d995c6ff3f97dc741b#${block}`)).toBe(block);
+  });
+  it("reads a dashed block id from a notion.so URL", () => {
+    expect(
+      linkedBlockId(
+        "https://www.notion.so/Title-3fcb17268ab381d995c6ff3f97dc741b#1a2b3c4d-5e6f-4071-8293-a4b5c6d7e8f9",
+      ),
+    ).toBe(block);
+  });
+  it("keeps site paths that end in an id-shaped segment", () => {
+    const href = "/orders/244b17268ab383c3938887a7a5748b73";
+    expect(
+      resolveLink(
+        href,
+        context(() => "/elsewhere"),
+      ),
+    ).toEqual({ href, external: false });
+  });
+  it("reads Notion's /p/<page>#<block> links, as the API returns them", () => {
+    expect(
+      linkedBlockId("/p/3fcb17268ab381d7b265ff9229b44af9#403b17268ab38071a858e39d5b8b27c0"),
+    ).toBe("403b17268ab38071a858e39d5b8b27c0");
+  });
+  it("reads a fragment-only link to a block on the same page", () => {
+    expect(linkedBlockId(`#${block}`)).toBe(block);
+    expect(linkedBlockId("#intro")).toBeNull();
+  });
+  it("is null without a fragment, for other sites, and for empty links", () => {
+    expect(linkedBlockId("/3fcb17268ab381d995c6ff3f97dc741b")).toBeNull();
+    expect(linkedBlockId(`https://example.com/page#${block}`)).toBeNull();
+    expect(linkedBlockId(null)).toBeNull();
   });
 });

@@ -74,10 +74,29 @@ function classify(href: string): ResolvedLink | null {
 function linkedPageId(href: string): string | null {
   const value = href.trim();
   if (value.startsWith("/")) {
-    // Notion writes in-text links to workspace pages as `/<id>` or `/Title-<id>?pvs=4`.
-    return matchPageId(value.slice(1).split(/[?#/]/)[0] ?? "");
+    // Notion writes in-text links to workspace pages as `/<id>`,
+    // `/Title-<id>?pvs=4` or, for links to a block, `/p/<id>#<block>`.
+    // Only those shapes: `/orders/<id>` on your site stays your path.
+    const segments = (value.split(/[?#]/)[0] ?? "").split("/").filter(Boolean);
+    const page = segments[0] === "p" ? segments[1] : segments[0];
+    return matchPageId(page ?? "");
   }
   return notionPageIdFromUrl(value);
+}
+
+/**
+ * The block id a link to a block points to: a link to a Notion page (a
+ * `/<id>` path or a Notion URL) with the block's id as its `#fragment`.
+ * Null for any other link.
+ */
+export function linkedBlockId(href: string | null | undefined): string | null {
+  if (!href) return null;
+  const hash = href.indexOf("#");
+  // `#<id>` alone links to a block on the same page.
+  if (hash === -1 || (hash > 0 && !linkedPageId(href.slice(0, hash)))) return null;
+  const fragment = href.slice(hash + 1);
+  const match = fragment.match(/^[0-9a-f]{32}$/i) ?? fragment.match(DASHED_ID);
+  return match && match[0] === fragment ? normalizePageId(fragment) : null;
 }
 
 /** Where a link to a Notion page renders, or null to show its text without a link. */

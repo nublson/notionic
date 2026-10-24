@@ -51,6 +51,40 @@ export type BlockOf<T extends NotionBlockType> = Extract<NotionBlock, { type: T 
 
 export type RichText = RichTextItemResponse[];
 
+/** Footnotes from a "Footnotes" section (see `NotionRendererProps`). */
+export type FootnotesOptions = {
+  /** Heading texts that start the footnotes section, matched ignoring case. Default ["Footnotes"]; [] turns footnotes off. */
+  headings?: string[];
+  /** Show a title above the footnote list instead of a separator. Default false. */
+  showTitle?: boolean;
+  /** The title, instead of the Notion heading's text. Also names the list for screen readers. */
+  title?: string;
+};
+
+/** One block of the footnotes section. */
+export type Footnote = {
+  block: NotionBlock;
+  /** 1-based, by first reference in reading order; null when nothing references it. */
+  number: number | null;
+  /** One anchor id per reference, in reading order: "fnref-1", "fnref-1-2"… */
+  refIds: string[];
+};
+
+/** A page's footnotes, from `collectFootnotes`. */
+export type PageFootnotes = {
+  /** The heading that starts the section. It marks the section and never renders. */
+  heading: { blockId: string; level: 1 | 2 | 3 | 4; text: string };
+  showTitle: boolean;
+  /** `title`, or the heading's text. */
+  title: string;
+  /** The heading and the top-level blocks after it that the section replaces, by id without dashes. */
+  sectionBlockIds: Set<string>;
+  /** Numbered notes by number, then unreferenced notes in page order. */
+  notes: Footnote[];
+  /** Each referencing rich text item, by identity: its footnote's number and anchor id. */
+  refs: Map<object, { number: number; id: string }>;
+};
+
 /** A link as it should render: same tab, or a new tab for another site. */
 export type ResolvedLink = { href: string; external: boolean };
 
@@ -68,6 +102,8 @@ export type RenderContext = {
   transformFileUrl?: (file: HostedFile) => string;
   /** Your demo components, by name (see `NotionRendererProps`). */
   demos?: Demos;
+  /** The page's footnotes, when it has a footnotes section (see `collectFootnotes`). */
+  footnotes?: PageFootnotes;
 };
 
 /** Props of a demo component: what its embed's URL says. */
@@ -124,4 +160,18 @@ export type BlockComponents = {
   inline_equation?: ComponentType<InlineEquationProps>;
   link?: ComponentType<LinkProps>;
   demo?: ComponentType<DemoFrameProps>;
+  footnotes?: ComponentType<FootnotesProps>;
+};
+
+/** Props of the component that renders the footnote list, in place of the footnotes section. */
+export type FootnotesProps = {
+  /** Numbered notes by number, then unreferenced notes. */
+  notes: Footnote[];
+  /** `title`, or the footnotes heading's text. */
+  title: string;
+  /** Whether the title shows; otherwise a separator does, and the title is only read by screen readers. */
+  showTitle: boolean;
+  /** The footnotes heading's level in Notion: 1 for heading 1. */
+  level: 1 | 2 | 3 | 4;
+  context: RenderContext;
 };

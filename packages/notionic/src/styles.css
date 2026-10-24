@@ -106,3 +106,10 @@
 :is(.dark, [data-theme="dark"], [data-mode="dark"]) .notionic :is(audio, video) {
   color-scheme: dark;
 }
+
+/* The footnote a reader jumps to lights up, then fades, so the eye finds it and nothing stays behind. */
+@keyframes notionic-footnote-target {
+  from {
+    background-color: var(--color-muted);
+  }
+}

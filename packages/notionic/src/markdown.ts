@@ -1,6 +1,13 @@
 import { resolveFileUrl } from "./files";
-import { defaultPageHref, resolveLink, resolvePageLink } from "./links";
-import type { NotionBlock, RenderContext, RichText } from "./types";
+import { collectFootnotes } from "./footnotes";
+import { defaultPageHref, normalizePageId, resolveLink, resolvePageLink } from "./links";
+import type {
+  FootnotesOptions,
+  NotionBlock,
+  PageFootnotes,
+  RenderContext,
+  RichText,
+} from "./types";
 import { plainText } from "./utils";
 
 export type MarkdownOptions = {
@@ -8,6 +15,8 @@ export type MarkdownOptions = {
   pageHref?: (pageId: string) => string | null;
   /** Rewrites URLs of files uploaded to Notion, as in `NotionRenderer`. */
   transformFileUrl?: RenderContext["transformFileUrl"];
+  /** Footnotes, as in `NotionRenderer`: written as GFM footnotes (`word[^1]`). */
+  footnotes?: FootnotesOptions;
 };
 
 type Context = RenderContext;
@@ -23,10 +32,30 @@ function inline(text: RichText, context: Context): string {
       if (annotations.bold) value = `**${value}**`;
       if (annotations.italic) value = `*${value}*`;
       if (annotations.strikethrough) value = `~~${value}~~`;
-      const link = resolveLink(item.href, context);
+      const footnote = context.footnotes?.refs.get(item);
+      const link = footnote ? null : resolveLink(item.href, context);
       if (link) value = `[${value}](${link.href})`;
+      if (footnote) value = `${value}[^${footnote.number}]`;
       // A line break within a block (Shift+Enter) is a hard break.
       return value.replace(/\n/g, "  \n");
+    })
+    .join("");
+}
+
+/** A line, followed by the footnote marks in its caption. */
+function withMarks(line: string, caption: RichText, context: Context): string {
+  return line ? line + marks(caption, context) : line;
+}
+
+/**
+ * The footnote marks (`[^1]`) for references in text written without its
+ * links, such as captions and toggle titles, to follow that text.
+ */
+function marks(text: RichText, context: Context): string {
+  return text
+    .flatMap((item) => {
+      const footnote = context.footnotes?.refs.get(item);
+      return footnote ? [`[^${footnote.number}]`] : [];
     })
     .join("");
 }
@@ -131,7 +160,7 @@ function block(item: NotionBlock, context: Context): string {
       return quote(withChildren(icon + inline(item.callout.rich_text, context)));
     }
     case "toggle":
-      return `<details>\n<summary>${plainText(item.toggle.rich_text)}</summary>\n\n${children}\n\n</details>`;
+      return `<details>\n<summary>${plainText(item.toggle.rich_text)}${marks(item.toggle.rich_text, context)}</summary>\n\n${children}\n\n</details>`;
     case "divider":
       return "---";
     case "equation":
@@ -139,9 +168,9 @@ function block(item: NotionBlock, context: Context): string {
     case "code": {
       const code = plainText(item.code.rich_text).replace(/\n$/, "");
       const language = item.code.language === "plain text" ? "" : item.code.language;
-      const marks = fence(code);
-      const caption = plainText(item.code.caption);
-      return `${marks}${language}\n${code}\n${marks}${caption ? `\n\n${caption}` : ""}`;
+      const backticks = fence(code);
+      const caption = plainText(item.code.caption) + marks(item.code.caption, context);
+      return `${backticks}${language}\n${code}\n${backticks}${caption ? `\n\n${caption}` : ""}`;
     }
     case "table":
       return table(item, context);
@@ -153,7 +182,7 @@ function block(item: NotionBlock, context: Context): string {
       return (item.children ?? [])
         .flatMap((tab) => {
           if (tab.type !== "paragraph") return [];
-          const title = `**${plainText(tab.paragraph.rich_text)}**`;
+          const title = `**${plainText(tab.paragraph.rich_text)}**${marks(tab.paragraph.rich_text, context)}`;
           return [
             [title, tab.children?.length ? render(tab.children, context) : ""]
               .filter(Boolean)
@@ -163,42 +192,68 @@ function block(item: NotionBlock, context: Context): string {
         .join("\n\n");
     case "image": {
       const url = resolveFileUrl(item.image, item.id, context);
-      return url ? `![${plainText(item.image.caption)}](${url})` : "";
+      return url
+        ? `![${plainText(item.image.caption)}](${url})${marks(item.image.caption, context)}`
+        : "";
     }
     case "video":
-      return linkLine(
-        plainText(item.video.caption) || "Video",
-        resolveFileUrl(item.video, item.id, context),
+      return withMarks(
+        linkLine(
+          plainText(item.video.caption) || "Video",
+          resolveFileUrl(item.video, item.id, context),
+          context,
+        ),
+        item.video.caption,
         context,
       );
     case "audio":
-      return linkLine(
-        plainText(item.audio.caption) || "Audio",
-        resolveFileUrl(item.audio, item.id, context),
+      return withMarks(
+        linkLine(
+          plainText(item.audio.caption) || "Audio",
+          resolveFileUrl(item.audio, item.id, context),
+          context,
+        ),
+        item.audio.caption,
         context,
       );
     case "file":
-      return linkLine(
-        item.file.name || plainText(item.file.caption),
-        resolveFileUrl(item.file, item.id, context),
+      return withMarks(
+        linkLine(
+          item.file.name || plainText(item.file.caption),
+          resolveFileUrl(item.file, item.id, context),
+          context,
+        ),
+        item.file.caption,
         context,
       );
     case "pdf":
-      return linkLine(
-        plainText(item.pdf.caption) || "PDF",
-        resolveFileUrl(item.pdf, item.id, context),
+      return withMarks(
+        linkLine(
+          plainText(item.pdf.caption) || "PDF",
+          resolveFileUrl(item.pdf, item.id, context),
+          context,
+        ),
+        item.pdf.caption,
         context,
       );
     case "bookmark":
-      return linkLine(
-        plainText(item.bookmark.caption) || item.bookmarkPreview?.title || "",
-        item.bookmark.url,
+      return withMarks(
+        linkLine(
+          plainText(item.bookmark.caption) || item.bookmarkPreview?.title || "",
+          item.bookmark.url,
+          context,
+        ),
+        item.bookmark.caption,
         context,
       );
     case "embed":
-      return linkLine(
-        plainText(item.embed.caption) || item.bookmarkPreview?.title || "",
-        item.embed.url,
+      return withMarks(
+        linkLine(
+          plainText(item.embed.caption) || item.bookmarkPreview?.title || "",
+          item.embed.url,
+          context,
+        ),
+        item.embed.caption,
         context,
       );
     case "link_preview":
@@ -255,6 +310,39 @@ export function blocksToMarkdown(blocks: NotionBlock[], options: MarkdownOptions
     transformFileUrl: options.transformFileUrl,
     headings: [],
     components: {},
+    footnotes: collectFootnotes(blocks, options.footnotes) ?? undefined,
   };
-  return render(blocks, context);
+  const { footnotes } = context;
+  if (!footnotes) return render(blocks, context);
+  const page = blocks.filter((item) => !footnotes.sectionBlockIds.has(normalizePageId(item.id)));
+  return [render(page, context), footnoteDefinitions(footnotes, context)]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+const TEXT_NOTES = new Set(["paragraph", "bulleted_list_item", "numbered_list_item", "to_do"]);
+
+/** `[^1]: The note` for each numbered note, then any note nothing references, as is. */
+function footnoteDefinitions(footnotes: PageFootnotes, context: Context): string {
+  const definitions = footnotes.notes.flatMap((note) => {
+    if (note.number === null) return [];
+    // A text note is its rich text; any other block continues on lines
+    // indented by four spaces.
+    const { block: item } = note;
+    const markdown = TEXT_NOTES.has(item.type)
+      ? inline(
+          (item as unknown as Record<string, { rich_text: RichText }>)[item.type]?.rich_text ?? [],
+          context,
+        )
+      : block(item, context);
+    // Text notes are written from their rich text, so their nested blocks follow.
+    const nested = TEXT_NOTES.has(item.type) ? render(item.children ?? [], context) : "";
+    const body = [markdown, nested].filter(Boolean).join("\n\n");
+    return [`[^${note.number}]: ${indent(body, "    ").trimStart()}`];
+  });
+  const unreferenced = render(
+    footnotes.notes.filter((note) => note.number === null).map((note) => note.block),
+    context,
+  );
+  return [definitions.join("\n"), unreferenced].filter(Boolean).join("\n\n");
 }
