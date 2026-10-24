@@ -2,6 +2,7 @@ export { NotionRenderer, Block, BlockList, defaultComponents, groupBlocks } from
 export type { NotionRendererProps } from "./renderer";
 export { RichText, NotionLink } from "./rich-text";
 export { collectHeadings } from "./headings";
+export { collectFootnotes } from "./footnotes";
 export type { PageHeading } from "./headings";
 export { resolveLink, resolvePageLink, defaultPageHref, normalizePageId } from "./links";
 export { colorClass, blockColorClass } from "./colors";
@@ -28,5 +29,8 @@ export type {
   DemoFrameProps,
   NotionPage,
   PageIcon,
+  FootnotesOptions,
+  Footnote,
+  PageFootnotes,
 } from "./types";
 export type { RichText as NotionRichText } from "./types";

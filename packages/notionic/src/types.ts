@@ -51,6 +51,40 @@ export type BlockOf<T extends NotionBlockType> = Extract<NotionBlock, { type: T 
 
 export type RichText = RichTextItemResponse[];
 
+/** Footnotes from a "Footnotes" section (see `NotionRendererProps`). */
+export type FootnotesOptions = {
+  /** Heading texts that start the footnotes section, matched ignoring case. Default ["Footnotes"]; [] turns footnotes off. */
+  headings?: string[];
+  /** Show a title above the footnote list instead of a separator. Default false. */
+  showTitle?: boolean;
+  /** The title, instead of the Notion heading's text. Also names the list for screen readers. */
+  title?: string;
+};
+
+/** One block of the footnotes section. */
+export type Footnote = {
+  block: NotionBlock;
+  /** 1-based, by first reference in reading order; null when nothing references it. */
+  number: number | null;
+  /** One anchor id per reference, in reading order: "fnref-1", "fnref-1-2"… */
+  refIds: string[];
+};
+
+/** A page's footnotes, from `collectFootnotes`. */
+export type PageFootnotes = {
+  /** The heading that starts the section. It marks the section and never renders. */
+  heading: { blockId: string; level: 1 | 2 | 3 | 4; text: string };
+  showTitle: boolean;
+  /** `title`, or the heading's text. */
+  title: string;
+  /** The heading and every block of the section, by id without dashes. */
+  sectionBlockIds: Set<string>;
+  /** Numbered notes by number, then unreferenced notes in page order. */
+  notes: Footnote[];
+  /** Each referencing rich text item, by identity: its footnote's number and anchor id. */
+  refs: Map<object, { number: number; id: string }>;
+};
+
 /** A link as it should render: same tab, or a new tab for another site. */
 export type ResolvedLink = { href: string; external: boolean };
 
