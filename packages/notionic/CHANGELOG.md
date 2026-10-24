@@ -1,5 +1,15 @@
 # notionic
 
+## 0.10.0
+
+### Minor Changes
+
+- [#44](https://github.com/nublson/notionic/pull/44) [`9dea0eb`](https://github.com/nublson/notionic/commit/9dea0ebd18eccfe03b0162edf81ddbbd28f59afd) Thanks [@nublson](https://github.com/nublson)! - Footnotes: links to blocks under a "Footnotes" heading render as numbered superscripts, and the section renders as a footnote list with back-links. Configure the heading names, show a title, or replace the list with the `footnotes` option and `components.footnotes`. `collectHeadings` leaves the footnotes heading out, and `blocksToMarkdown` writes GFM footnotes. A "Footnotes" section nothing links to renders as before; pass `footnotes={{ headings: [] }}` to turn footnotes off.
+
+### Patch Changes
+
+- [#44](https://github.com/nublson/notionic/pull/44) [`9dea0eb`](https://github.com/nublson/notionic/commit/9dea0ebd18eccfe03b0162edf81ddbbd28f59afd) Thanks [@nublson](https://github.com/nublson)! - Links Notion writes as `/p/<pageId>`, such as links to a block (`/p/<pageId>#<blockId>`), now resolve to the page through `pageHref`, instead of rendering as a broken path on your site.
+
 ## 0.9.0
 
 ### Minor Changes
