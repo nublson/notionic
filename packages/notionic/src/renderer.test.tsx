@@ -582,3 +582,104 @@ describe("NotionRenderer", () => {
     expect(html).toContain("<p>nested</p>");
   });
 });
+
+describe("footnotes", () => {
+  const PAGE = "3fcb17268ab381d995c6ff3f97dc741b";
+  const A = "f00d0000000000000000000000000001";
+  const B = "f00d0000000000000000000000000002";
+  const C = "f00d0000000000000000000000000003";
+  const ref = (text: string, id: string) => richText(text, { href: `/${PAGE}#${id}` });
+  const note = (id: string, text: string) =>
+    block("paragraph", { rich_text: [richText(text)] }, { id });
+  const h = (level: number, text: string) =>
+    block(`heading_${level}`, { rich_text: [richText(text)], color: "default" });
+  const page = [
+    para(
+      richText("Blocks are "),
+      ref("nested", A),
+      richText(" and "),
+      ref("flat", B),
+      richText("."),
+      ref("again", A),
+    ),
+    h(2, "Footnotes"),
+    note(A, "Note A"),
+    note(B, "Note B"),
+    note(C, "Note C"),
+  ];
+
+  it("renders references as numbered superscripts", async () => {
+    const html = await render(page);
+    expect(html).toMatch(
+      /nested<sup><a href="#fn-1" id="fnref-1" aria-describedby="footnotes-label"[^>]*>1<\/a><\/sup>/,
+    );
+    expect(html).toContain('id="fnref-1-2"');
+    expect(html).not.toContain(`#${A}"`);
+  });
+
+  it("renders the footnote list with back-links, ordered by number", async () => {
+    const html = await render(page);
+    expect(html.indexOf('id="fn-1"')).toBeLessThan(html.indexOf('id="fn-2"'));
+    expect(html).toContain('aria-label="Back to reference 1a"');
+    expect(html).toContain('aria-label="Back to reference 1b"');
+    expect(html).toContain('aria-label="Back to reference 2"');
+    expect(html.indexOf("Note C")).toBeGreaterThan(html.indexOf("</ol>"));
+  });
+
+  it("hides the marker heading behind a separator by default", async () => {
+    const html = await render(page);
+    expect(html).toMatch(/<section data-footnotes="" aria-labelledby="footnotes-label"[^>]*><hr/);
+    expect(html).toMatch(/<h3 id="footnotes-label" class="sr-only">Footnotes<\/h3>/);
+    expect(html.match(/>Footnotes</g)).toHaveLength(1);
+  });
+
+  it("shows the title with showTitle, and uses title", async () => {
+    const html = await render(page, { footnotes: { showTitle: true, title: "Notes" } });
+    expect(html).toMatch(/<h3 id="footnotes-label" class="[^"]*font-semibold[^"]*">Notes<\/h3>/);
+    expect(html).not.toContain("<hr");
+    expect(html).not.toContain(">Footnotes<");
+  });
+
+  it("renders blocks after the section", async () => {
+    const html = await render([...page, h(2, "Appendix"), para(richText("After"))]);
+    expect(html.indexOf("Appendix")).toBeGreaterThan(html.indexOf("</section>"));
+    expect(html).toContain("After");
+  });
+
+  it("keeps links to other blocks as links", async () => {
+    const other = "f00d0000000000000000000000000009";
+    const html = await render([para(ref("elsewhere", other)), ...page.slice(1)]);
+    expect(html).toContain(`elsewhere`);
+    expect(html).not.toContain("<sup>");
+  });
+
+  it("renders nothing new without a footnotes heading", async () => {
+    const blocks = [page[0]!, note(A, "Note A")];
+    expect(await render(blocks, { footnotes: { headings: ["Notes"] } })).toBe(
+      await render(blocks, { footnotes: { headings: [] } }),
+    );
+    expect(await render(blocks)).not.toContain("<sup>");
+  });
+
+  it("uses components.footnotes", async () => {
+    const html = await render(page, {
+      components: {
+        footnotes: ({ notes, title }) => (
+          <aside>
+            {title}: {notes.length}
+          </aside>
+        ),
+      },
+    });
+    expect(html).toContain("<aside>Footnotes<!-- -->: <!-- -->3</aside>");
+  });
+
+  it("leaves the marker out of the table of contents unless showTitle", async () => {
+    const toc = block("table_of_contents", { color: "default" });
+    const blocks = [toc, h(1, "Intro"), ...page];
+    expect(await render(blocks)).not.toContain('href="#footnotes-label"');
+    expect(await render(blocks, { footnotes: { showTitle: true } })).toContain(
+      'href="#footnotes-label"',
+    );
+  });
+});

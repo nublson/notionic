@@ -102,6 +102,8 @@ export type RenderContext = {
   transformFileUrl?: (file: HostedFile) => string;
   /** Your demo components, by name (see `NotionRendererProps`). */
   demos?: Demos;
+  /** The page's footnotes, when it has a footnotes section (see `collectFootnotes`). */
+  footnotes?: PageFootnotes;
 };
 
 /** Props of a demo component: what its embed's URL says. */
@@ -158,4 +160,18 @@ export type BlockComponents = {
   inline_equation?: ComponentType<InlineEquationProps>;
   link?: ComponentType<LinkProps>;
   demo?: ComponentType<DemoFrameProps>;
+  footnotes?: ComponentType<FootnotesProps>;
+};
+
+/** Props of the component that renders the footnote list, in place of the footnotes section. */
+export type FootnotesProps = {
+  /** Numbered notes by number, then unreferenced notes. */
+  notes: Footnote[];
+  /** `title`, or the footnotes heading's text. */
+  title: string;
+  /** Whether the title shows; otherwise a separator does, and the title is only read by screen readers. */
+  showTitle: boolean;
+  /** The footnotes heading's level in Notion: 1 for heading 1. */
+  level: 1 | 2 | 3 | 4;
+  context: RenderContext;
 };
