@@ -74,8 +74,10 @@ function classify(href: string): ResolvedLink | null {
 function linkedPageId(href: string): string | null {
   const value = href.trim();
   if (value.startsWith("/")) {
-    // Notion writes in-text links to workspace pages as `/<id>` or `/Title-<id>?pvs=4`.
-    return matchPageId(value.slice(1).split(/[?#/]/)[0] ?? "");
+    // Notion writes in-text links to workspace pages as `/<id>`,
+    // `/Title-<id>?pvs=4` or, for links to a block, `/p/<id>#<block>`.
+    const segments = (value.split(/[?#]/)[0] ?? "").split("/").filter(Boolean);
+    return matchPageId(segments[segments.length - 1] ?? "");
   }
   return notionPageIdFromUrl(value);
 }

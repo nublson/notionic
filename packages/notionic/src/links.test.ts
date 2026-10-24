@@ -50,6 +50,8 @@ describe("resolveLink", () => {
     for (const href of [
       `/${ID}`,
       `/Pricing-${ID}?pvs=4`,
+      `/p/${ID}`,
+      `/p/${ID}#403b17268ab38071a858e39d5b8b27c0`,
       `https://www.notion.so/${DASHED}`,
       `https://www.notion.so/team/Pricing-${ID}`,
       `https://app.notion.com/p/${ID}`,
@@ -85,6 +87,11 @@ describe("linkedBlockId", () => {
         "https://www.notion.so/Title-3fcb17268ab381d995c6ff3f97dc741b#1a2b3c4d-5e6f-4071-8293-a4b5c6d7e8f9",
       ),
     ).toBe(block);
+  });
+  it("reads Notion's /p/<page>#<block> links, as the API returns them", () => {
+    expect(
+      linkedBlockId("/p/3fcb17268ab381d7b265ff9229b44af9#403b17268ab38071a858e39d5b8b27c0"),
+    ).toBe("403b17268ab38071a858e39d5b8b27c0");
   });
   it("reads a fragment-only link to a block on the same page", () => {
     expect(linkedBlockId(`#${block}`)).toBe(block);
