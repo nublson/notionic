@@ -5,8 +5,8 @@ import type {
   ListBlockChildrenResponse,
   PageObjectResponse,
 } from "@notionhq/client";
-import { fetchBookmarkPreview } from "./bookmark-preview";
-import { fetchLinkFavicon } from "./link-favicons";
+import { fetchBookmarkPreview, isPrivateHost } from "./bookmark-preview";
+import { type FaviconLookups, fetchLinkFavicon, lookupLinkFavicon } from "./link-favicons";
 import { externalLinkHost } from "./links";
 import { toLinkedPage, toNotionPage } from "./page";
 import type { NotionBlock, NotionPage } from "./types";
@@ -46,8 +46,10 @@ export type FetchBlocksOptions = {
    * Fetch the favicon of each site linked from text (Google's favicon
    * service, then DuckDuckGo's) and attach it to the block as `linkFavicons`,
    * by host, for `<NotionRenderer linkFavicons>`. Default false. Each host is
-   * looked up once per call; a site whose icon doesn't come within 3 seconds
-   * gets none.
+   * looked up once per call; a subdomain without an icon gets its parent
+   * domain's. A site with none is recorded as null (a globe); a host the
+   * services can't answer for within 3 seconds is left out, so the next
+   * fetch asks again. Private hosts are never sent.
    */
   linkFavicons?: boolean;
 };
@@ -115,37 +117,25 @@ async function mapPool<T, R>(
   return results;
 }
 
-/**
- * Favicon lookups by host, shared across one `fetchBlocks` call so each host
- * is asked for once however many blocks link to it.
- */
-type FaviconLookups = Map<string, Promise<string | null>>;
-
-function lookupFavicon(host: string, lookups: FaviconLookups): Promise<string | null> {
-  let lookup = lookups.get(host);
-  if (!lookup) {
-    lookup = fetchLinkFavicon(host);
-    lookups.set(host, lookup);
-  }
-  return lookup;
-}
-
-/** The block with the favicons of the sites its text links to, when any has one. */
+/** The block with the favicons of the sites its text links to, when any was looked up. */
 async function withLinkFavicons(block: NotionBlock, lookups: FaviconLookups): Promise<NotionBlock> {
   const hosts = new Set<string>();
   for (const text of richTexts(block)) {
     for (const item of text) {
       const host = externalLinkHost(item.href);
-      if (host) hosts.add(host);
+      // Private hosts aren't sent to the favicon services, nor recorded.
+      if (host && !isPrivateHost(host)) hosts.add(host);
     }
   }
   if (hosts.size === 0) return block;
   const icons = await Promise.all(
-    [...hosts].map(async (host) => [host, await lookupFavicon(host, lookups)] as const),
+    [...hosts].map(async (host) => [host, await lookupLinkFavicon(host, lookups)] as const),
   );
-  const linkFavicons: Record<string, string> = {};
+  // null records a site without an icon; a host the services couldn't answer
+  // for is left out, so the next fetch asks again.
+  const linkFavicons: Record<string, string | null> = {};
   for (const [host, icon] of icons) {
-    if (icon) linkFavicons[host] = icon;
+    if (icon !== undefined) linkFavicons[host] = icon;
   }
   return Object.keys(linkFavicons).length > 0 ? { ...block, linkFavicons } : block;
 }

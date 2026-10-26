@@ -34,10 +34,10 @@ export type NotionBlock = BlockObjectResponse & {
   bookmarkPreview?: BookmarkPreview;
   /**
    * The favicon of each site the block's text links to, by host, as a data
-   * URL. Attached by `fetchBlocks` with `linkFavicons: true`; hosts without
-   * one are left out.
+   * URL, or null for a site without one. Attached by `fetchBlocks` with
+   * `linkFavicons: true`; hosts it couldn't look up are left out.
    */
-  linkFavicons?: Record<string, string>;
+  linkFavicons?: Record<string, string | null>;
 };
 
 /** A Notion page's metadata, from `fetchPage`. */
@@ -115,7 +115,7 @@ export type RenderContext = {
    * The favicons of linked sites by host, when `NotionRenderer` shows them
    * (see `collectLinkFavicons`). Absent when favicons are off.
    */
-  linkFavicons?: ReadonlyMap<string, string>;
+  linkFavicons?: ReadonlyMap<string, string | null>;
 };
 
 /** Props of a demo component: what its embed's URL says. */

@@ -252,8 +252,9 @@ export type NotionRendererProps = {
   /**
    * Show each link to another site with the site's favicon before its text,
    * as `fetchBlocks(…, { linkFavicons: true })` attached them; a site
-   * without one gets a muted globe. Paths, anchors, mailto links and Notion
-   * pages get none. Default false.
+   * without one gets a muted globe, and a site that wasn't looked up gets
+   * nothing. Paths, anchors, mailto links and Notion pages get none.
+   * Default false.
    */
   linkFavicons?: boolean;
   className?: string;
@@ -263,8 +264,8 @@ export type NotionRendererProps = {
  * The favicons `fetchBlocks` attached to the blocks (nested ones included),
  * by host, for `RenderContext.linkFavicons`.
  */
-export function collectLinkFavicons(blocks: NotionBlock[]): Map<string, string> {
-  const favicons = new Map<string, string>();
+export function collectLinkFavicons(blocks: NotionBlock[]): Map<string, string | null> {
+  const favicons = new Map<string, string | null>();
   const walk = (list: NotionBlock[]) => {
     for (const block of list) {
       for (const [host, icon] of Object.entries(block.linkFavicons ?? {})) {

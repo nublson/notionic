@@ -1,4 +1,4 @@
-import { USER_AGENT } from "./bookmark-preview";
+import { isPrivateHost, USER_AGENT } from "./bookmark-preview";
 
 /** One slow provider shouldn't stall a build. */
 const TIMEOUT_MS = 3000;
@@ -74,6 +74,11 @@ async function readBytes(response: Response, max: number): Promise<Uint8Array | 
   return bytes;
 }
 
+/** Statuses that mean "ask again later", not "this site has no icon". */
+function isTransient(status: number): boolean {
+  return status >= 500 || status === 408 || status === 429;
+}
+
 /** A provider's icon for the host, or null when it has none. Throws when it can't answer. */
 async function askProvider(url: string): Promise<string | null> {
   const response = await fetch(url, {
@@ -82,27 +87,87 @@ async function askProvider(url: string): Promise<string | null> {
   });
   if (!response.ok) {
     await response.body?.cancel().catch(() => {});
+    if (isTransient(response.status)) throw new Error(`HTTP ${response.status} from ${url}`);
     return null;
   }
   const bytes = await readBytes(response, MAX_BYTES);
   return bytes ? imageDataUrl(bytes) : null;
 }
 
-/**
- * A site's favicon as a data URL, from Google's favicon service or, when
- * Google has none, DuckDuckGo's: a PNG or ICO of a few KB, inlined as it
- * came. Null when neither has one, or neither answers within 3 seconds.
- * It doesn't cache.
- */
-export async function fetchLinkFavicon(host: string): Promise<string | null> {
-  if (!host) return null;
+/** The host's icon from the first provider that has one; undefined when none has one and one couldn't answer. */
+async function askProviders(host: string): Promise<string | null | undefined> {
+  let unanswered = false;
   for (const provider of PROVIDERS) {
     try {
       const icon = await askProvider(provider(host));
       if (icon) return icon;
     } catch {
       // A provider that timed out or failed: the next one may still answer.
+      unanswered = true;
     }
   }
+  return unanswered ? undefined : null;
+}
+
+/** Second-level labels that country domains register names under: co.uk, com.br, or.jp… */
+const SECOND_LEVELS = new Set(["ac", "co", "com", "edu", "gov", "ne", "net", "or", "org"]);
+
+/**
+ * The domain a host belongs to, one label up (`blog.example.com` →
+ * `example.com`), or null at the site's own domain: never a public suffix
+ * like `co.uk`, and never part of an IP address.
+ */
+export function parentDomain(host: string): string | null {
+  if (host.includes(":") || /^[\d.]+$/.test(host)) return null;
+  const labels = host.split(".");
+  const tld = labels[labels.length - 1] ?? "";
+  const second = labels[labels.length - 2] ?? "";
+  const minimum = tld.length === 2 && SECOND_LEVELS.has(second) ? 3 : 2;
+  return labels.length > minimum ? labels.slice(1).join(".") : null;
+}
+
+/** Each name's answer, shared so that subdomains of one site ask for its domain once. */
+export type FaviconLookups = Map<string, Promise<string | null | undefined>>;
+
+function ask(
+  name: string,
+  lookups: FaviconLookups | undefined,
+): Promise<string | null | undefined> {
+  if (!lookups) return askProviders(name);
+  let lookup = lookups.get(name);
+  if (!lookup) {
+    lookup = askProviders(name);
+    lookups.set(name, lookup);
+  }
+  return lookup;
+}
+
+/**
+ * A site's favicon as a data URL, from Google's favicon service or, when
+ * Google has none, DuckDuckGo's: a PNG or ICO of a few KB, inlined as it
+ * came. A subdomain without one gets its domain's (`you.substack.com` →
+ * `substack.com`). Null when the site has none; undefined when a provider
+ * couldn't answer (a timeout, a 5xx, a rate limit), so a caller can ask
+ * again later rather than keep "none". Private hosts are never sent, and
+ * get null. Pass `lookups` to share answers
+ * across calls; otherwise it doesn't cache.
+ */
+export async function lookupLinkFavicon(
+  host: string,
+  lookups?: FaviconLookups,
+): Promise<string | null | undefined> {
+  // Private hosts (`localhost`, `10.x`, `*.local`) are never sent to the services.
+  let name: string | null = host.toLowerCase().replace(/\.$/, "");
+  if (!name || isPrivateHost(name)) return null;
+  while (name) {
+    const icon = await ask(name, lookups);
+    if (icon !== null) return icon;
+    name = parentDomain(name);
+  }
   return null;
+}
+
+/** A site's favicon as a data URL, or null when it has none or none could be fetched. See `lookupLinkFavicon`. */
+export async function fetchLinkFavicon(host: string): Promise<string | null> {
+  return (await lookupLinkFavicon(host)) ?? null;
 }
