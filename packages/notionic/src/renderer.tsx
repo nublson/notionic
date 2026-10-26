@@ -254,7 +254,8 @@ export type NotionRendererProps = {
 
 /**
  * Renders Notion blocks. Works as a Server Component; it ships no client
- * JavaScript of its own (demos ship theirs).
+ * JavaScript of its own, beyond a small boundary around demos (which ship
+ * theirs).
  */
 export function NotionRenderer({
   blocks,
