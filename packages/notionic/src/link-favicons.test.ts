@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchLinkFavicon, imageDataUrl, imageType } from "./link-favicons";
+import { fetchLinkFavicon, imageDataUrl, imageType, lookupLinkFavicon } from "./link-favicons";
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
 const ICO = new Uint8Array([0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10]);
@@ -83,5 +83,30 @@ describe("fetchLinkFavicon", () => {
       respond(404),
     );
     expect(await fetchLinkFavicon("example.com")).toBeNull();
+  });
+});
+
+describe("lookupLinkFavicon", () => {
+  it("tells a site without an icon (null) from providers that couldn't answer (undefined)", async () => {
+    stubFetch(respond(404), respond(404));
+    expect(await lookupLinkFavicon("example.com")).toBeNull();
+    stubFetch(respond(503), new TypeError("fetch failed"));
+    expect(await lookupLinkFavicon("example.com")).toBeUndefined();
+    stubFetch(respond(429), respond(404));
+    expect(await lookupLinkFavicon("example.com")).toBeUndefined();
+  });
+
+  it("falls back to the parent domain when a subdomain has no icon", async () => {
+    const fetch = stubFetch(respond(404), respond(404), respond(200, PNG));
+    expect(await lookupLinkFavicon("nublson.substack.com")).toMatch(/^data:image\/png/);
+    expect(String(fetch.mock.calls[2]?.[0])).toBe(
+      "https://www.google.com/s2/favicons?domain=substack.com&sz=32",
+    );
+  });
+
+  it("stops at two labels", async () => {
+    const fetch = stubFetch(respond(404), respond(404));
+    expect(await lookupLinkFavicon("example.com")).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 });

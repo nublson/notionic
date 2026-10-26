@@ -74,6 +74,11 @@ async function readBytes(response: Response, max: number): Promise<Uint8Array | 
   return bytes;
 }
 
+/** Statuses that mean "ask again later", not "this site has no icon". */
+function isTransient(status: number): boolean {
+  return status >= 500 || status === 408 || status === 429;
+}
+
 /** A provider's icon for the host, or null when it has none. Throws when it can't answer. */
 async function askProvider(url: string): Promise<string | null> {
   const response = await fetch(url, {
@@ -82,27 +87,49 @@ async function askProvider(url: string): Promise<string | null> {
   });
   if (!response.ok) {
     await response.body?.cancel().catch(() => {});
+    if (isTransient(response.status)) throw new Error(`HTTP ${response.status} from ${url}`);
     return null;
   }
   const bytes = await readBytes(response, MAX_BYTES);
   return bytes ? imageDataUrl(bytes) : null;
 }
 
-/**
- * A site's favicon as a data URL, from Google's favicon service or, when
- * Google has none, DuckDuckGo's: a PNG or ICO of a few KB, inlined as it
- * came. Null when neither has one, or neither answers within 3 seconds.
- * It doesn't cache.
- */
-export async function fetchLinkFavicon(host: string): Promise<string | null> {
-  if (!host) return null;
+/** The host's icon from the first provider that has one; undefined when none has one and one couldn't answer. */
+async function askProviders(host: string): Promise<string | null | undefined> {
+  let unanswered = false;
   for (const provider of PROVIDERS) {
     try {
       const icon = await askProvider(provider(host));
       if (icon) return icon;
     } catch {
       // A provider that timed out or failed: the next one may still answer.
+      unanswered = true;
     }
   }
+  return unanswered ? undefined : null;
+}
+
+/**
+ * A site's favicon as a data URL, from Google's favicon service or, when
+ * Google has none, DuckDuckGo's: a PNG or ICO of a few KB, inlined as it
+ * came. A subdomain without one gets its parent domain's
+ * (`you.substack.com` → `substack.com`). Null when the site has none;
+ * undefined when a provider couldn't answer (a timeout, a 5xx, a rate
+ * limit), so a caller can ask again later rather than keep "none".
+ * It doesn't cache.
+ */
+export async function lookupLinkFavicon(host: string): Promise<string | null | undefined> {
+  let name = host;
+  while (name) {
+    const icon = await askProviders(name);
+    if (icon !== null) return icon;
+    const labels = name.split(".");
+    name = labels.length > 2 ? labels.slice(1).join(".") : "";
+  }
   return null;
+}
+
+/** A site's favicon as a data URL, or null when it has none or none could be fetched. See `lookupLinkFavicon`. */
+export async function fetchLinkFavicon(host: string): Promise<string | null> {
+  return (await lookupLinkFavicon(host)) ?? null;
 }

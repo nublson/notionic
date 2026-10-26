@@ -116,12 +116,12 @@ describe("NotionRenderer", () => {
     const ICON = "data:image/png;base64,AAAA";
     const withIcons = (...text: ReturnType<typeof richText>[]): NotionBlock => ({
       ...para(...text),
-      linkFavicons: { "github.com": ICON },
+      linkFavicons: { "github.com": ICON, "none.example": null },
     });
     const blocks = () => [
       withIcons(
         richText("known", { href: "https://github.com/nublson" }),
-        richText("unknown", { href: "https://example.com/" }),
+        richText("unknown", { href: "https://none.example/" }),
         richText("path", { href: "/docs" }),
         richText("page", { href: `/${PAGE_ID}` }),
         richText("mail", { href: "mailto:a@b.co" }),
@@ -146,7 +146,16 @@ describe("NotionRenderer", () => {
       expect(unknown).toContain("<circle");
       // The page links to notion.so and opens in a new tab, but it's still a Notion page.
       expect(page).toContain('target="_blank"');
-      for (const link of [path, page, mail]) {
+      for (const link of [
+        path,
+        page,
+        mail,
+        ...linksOf(
+          await render([para(richText("unseen", { href: "https://example.com/" }))], {
+            linkFavicons: true,
+          }),
+        ),
+      ]) {
         expect(link).not.toContain("<img");
         expect(link).not.toContain("<svg");
       }
@@ -163,7 +172,7 @@ describe("NotionRenderer", () => {
             richText(" page", { href }),
             richText(" and ", {}),
             richText("again", { href }),
-            richText("elsewhere", { href: "https://example.com/" }),
+            richText("elsewhere", { href: "https://none.example/" }),
           ),
         ],
         { linkFavicons: true },
