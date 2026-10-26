@@ -426,7 +426,7 @@ describe("NotionRenderer", () => {
     ];
     const html = await render(blocks, { demos: { "morph-button": Demo } });
     expect(html).toMatch(
-      /<figure><div class="flex min-h-48[^"]*"><!--\$--><button type="button">morph-button<!-- --> <!-- -->slow<\/button><!--\/\$--><\/div><figcaption[^>]*>Press the button.<\/figcaption><\/figure>/,
+      /<figure><div class="flex box-content min-h-56[^"]*"><!--\$--><button type="button">morph-button<!-- --> <!-- -->slow<\/button><!--\/\$--><\/div><figcaption[^>]*>Press the button.<\/figcaption><\/figure>/,
     );
     // An unknown name stays a link.
     expect(html).toMatch(/<a href="https:\/\/nublson.com\/demos\/unknown"/);
@@ -448,7 +448,7 @@ describe("NotionRenderer", () => {
     const blocks = [block("embed", { url: "https://nublson.com/demos/broken", caption: [] })];
     const html = await render(blocks, { demos: { broken: Broken } });
     expect(html).toMatch(
-      /<figure><div class="flex min-h-48[^"]*">(<!--[^>]*-->|<template[^>]*><\/template>)*<\/div><\/figure>/,
+      /<figure><div class="flex box-content min-h-56[^"]*">(<!--[^>]*-->|<template[^>]*><\/template>)*<\/div><\/figure>/,
     );
   });
 

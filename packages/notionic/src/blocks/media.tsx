@@ -398,7 +398,7 @@ function PreviewCard({
 export function DemoFrame({ caption, context, children }: DemoFrameProps) {
   return (
     <figure>
-      <div className="flex min-h-48 flex-col items-center justify-center gap-6 overflow-hidden rounded-xl border border-border px-6 py-10">
+      <div className="flex box-content min-h-56 flex-col items-center justify-center gap-6 overflow-hidden rounded-xl border border-border px-6 py-10">
         {children}
       </div>
       {caption.length ? (
