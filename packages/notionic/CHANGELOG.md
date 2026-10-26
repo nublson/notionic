@@ -1,5 +1,15 @@
 # notionic
 
+## 0.11.1
+
+### Patch Changes
+
+- [#49](https://github.com/nublson/notionic/pull/49) [`5678f81`](https://github.com/nublson/notionic/commit/5678f811093be0b9907211d49df7307b57d6488e) Thanks [@nublson](https://github.com/nublson)! - Link favicons:
+  - **No icon vs. not looked up.** A site without a favicon is now recorded as `null` and shows a globe. A site that wasn't looked up shows nothing, so `<NotionRenderer linkFavicons>` alone no longer puts a globe on every link.
+  - **Outages aren't cached.** A host the favicon services couldn't answer for (a timeout, a 5xx, a rate limit) is left out, so it isn't cached as "no icon" and the next fetch asks again.
+  - **Subdomains fall back to their parent domain.** `you.substack.com` gets Substack's icon.
+  - **Private hosts are never sent** to the favicon services.
+
 ## 0.11.0
 
 ### Minor Changes

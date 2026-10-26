@@ -13,7 +13,7 @@ export const USER_AGENT = "Mozilla/5.0 (compatible; notionic; +https://notionic.
  * Only literal addresses are checked; a public name that resolves to a private
  * address still gets through.
  */
-function isPrivateHost(hostname: string): boolean {
+export function isPrivateHost(hostname: string): boolean {
   const host = hostname.replace(/^\[|\]$/g, "").toLowerCase();
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return true;
   const ipv4 = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);

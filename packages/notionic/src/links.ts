@@ -127,5 +127,6 @@ export function externalLinkHost(href: string | null | undefined): string | null
   if (!href || linkedPageId(href)) return null;
   const link = classify(href);
   if (!link?.external) return null;
-  return new URL(link.href).hostname.toLowerCase() || null;
+  // `example.com.` and `example.com` are the same host.
+  return new URL(link.href).hostname.toLowerCase().replace(/\.$/, "") || null;
 }

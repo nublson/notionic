@@ -249,14 +249,71 @@ describe("link favicons", () => {
     const [a, b, toggle, image] = await fetchBlocks(client, "root", { linkFavicons: true });
     expect(Object.keys(a!.linkFavicons ?? {})).toEqual(["github.com"]);
     expect(a!.linkFavicons?.["github.com"]).toMatch(/^data:image\/png;base64,/);
-    // A host without an icon is left out; a block with no icons gets no record.
-    expect(b!.linkFavicons).toEqual({ "github.com": a!.linkFavicons?.["github.com"] });
+    // A host without an icon is recorded as null, so it shows a globe.
+    expect(b!.linkFavicons).toEqual({
+      "github.com": a!.linkFavicons?.["github.com"],
+      "none.example": null,
+    });
     expect(toggle!.children?.[0]?.linkFavicons).toHaveProperty("sonner.emilkowal.ski");
     expect(image!.linkFavicons).toHaveProperty("codepen.io");
     const asked = fetch.mock.calls.map(([url]) => String(url));
     expect(asked.filter((url) => url.includes("github.com"))).toHaveLength(1);
     // Google, then DuckDuckGo for the host Google had none for.
     expect(asked.filter((url) => url.includes("none.example"))).toHaveLength(2);
+  });
+
+  it("leaves out hosts the providers couldn't answer for, so the next fetch retries", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 503 })),
+    );
+    const { client } = fakeClient({ root: [[para("a", "https://flaky.example/")]] });
+    const [a] = await fetchBlocks(client, "root", { linkFavicons: true });
+    expect(a!.linkFavicons).toBeUndefined();
+  });
+
+  it("shares a parent domain's lookup between its subdomains", async () => {
+    const fetch = stubProviders(["blog.example.com", "docs.example.com"]);
+    const { client } = fakeClient({
+      root: [
+        [
+          para(
+            "a",
+            "https://blog.example.com/",
+            "https://docs.example.com/",
+            "https://example.com/",
+          ),
+        ],
+      ],
+    });
+    const [a] = await fetchBlocks(client, "root", { linkFavicons: true });
+    expect(Object.keys(a!.linkFavicons ?? {}).sort()).toEqual([
+      "blog.example.com",
+      "docs.example.com",
+      "example.com",
+    ]);
+    const asked = fetch.mock.calls.map(([url]) => String(url));
+    expect(asked.filter((url) => url.endsWith("domain=example.com&sz=32"))).toHaveLength(1);
+  });
+
+  it("never asks about private hosts", async () => {
+    const fetch = stubProviders();
+    const { client } = fakeClient({
+      root: [
+        [
+          para(
+            "a",
+            "http://localhost:3000/",
+            "http://10.0.0.2/",
+            "https://printer.local/",
+            "https://printer.local./",
+          ),
+        ],
+      ],
+    });
+    const [a] = await fetchBlocks(client, "root", { linkFavicons: true });
+    expect(a!.linkFavicons).toBeUndefined();
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("never looks up Notion pages, and makes no requests by default", async () => {

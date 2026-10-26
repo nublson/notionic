@@ -173,7 +173,8 @@ function RichTextItem({
     // pages, whatever `pageHref` turns those into. Notion splits a link whose
     // text mixes formatting into items sharing its href; only the first gets it.
     const host = context.linkFavicons && linkStart ? externalLinkHost(item.href) : null;
-    const favicon = host ? (context.linkFavicons?.get(host) ?? null) : undefined;
+    // A host that wasn't looked up gets nothing; one without an icon, a globe.
+    const favicon = host ? context.linkFavicons?.get(host) : undefined;
     node = (
       <Link link={link} favicon={favicon} context={context}>
         {node}
