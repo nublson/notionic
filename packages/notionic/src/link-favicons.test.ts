@@ -116,6 +116,15 @@ describe("lookupLinkFavicon", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("never sends private hosts, with or without a trailing dot", async () => {
+    const fetch = stubFetch();
+    for (const host of ["localhost", "10.0.0.2", "printer.local", "printer.local."]) {
+      expect(await lookupLinkFavicon(host)).toBeNull();
+      expect(await fetchLinkFavicon(host)).toBeNull();
+    }
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("stops at two labels", async () => {
     const fetch = stubFetch(respond(404), respond(404));
     expect(await lookupLinkFavicon("example.com")).toBeNull();

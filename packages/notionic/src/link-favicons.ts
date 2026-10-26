@@ -1,4 +1,4 @@
-import { USER_AGENT } from "./bookmark-preview";
+import { isPrivateHost, USER_AGENT } from "./bookmark-preview";
 
 /** One slow provider shouldn't stall a build. */
 const TIMEOUT_MS = 3000;
@@ -148,14 +148,17 @@ function ask(
  * came. A subdomain without one gets its domain's (`you.substack.com` →
  * `substack.com`). Null when the site has none; undefined when a provider
  * couldn't answer (a timeout, a 5xx, a rate limit), so a caller can ask
- * again later rather than keep "none". Pass `lookups` to share answers
+ * again later rather than keep "none". Private hosts are never sent, and
+ * get null. Pass `lookups` to share answers
  * across calls; otherwise it doesn't cache.
  */
 export async function lookupLinkFavicon(
   host: string,
   lookups?: FaviconLookups,
 ): Promise<string | null | undefined> {
-  let name: string | null = host;
+  // Private hosts (`localhost`, `10.x`, `*.local`) are never sent to the services.
+  let name: string | null = host.toLowerCase().replace(/\.$/, "");
+  if (!name || isPrivateHost(name)) return null;
   while (name) {
     const icon = await ask(name, lookups);
     if (icon !== null) return icon;

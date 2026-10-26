@@ -123,7 +123,7 @@ async function withLinkFavicons(block: NotionBlock, lookups: FaviconLookups): Pr
   for (const text of richTexts(block)) {
     for (const item of text) {
       const host = externalLinkHost(item.href);
-      // Private hosts aren't sent to the favicon services.
+      // Private hosts aren't sent to the favicon services, nor recorded.
       if (host && !isPrivateHost(host)) hosts.add(host);
     }
   }
