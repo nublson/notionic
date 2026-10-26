@@ -104,6 +104,18 @@ describe("lookupLinkFavicon", () => {
     );
   });
 
+  it("never falls back to a public suffix, or splits an IP address", async () => {
+    let fetch = stubFetch(respond(404), respond(404));
+    expect(await lookupLinkFavicon("example.co.uk")).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    fetch = stubFetch(respond(404), respond(404), respond(200, PNG));
+    expect(await lookupLinkFavicon("blog.example.co.uk")).toMatch(/^data:/);
+    expect(String(fetch.mock.calls[2]?.[0])).toContain("domain=example.co.uk");
+    fetch = stubFetch(respond(404), respond(404));
+    expect(await lookupLinkFavicon("203.0.113.7")).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it("stops at two labels", async () => {
     const fetch = stubFetch(respond(404), respond(404));
     expect(await lookupLinkFavicon("example.com")).toBeNull();

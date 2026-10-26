@@ -272,10 +272,44 @@ describe("link favicons", () => {
     expect(a!.linkFavicons).toBeUndefined();
   });
 
+  it("shares a parent domain's lookup between its subdomains", async () => {
+    const fetch = stubProviders(["blog.example.com", "docs.example.com"]);
+    const { client } = fakeClient({
+      root: [
+        [
+          para(
+            "a",
+            "https://blog.example.com/",
+            "https://docs.example.com/",
+            "https://example.com/",
+          ),
+        ],
+      ],
+    });
+    const [a] = await fetchBlocks(client, "root", { linkFavicons: true });
+    expect(Object.keys(a!.linkFavicons ?? {}).sort()).toEqual([
+      "blog.example.com",
+      "docs.example.com",
+      "example.com",
+    ]);
+    const asked = fetch.mock.calls.map(([url]) => String(url));
+    expect(asked.filter((url) => url.endsWith("domain=example.com&sz=32"))).toHaveLength(1);
+  });
+
   it("never asks about private hosts", async () => {
     const fetch = stubProviders();
     const { client } = fakeClient({
-      root: [[para("a", "http://localhost:3000/", "http://10.0.0.2/", "https://printer.local/")]],
+      root: [
+        [
+          para(
+            "a",
+            "http://localhost:3000/",
+            "http://10.0.0.2/",
+            "https://printer.local/",
+            "https://printer.local./",
+          ),
+        ],
+      ],
     });
     const [a] = await fetchBlocks(client, "root", { linkFavicons: true });
     expect(a!.linkFavicons).toBeUndefined();

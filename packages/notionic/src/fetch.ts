@@ -6,7 +6,7 @@ import type {
   PageObjectResponse,
 } from "@notionhq/client";
 import { fetchBookmarkPreview, isPrivateHost } from "./bookmark-preview";
-import { fetchLinkFavicon, lookupLinkFavicon } from "./link-favicons";
+import { type FaviconLookups, fetchLinkFavicon, lookupLinkFavicon } from "./link-favicons";
 import { externalLinkHost } from "./links";
 import { toLinkedPage, toNotionPage } from "./page";
 import type { NotionBlock, NotionPage } from "./types";
@@ -117,21 +117,6 @@ async function mapPool<T, R>(
   return results;
 }
 
-/**
- * Favicon lookups by host, shared across one `fetchBlocks` call so each host
- * is asked for once however many blocks link to it.
- */
-type FaviconLookups = Map<string, Promise<string | null | undefined>>;
-
-function lookupFavicon(host: string, lookups: FaviconLookups): Promise<string | null | undefined> {
-  let lookup = lookups.get(host);
-  if (!lookup) {
-    lookup = lookupLinkFavicon(host);
-    lookups.set(host, lookup);
-  }
-  return lookup;
-}
-
 /** The block with the favicons of the sites its text links to, when any was looked up. */
 async function withLinkFavicons(block: NotionBlock, lookups: FaviconLookups): Promise<NotionBlock> {
   const hosts = new Set<string>();
@@ -144,7 +129,7 @@ async function withLinkFavicons(block: NotionBlock, lookups: FaviconLookups): Pr
   }
   if (hosts.size === 0) return block;
   const icons = await Promise.all(
-    [...hosts].map(async (host) => [host, await lookupFavicon(host, lookups)] as const),
+    [...hosts].map(async (host) => [host, await lookupLinkFavicon(host, lookups)] as const),
   );
   // null records a site without an icon; a host the services couldn't answer
   // for is left out, so the next fetch asks again.

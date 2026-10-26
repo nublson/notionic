@@ -109,22 +109,57 @@ async function askProviders(host: string): Promise<string | null | undefined> {
   return unanswered ? undefined : null;
 }
 
+/** Second-level labels that country domains register names under: co.uk, com.br, or.jp… */
+const SECOND_LEVELS = new Set(["ac", "co", "com", "edu", "gov", "ne", "net", "or", "org"]);
+
+/**
+ * The domain a host belongs to, one label up (`blog.example.com` →
+ * `example.com`), or null at the site's own domain: never a public suffix
+ * like `co.uk`, and never part of an IP address.
+ */
+export function parentDomain(host: string): string | null {
+  if (host.includes(":") || /^[\d.]+$/.test(host)) return null;
+  const labels = host.split(".");
+  const tld = labels[labels.length - 1] ?? "";
+  const second = labels[labels.length - 2] ?? "";
+  const minimum = tld.length === 2 && SECOND_LEVELS.has(second) ? 3 : 2;
+  return labels.length > minimum ? labels.slice(1).join(".") : null;
+}
+
+/** Each name's answer, shared so that subdomains of one site ask for its domain once. */
+export type FaviconLookups = Map<string, Promise<string | null | undefined>>;
+
+function ask(
+  name: string,
+  lookups: FaviconLookups | undefined,
+): Promise<string | null | undefined> {
+  if (!lookups) return askProviders(name);
+  let lookup = lookups.get(name);
+  if (!lookup) {
+    lookup = askProviders(name);
+    lookups.set(name, lookup);
+  }
+  return lookup;
+}
+
 /**
  * A site's favicon as a data URL, from Google's favicon service or, when
  * Google has none, DuckDuckGo's: a PNG or ICO of a few KB, inlined as it
- * came. A subdomain without one gets its parent domain's
- * (`you.substack.com` → `substack.com`). Null when the site has none;
- * undefined when a provider couldn't answer (a timeout, a 5xx, a rate
- * limit), so a caller can ask again later rather than keep "none".
- * It doesn't cache.
+ * came. A subdomain without one gets its domain's (`you.substack.com` →
+ * `substack.com`). Null when the site has none; undefined when a provider
+ * couldn't answer (a timeout, a 5xx, a rate limit), so a caller can ask
+ * again later rather than keep "none". Pass `lookups` to share answers
+ * across calls; otherwise it doesn't cache.
  */
-export async function lookupLinkFavicon(host: string): Promise<string | null | undefined> {
-  let name = host;
+export async function lookupLinkFavicon(
+  host: string,
+  lookups?: FaviconLookups,
+): Promise<string | null | undefined> {
+  let name: string | null = host;
   while (name) {
-    const icon = await askProviders(name);
+    const icon = await ask(name, lookups);
     if (icon !== null) return icon;
-    const labels = name.split(".");
-    name = labels.length > 2 ? labels.slice(1).join(".") : "";
+    name = parentDomain(name);
   }
   return null;
 }
