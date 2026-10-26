@@ -24,13 +24,20 @@ export type BookmarkPreview = {
 
 /**
  * A block from the Notion API, with its nested blocks attached as `children`,
- * for `link_to_page` and `child_page` the linked page as `linkedPage`, and for `bookmark`,
- * `embed` and `link_preview` the linked page's preview as `bookmarkPreview`.
+ * for `link_to_page` and `child_page` the linked page as `linkedPage`, for `bookmark`,
+ * `embed` and `link_preview` the linked page's preview as `bookmarkPreview`, and
+ * with `linkFavicons` the favicons of the sites its text links to.
  */
 export type NotionBlock = BlockObjectResponse & {
   children?: NotionBlock[];
   linkedPage?: LinkedPage;
   bookmarkPreview?: BookmarkPreview;
+  /**
+   * The favicon of each site the block's text links to, by host, as a data
+   * URL. Attached by `fetchBlocks` with `linkFavicons: true`; hosts without
+   * one are left out.
+   */
+  linkFavicons?: Record<string, string>;
 };
 
 /** A Notion page's metadata, from `fetchPage`. */
@@ -104,6 +111,11 @@ export type RenderContext = {
   demos?: Demos;
   /** The page's footnotes, when it has a footnotes section (see `collectFootnotes`). */
   footnotes?: PageFootnotes;
+  /**
+   * The favicons of linked sites by host, when `NotionRenderer` shows them
+   * (see `collectLinkFavicons`). Absent when favicons are off.
+   */
+  linkFavicons?: ReadonlyMap<string, string>;
 };
 
 /** Props of a demo component: what its embed's URL says. */
@@ -147,6 +159,12 @@ export type LinkProps = {
   /** The linked text, already formatted. */
   children: ReactNode;
   context: RenderContext;
+  /**
+   * The linked site's favicon as a data URL, or null for a site without one,
+   * when `NotionRenderer` shows favicons and the link goes to another site.
+   * Undefined otherwise. `LinkFavicon` renders it: the icon, a globe, or nothing.
+   */
+  favicon?: string | null;
 };
 
 /**

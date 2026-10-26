@@ -5,7 +5,7 @@ const TIMEOUT_MS = 5000;
 /** Open Graph tags live in <head>; stop reading after this much HTML. */
 const MAX_BYTES = 512 * 1024;
 const MAX_REDIRECTS = 5;
-const USER_AGENT = "Mozilla/5.0 (compatible; notionic; +https://notionic.dev)";
+export const USER_AGENT = "Mozilla/5.0 (compatible; notionic; +https://notionic.dev)";
 
 /**
  * Hosts a server shouldn't be asked to fetch on a page's behalf: loopback,

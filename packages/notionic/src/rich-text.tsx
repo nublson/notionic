@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import type { RichTextItemResponse } from "@notionhq/client";
+import { BROKEN_IMAGE } from "./blocks/icon";
 import { colorClass, isBackgroundColor } from "./colors";
-import { resolveLink } from "./links";
+import { externalLinkHost, resolveLink } from "./links";
 import type { RenderContext, ResolvedLink, RichText as RichTextArray } from "./types";
 import { cx } from "./utils";
 
@@ -19,13 +20,68 @@ const FOOTNOTE_REF_CLASSES =
 const LINK_CLASSES =
   "font-medium underline underline-offset-4 decoration-from-font decoration-muted-foreground/50 transition-[text-decoration-color] hover:decoration-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
-/** An anchor with notionic's link styling; external links open in a new tab. */
+// A small square on the text's baseline, sized from the text so it fits
+// headings too, with a gap before the text.
+const FAVICON_CLASSES = "inline-block size-[0.8em] shrink-0 align-[-0.08em] me-[0.35em]";
+
+/**
+ * The favicon before a link to another site: the site's icon, or for a
+ * site without one a muted globe. Nothing when `favicon` is undefined
+ * (favicons off, or a link to this site or a Notion page), so a custom
+ * link component can pass its `favicon` prop straight through.
+ */
+export function LinkFavicon({
+  favicon,
+  className,
+}: {
+  favicon: string | null | undefined;
+  className?: string;
+}) {
+  if (favicon === undefined) return null;
+  if (favicon === null) {
+    return (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cx(FAVICON_CLASSES, "text-muted-foreground", className)}
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+        <path d="M2 12h20" />
+      </svg>
+    );
+  }
+  return (
+    // A muted square holds the icon's place until it paints, and stays if it can't.
+    <img
+      src={favicon}
+      alt=""
+      aria-hidden="true"
+      width={16}
+      height={16}
+      decoding="async"
+      className={cx(FAVICON_CLASSES, "rounded-[2px] object-contain", BROKEN_IMAGE, className)}
+    />
+  );
+}
+
+/**
+ * An anchor with notionic's link styling; external links open in a new tab.
+ * With `favicon`, the linked site's favicon (or a globe) comes before the text.
+ */
 export function NotionLink({
   link,
+  favicon,
   className,
   children,
 }: {
   link: ResolvedLink;
+  favicon?: string | null;
   className?: string;
   children: ReactNode;
 }) {
@@ -35,6 +91,7 @@ export function NotionLink({
       {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className={cx(LINK_CLASSES, className)}
     >
+      <LinkFavicon favicon={favicon} />
       {children}
       {link.external ? <span className="sr-only"> (opens in a new tab)</span> : null}
     </a>
@@ -103,8 +160,12 @@ function RichTextItem({ item, context }: { item: RichTextItemResponse; context: 
   const link = resolveLink(item.href, context);
   if (link) {
     const Link = context.components.link ?? NotionLink;
+    // Only links to other sites get a favicon: never paths, anchors or Notion
+    // pages, whatever `pageHref` turns those into.
+    const host = context.linkFavicons ? externalLinkHost(item.href) : null;
+    const favicon = host ? (context.linkFavicons?.get(host) ?? null) : undefined;
     node = (
-      <Link link={link} context={context}>
+      <Link link={link} favicon={favicon} context={context}>
         {node}
       </Link>
     );

@@ -249,8 +249,33 @@ export type NotionRendererProps = {
    * instead of a separator, and `title` replaces its text.
    */
   footnotes?: FootnotesOptions;
+  /**
+   * Show each link to another site with the site's favicon before its text,
+   * as `fetchBlocks(…, { linkFavicons: true })` attached them; a site
+   * without one gets a muted globe. Links to your own site and to Notion
+   * pages get none. Default false.
+   */
+  linkFavicons?: boolean;
   className?: string;
 };
+
+/**
+ * The favicons `fetchBlocks` attached to the blocks (nested ones included),
+ * by host, for `RenderContext.linkFavicons`.
+ */
+export function collectLinkFavicons(blocks: NotionBlock[]): Map<string, string> {
+  const favicons = new Map<string, string>();
+  const walk = (list: NotionBlock[]) => {
+    for (const block of list) {
+      for (const [host, icon] of Object.entries(block.linkFavicons ?? {})) {
+        favicons.set(host, icon);
+      }
+      if (block.children) walk(block.children);
+    }
+  };
+  walk(blocks);
+  return favicons;
+}
 
 /**
  * Renders Notion blocks. Works as a Server Component; it ships no client
@@ -264,6 +289,7 @@ export function NotionRenderer({
   transformFileUrl,
   demos,
   footnotes: footnotesOptions,
+  linkFavicons = false,
   className,
 }: NotionRendererProps) {
   const footnotes = collectFootnotes(blocks, footnotesOptions) ?? undefined;
@@ -274,6 +300,7 @@ export function NotionRenderer({
     footnotes,
     headings: collectHeadings(blocks, { footnotes: footnotesOptions }),
     components: { ...defaultComponents, ...components },
+    linkFavicons: linkFavicons ? collectLinkFavicons(blocks) : undefined,
   };
   return (
     <div

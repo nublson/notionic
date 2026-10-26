@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultComponents } from "./renderer";
-import { defaultPageHref, linkedBlockId, resolveLink } from "./links";
+import { defaultPageHref, externalLinkHost, linkedBlockId, resolveLink } from "./links";
 import type { RenderContext } from "./types";
 
 const ID = "244b17268ab383c3938887a7a5748b73";
@@ -110,5 +110,32 @@ describe("linkedBlockId", () => {
     expect(linkedBlockId("/3fcb17268ab381d995c6ff3f97dc741b")).toBeNull();
     expect(linkedBlockId(`https://example.com/page#${block}`)).toBeNull();
     expect(linkedBlockId(null)).toBeNull();
+  });
+});
+
+describe("externalLinkHost", () => {
+  it("is the host of a link to another site, lowercased", () => {
+    expect(externalLinkHost("https://GitHub.com/nublson/notionic")).toBe("github.com");
+    expect(externalLinkHost("http://sonner.emilkowal.ski/")).toBe("sonner.emilkowal.ski");
+  });
+
+  it("is null for paths, anchors, mailto, Notion pages and unsafe links", () => {
+    for (const href of [
+      null,
+      "",
+      "/docs",
+      "#top",
+      "mailto:a@b.co",
+      "tel:+351",
+      `/${ID}`,
+      `/Title-${ID}?pvs=4`,
+      `/p/${ID}#${DASHED}`,
+      `https://www.notion.so/Title-${ID}`,
+      `https://acme.notion.site/${ID}`,
+      "javascript:alert(1)",
+      "//evil.com",
+    ]) {
+      expect(externalLinkHost(href)).toBeNull();
+    }
   });
 });

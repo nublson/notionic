@@ -88,6 +88,18 @@ For bookmarks, embeds and link previews, `fetchBlocks` also fetches the linked p
 
 To preview any other link the same way, use `fetchBookmarkPreview(url)` from `notionic/fetch`. It returns the page's `title`, `description`, `image`, `favicon` and `siteName`, or `null`, under the same rules. It doesn't cache either.
 
+### Favicons on links
+
+Links to other sites can show the site's favicon before their text, as in Notion. It's off by default: pass `linkFavicons: true` to `fetchBlocks`, and `linkFavicons` to `NotionRenderer`:
+
+```tsx
+const blocks = await fetchBlocks(notion, "your-page-id", { linkFavicons: true });
+
+<NotionRenderer blocks={blocks} linkFavicons />;
+```
+
+`fetchBlocks` looks each linked host up once, at Google's favicon service and then DuckDuckGo's (which knows subdomains Google misses), with a 3 second timeout, and attaches the icons to the blocks as data URLs (a few KB each), so they're cached with the blocks by whatever caches `fetchBlocks` and need no requests when the page renders. A site without a favicon gets a muted globe. Links to your own site and to Notion pages never get one. To look a host up yourself, `fetchLinkFavicon(host)` from `notionic/fetch` returns the data URL or `null`.
+
 You can also pass blocks you fetched yourself: `NotionRenderer` takes the API's block objects with nested blocks attached as `children` (the `NotionBlock` type).
 
 ## Options
@@ -128,21 +140,21 @@ function Callout({ block, context, children }: BlockProps<"callout">) {
 
 Equations inside text have their own key, `inline_equation`, whose component gets the equation's LaTeX as `expression`.
 
-Links inside text have their own key too, `link`. Its component gets the resolved `link` (`href`, and `external` for other sites), the formatted text as `children`, and `context`. Wrap `NotionLink` to keep notionic's styling and new-tab behavior:
+Links inside text have their own key too, `link`. Its component gets the resolved `link` (`href`, and `external` for other sites), the formatted text as `children`, `context`, and with `linkFavicons` on, the site's `favicon` (a data URL, `null` for a site without one, `undefined` for links that get none). `LinkFavicon` renders that prop as notionic does: the icon, a globe, or nothing. Wrap `NotionLink` to keep notionic's styling and new-tab behavior:
 
 ```tsx
-import { NotionLink, type LinkProps } from "notionic";
+import { LinkFavicon, NotionLink, type LinkProps } from "notionic";
 
-function Link({ link, children }: LinkProps) {
+function Link({ link, favicon, children }: LinkProps) {
   return (
-    <NotionLink link={link}>
-      {link.external ? <Favicon href={link.href} /> : null}
+    <NotionLink link={link} className="text-primary">
+      <LinkFavicon favicon={favicon} />
       {children}
     </NotionLink>
   );
 }
 
-<NotionRenderer blocks={blocks} components={{ link: Link }} />;
+<NotionRenderer blocks={blocks} linkFavicons components={{ link: Link }} />;
 ```
 
 ### Interactive demos

@@ -1,10 +1,23 @@
-export { NotionRenderer, Block, BlockList, defaultComponents, groupBlocks } from "./renderer";
+export {
+  NotionRenderer,
+  Block,
+  BlockList,
+  defaultComponents,
+  groupBlocks,
+  collectLinkFavicons,
+} from "./renderer";
 export type { NotionRendererProps } from "./renderer";
-export { RichText, NotionLink } from "./rich-text";
+export { RichText, NotionLink, LinkFavicon } from "./rich-text";
 export { collectHeadings } from "./headings";
 export { collectFootnotes } from "./footnotes";
 export type { PageHeading } from "./headings";
-export { resolveLink, resolvePageLink, defaultPageHref, normalizePageId } from "./links";
+export {
+  resolveLink,
+  resolvePageLink,
+  defaultPageHref,
+  normalizePageId,
+  externalLinkHost,
+} from "./links";
 export { colorClass, blockColorClass } from "./colors";
 export { plainText } from "./utils";
 export { pageTitle } from "./page";
