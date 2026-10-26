@@ -152,6 +152,7 @@ export default async function DocPage({ params }: Props) {
             pageHref={docsPageHref(docs)}
             transformFileUrl={notionFileUrl}
             demos={demos}
+            linkFavicons
           />
 
           <nav aria-label="Previous and next" className="mt-16 grid grid-cols-2 gap-4 text-sm">
