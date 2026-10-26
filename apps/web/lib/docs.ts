@@ -82,7 +82,7 @@ export const getDoc = cache(async (slug: string) => {
   const notion = config();
   const doc = (await getDocs()).find((d) => d.slug === slug);
   if (!notion || !doc) return null;
-  return { doc, ...(await fetchPage(notion.client, doc.id)) };
+  return { doc, ...(await fetchPage(notion.client, doc.id, { linkFavicons: true })) };
 });
 
 /** Links to published docs stay on the site; other Notion pages render as text. */

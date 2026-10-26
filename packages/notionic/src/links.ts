@@ -117,3 +117,15 @@ export function resolveLink(
   const pageId = linkedPageId(href);
   return pageId ? resolvePageLink(pageId, context) : classify(href);
 }
+
+/**
+ * The host of a link to another site, for its favicon: an http(s) URL that
+ * isn't a Notion page. Null for paths, anchors, mailto and tel links, Notion
+ * pages, and anything unsafe.
+ */
+export function externalLinkHost(href: string | null | undefined): string | null {
+  if (!href || linkedPageId(href)) return null;
+  const link = classify(href);
+  if (!link?.external) return null;
+  return new URL(link.href).hostname.toLowerCase() || null;
+}

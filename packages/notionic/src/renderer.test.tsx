@@ -112,6 +112,91 @@ describe("NotionRenderer", () => {
     expect(defaultComponents.link).toBe(NotionLink);
   });
 
+  describe("link favicons", () => {
+    const ICON = "data:image/png;base64,AAAA";
+    const withIcons = (...text: ReturnType<typeof richText>[]): NotionBlock => ({
+      ...para(...text),
+      linkFavicons: { "github.com": ICON },
+    });
+    const blocks = () => [
+      withIcons(
+        richText("known", { href: "https://github.com/nublson" }),
+        richText("unknown", { href: "https://example.com/" }),
+        richText("path", { href: "/docs" }),
+        richText("page", { href: `/${PAGE_ID}` }),
+        richText("mail", { href: "mailto:a@b.co" }),
+      ),
+    ];
+    const linksOf = (html: string) => html.match(/<a [^>]*>.*?<\/a>/g) ?? [];
+
+    it("shows nothing by default", async () => {
+      const html = await render(blocks());
+      expect(html).not.toContain("<img");
+      expect(html).not.toContain("<svg");
+    });
+
+    it("puts the site's icon, or a globe, before links to other sites only", async () => {
+      const html = await render(blocks(), { linkFavicons: true });
+      const [known, unknown, path, page, mail] = linksOf(html);
+      expect(known).toMatch(
+        /^<a [^>]*><img src="data:image\/png;base64,AAAA" alt="" aria-hidden="true"/,
+      );
+      expect(known).toContain("before:bg-muted");
+      expect(unknown).toMatch(/^<a [^>]*><svg aria-hidden="true"[^>]*text-muted-foreground/);
+      expect(unknown).toContain("<circle");
+      // The page links to notion.so and opens in a new tab, but it's still a Notion page.
+      expect(page).toContain('target="_blank"');
+      for (const link of [path, page, mail]) {
+        expect(link).not.toContain("<img");
+        expect(link).not.toContain("<svg");
+      }
+    });
+
+    it("shows one icon for a link whose text mixes formatting", async () => {
+      // Notion splits "see this page" with "this" bold into three items sharing the href.
+      const href = "https://github.com/nublson";
+      const html = await render(
+        [
+          withIcons(
+            richText("see ", { href }),
+            richText("this", { href, annotations: { bold: true } }),
+            richText(" page", { href }),
+            richText(" and ", {}),
+            richText("again", { href }),
+            richText("elsewhere", { href: "https://example.com/" }),
+          ),
+        ],
+        { linkFavicons: true },
+      );
+      expect(linksOf(html)).toHaveLength(5);
+      expect(html.match(/<img /g)).toHaveLength(2);
+      expect(html.match(/<svg /g)).toHaveLength(1);
+      expect(linksOf(html)[1]).toMatch(/^<a [^>]*><strong/);
+    });
+
+    it("finds icons attached to nested blocks", async () => {
+      const toggle = block("toggle", { rich_text: [richText("t")] }, { children: blocks() });
+      const html = await render(
+        [toggle, para(richText("again", { href: "https://github.com/x" }))],
+        { linkFavicons: true },
+      );
+      expect(html.match(/<img src="data:image\/png;base64,AAAA"/g)).toHaveLength(2);
+    });
+
+    it("passes the favicon to components.link", async () => {
+      const seen: (string | null | undefined)[] = [];
+      const Link = ({ link, favicon, children }: LinkProps) => {
+        seen.push(favicon);
+        return <a href={link.href}>{children}</a>;
+      };
+      await render(blocks(), { linkFavicons: true, components: { link: Link } });
+      expect(seen).toEqual([ICON, null, undefined, undefined, undefined]);
+      seen.length = 0;
+      await render(blocks(), { components: { link: Link } });
+      expect(seen).toEqual([undefined, undefined, undefined, undefined, undefined]);
+    });
+  });
+
   it("escapes HTML-looking text and drops unsafe links", async () => {
     const html = await render([
       para(

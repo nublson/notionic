@@ -1,4 +1,4 @@
-import type { RichText } from "./types";
+import type { NotionBlock, RichText } from "./types";
 
 /** Joins class names, skipping empty ones. */
 export function cx(...classes: (string | false | null | undefined)[]): string {
@@ -22,4 +22,19 @@ export function warnOnce(message: string): void {
   }
   warned.add(message);
   console.warn(`[notionic] ${message}`);
+}
+
+/** The block's own data: `block.paragraph` for a paragraph, and so on. */
+export function blockData(block: NotionBlock): Record<string, unknown> {
+  return (block as unknown as Record<string, Record<string, unknown>>)[block.type] ?? {};
+}
+
+/** Every rich text of a block, in reading order: its text, its caption, then table cells. */
+export function richTexts(block: NotionBlock): RichText[] {
+  const { rich_text, caption, cells } = blockData(block);
+  return [
+    ...(Array.isArray(rich_text) ? [rich_text as RichText] : []),
+    ...(Array.isArray(caption) ? [caption as RichText] : []),
+    ...(Array.isArray(cells) ? (cells as RichText[]) : []),
+  ];
 }
