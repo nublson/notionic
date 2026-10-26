@@ -1,5 +1,11 @@
 # notionic
 
+## 0.11.0
+
+### Minor Changes
+
+- [#48](https://github.com/nublson/notionic/pull/48) [`e68b044`](https://github.com/nublson/notionic/commit/e68b04447982670bd0815120c38650440bac18a6) Thanks [@nublson](https://github.com/nublson)! - Favicons on links to other sites: `fetchBlocks(notion, id, { linkFavicons: true })` looks each linked host up once (Google's favicon service, then DuckDuckGo's) and attaches the icons to the blocks as data URLs, and `<NotionRenderer linkFavicons>` shows them before the link text, with a muted globe for a site without one. Both are off by default. Paths, anchors, mailto links and Notion pages get none. `LinkProps` gets `favicon`, which the new `LinkFavicon` component renders; `notionic/fetch` exports `fetchLinkFavicon(host)`.
+
 ## 0.10.1
 
 ### Patch Changes
