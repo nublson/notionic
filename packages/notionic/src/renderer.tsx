@@ -252,7 +252,7 @@ export type NotionRendererProps = {
   /**
    * Show each link to another site with the site's favicon before its text,
    * as `fetchBlocks(…, { linkFavicons: true })` attached them; a site
-   * without one gets a muted globe. Links to your own site and to Notion
+   * without one gets a muted globe. Paths, anchors, mailto links and Notion
    * pages get none. Default false.
    */
   linkFavicons?: boolean;

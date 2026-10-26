@@ -152,6 +152,28 @@ describe("NotionRenderer", () => {
       }
     });
 
+    it("shows one icon for a link whose text mixes formatting", async () => {
+      // Notion splits "see this page" with "this" bold into three items sharing the href.
+      const href = "https://github.com/nublson";
+      const html = await render(
+        [
+          withIcons(
+            richText("see ", { href }),
+            richText("this", { href, annotations: { bold: true } }),
+            richText(" page", { href }),
+            richText(" and ", {}),
+            richText("again", { href }),
+            richText("elsewhere", { href: "https://example.com/" }),
+          ),
+        ],
+        { linkFavicons: true },
+      );
+      expect(linksOf(html)).toHaveLength(5);
+      expect(html.match(/<img /g)).toHaveLength(2);
+      expect(html.match(/<svg /g)).toHaveLength(1);
+      expect(linksOf(html)[1]).toMatch(/^<a [^>]*><strong/);
+    });
+
     it("finds icons attached to nested blocks", async () => {
       const toggle = block("toggle", { rich_text: [richText("t")] }, { children: blocks() });
       const html = await render(

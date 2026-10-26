@@ -7,7 +7,8 @@ Links to other sites can show the site's favicon before their text, as Notion do
 - Icons come with the blocks: fetched once, cached with them by whatever caches `fetchBlocks` (for example `revalidate`), and in the initial HTML with no requests when the page renders.
 - No dependencies. The icon bytes are inlined as they come (Google's PNG, DuckDuckGo's ICO), a few KB each, which browsers show either way.
 - A site without a favicon still reads as a link to another site: a muted globe.
-- Links to your own site and to Notion pages never get one, whatever `pageHref` turns them into.
+- Paths on your site, anchors, mailto links and Notion pages never get one, whatever `pageHref` turns them into. notionic has no notion of your site's origin, so a link to your own site by its full URL is a link to another site, as it is for new-tab behavior.
+- A link whose text mixes formatting is several items sharing one href; only the first gets the icon.
 
 ## Non-goals
 

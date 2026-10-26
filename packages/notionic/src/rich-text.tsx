@@ -98,7 +98,16 @@ export function NotionLink({
   );
 }
 
-function RichTextItem({ item, context }: { item: RichTextItemResponse; context: RenderContext }) {
+function RichTextItem({
+  item,
+  linkStart,
+  context,
+}: {
+  item: RichTextItemResponse;
+  /** Whether the item starts its link, rather than continuing the previous item's. */
+  linkStart: boolean;
+  context: RenderContext;
+}) {
   const { annotations } = item;
   // Notion writes line breaks within a block (Shift+Enter) as "\n".
   let node: ReactNode = item.plain_text.includes("\n")
@@ -160,9 +169,10 @@ function RichTextItem({ item, context }: { item: RichTextItemResponse; context: 
   const link = resolveLink(item.href, context);
   if (link) {
     const Link = context.components.link ?? NotionLink;
-    // Only links to other sites get a favicon: never paths, anchors or Notion
-    // pages, whatever `pageHref` turns those into.
-    const host = context.linkFavicons ? externalLinkHost(item.href) : null;
+    // Only links to other sites get a favicon, never paths, anchors or Notion
+    // pages, whatever `pageHref` turns those into. Notion splits a link whose
+    // text mixes formatting into items sharing its href; only the first gets it.
+    const host = context.linkFavicons && linkStart ? externalLinkHost(item.href) : null;
     const favicon = host ? (context.linkFavicons?.get(host) ?? null) : undefined;
     node = (
       <Link link={link} favicon={favicon} context={context}>
@@ -176,6 +186,13 @@ function RichTextItem({ item, context }: { item: RichTextItemResponse; context: 
 
 /** A Notion rich text array: annotations, colors, links and mentions. */
 export function RichText({ text, context }: { text: RichTextArray; context: RenderContext }) {
-  // biome-ignore lint/suspicious/noArrayIndexKey: rich text items have no ID; Notion returns them in order
-  return text.map((item, i) => <RichTextItem key={i} item={item} context={context} />);
+  return text.map((item, i) => (
+    <RichTextItem
+      // biome-ignore lint/suspicious/noArrayIndexKey: rich text items have no ID; Notion returns them in order
+      key={i}
+      item={item}
+      linkStart={item.href !== text[i - 1]?.href}
+      context={context}
+    />
+  ));
 }

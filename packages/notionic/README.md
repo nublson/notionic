@@ -98,7 +98,7 @@ const blocks = await fetchBlocks(notion, "your-page-id", { linkFavicons: true })
 <NotionRenderer blocks={blocks} linkFavicons />;
 ```
 
-`fetchBlocks` looks each linked host up once, at Google's favicon service and then DuckDuckGo's (which knows subdomains Google misses), with a 3 second timeout, and attaches the icons to the blocks as data URLs (a few KB each), so they're cached with the blocks by whatever caches `fetchBlocks` and need no requests when the page renders. A site without a favicon gets a muted globe. Links to your own site and to Notion pages never get one. To look a host up yourself, `fetchLinkFavicon(host)` from `notionic/fetch` returns the data URL or `null`.
+`fetchBlocks` looks each linked host up once, at Google's favicon service and then DuckDuckGo's (which knows subdomains Google misses), with a 3 second timeout, and attaches the icons to the blocks as data URLs (a few KB each), so they're cached with the blocks by whatever caches `fetchBlocks` and need no requests when the page renders. A site without a favicon gets a muted globe. Only absolute `http(s)` links get one: paths on your site (`/docs`), anchors, mailto links and links to Notion pages never do, so a link to your own site by its full URL shows its icon like any other. To look a host up yourself, `fetchLinkFavicon(host)` from `notionic/fetch` returns the data URL or `null`.
 
 You can also pass blocks you fetched yourself: `NotionRenderer` takes the API's block objects with nested blocks attached as `children` (the `NotionBlock` type).
 
