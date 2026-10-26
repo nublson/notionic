@@ -6,8 +6,11 @@ import type {
   PageObjectResponse,
 } from "@notionhq/client";
 import { fetchBookmarkPreview } from "./bookmark-preview";
+import { fetchLinkFavicon } from "./link-favicons";
+import { externalLinkHost } from "./links";
 import { toLinkedPage, toNotionPage } from "./page";
 import type { NotionBlock, NotionPage } from "./types";
+import { richTexts } from "./utils";
 
 /**
  * The part of the Notion client notionic uses. A `Client` from
@@ -39,6 +42,14 @@ export type FetchBlocksOptions = {
    * that's slow, unreachable or has no title renders as a one-line card.
    */
   bookmarkPreviews?: boolean;
+  /**
+   * Fetch the favicon of each site linked from text (Google's favicon
+   * service, then DuckDuckGo's) and attach it to the block as `linkFavicons`,
+   * by host, for `<NotionRenderer linkFavicons>`. Default false. Each host is
+   * looked up once per call; a site whose icon doesn't come within 3 seconds
+   * gets none.
+   */
+  linkFavicons?: boolean;
 };
 
 type Result = ListBlockChildrenResponse["results"][number];
@@ -105,6 +116,84 @@ async function mapPool<T, R>(
 }
 
 /**
+ * Favicon lookups by host, shared across one `fetchBlocks` call so each host
+ * is asked for once however many blocks link to it.
+ */
+type FaviconLookups = Map<string, Promise<string | null>>;
+
+function lookupFavicon(host: string, lookups: FaviconLookups): Promise<string | null> {
+  let lookup = lookups.get(host);
+  if (!lookup) {
+    lookup = fetchLinkFavicon(host);
+    lookups.set(host, lookup);
+  }
+  return lookup;
+}
+
+/** The block with the favicons of the sites its text links to, when any has one. */
+async function withLinkFavicons(block: NotionBlock, lookups: FaviconLookups): Promise<NotionBlock> {
+  const hosts = new Set<string>();
+  for (const text of richTexts(block)) {
+    for (const item of text) {
+      const host = externalLinkHost(item.href);
+      if (host) hosts.add(host);
+    }
+  }
+  if (hosts.size === 0) return block;
+  const icons = await Promise.all(
+    [...hosts].map(async (host) => [host, await lookupFavicon(host, lookups)] as const),
+  );
+  const linkFavicons: Record<string, string> = {};
+  for (const [host, icon] of icons) {
+    if (icon) linkFavicons[host] = icon;
+  }
+  return Object.keys(linkFavicons).length > 0 ? { ...block, linkFavicons } : block;
+}
+
+type FetchState = {
+  concurrency: number;
+  bookmarkPreviews: boolean;
+  /** Present when favicons are fetched. */
+  faviconLookups?: FaviconLookups;
+};
+
+async function fetchTree(
+  client: NotionClientLike,
+  blockId: string,
+  maxDepth: number,
+  state: FetchState,
+): Promise<NotionBlock[]> {
+  const blocks = await listChildren(client, blockId);
+
+  return mapPool(blocks, state.concurrency, async (fetched) => {
+    const block = state.faviconLookups
+      ? await withLinkFavicons(fetched, state.faviconLookups)
+      : fetched;
+    if (block.type === "link_to_page" && block.link_to_page.type === "page_id") {
+      const page = await retrievePage(client, block.link_to_page.page_id);
+      return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
+    }
+    // A subpage's block holds only its title; its page has the icon.
+    if (block.type === "child_page") {
+      const page = await retrievePage(client, block.id);
+      return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
+    }
+    const previewUrl = state.bookmarkPreviews ? linkedUrl(block) : null;
+    if (previewUrl) {
+      const preview = await fetchBookmarkPreview(previewUrl);
+      return preview ? { ...block, bookmarkPreview: preview } : block;
+    }
+    if (!block.has_children || maxDepth <= 0 || block.type === "child_database") {
+      return block;
+    }
+    return {
+      ...block,
+      children: await fetchTree(client, block.id, maxDepth - 1, state),
+    };
+  });
+}
+
+/**
  * Every block of a page (or any block), with nested blocks attached as
  * `children`, ready for `<NotionRenderer>`.
  *
@@ -116,35 +205,11 @@ export async function fetchBlocks(
   blockId: string,
   options: FetchBlocksOptions = {},
 ): Promise<NotionBlock[]> {
-  const { maxDepth = 5, concurrency = 3, bookmarkPreviews = true } = options;
-  const blocks = await listChildren(client, blockId);
-
-  return mapPool(blocks, concurrency, async (block) => {
-    if (block.type === "link_to_page" && block.link_to_page.type === "page_id") {
-      const page = await retrievePage(client, block.link_to_page.page_id);
-      return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
-    }
-    // A subpage's block holds only its title; its page has the icon.
-    if (block.type === "child_page") {
-      const page = await retrievePage(client, block.id);
-      return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
-    }
-    const previewUrl = bookmarkPreviews ? linkedUrl(block) : null;
-    if (previewUrl) {
-      const preview = await fetchBookmarkPreview(previewUrl);
-      return preview ? { ...block, bookmarkPreview: preview } : block;
-    }
-    if (!block.has_children || maxDepth <= 0 || block.type === "child_database") {
-      return block;
-    }
-    return {
-      ...block,
-      children: await fetchBlocks(client, block.id, {
-        maxDepth: maxDepth - 1,
-        concurrency,
-        bookmarkPreviews,
-      }),
-    };
+  const { maxDepth = 5, concurrency = 3, bookmarkPreviews = true, linkFavicons = false } = options;
+  return fetchTree(client, blockId, maxDepth, {
+    concurrency,
+    bookmarkPreviews,
+    faviconLookups: linkFavicons ? new Map() : undefined,
   });
 }
 
@@ -169,3 +234,5 @@ export async function fetchPage(
 
 /** A page's title, description, image and favicon, read from its HTML; null if it has none. */
 export { fetchBookmarkPreview };
+/** A site's favicon as a data URL, as `linkFavicons` fetches it; null if it has none. */
+export { fetchLinkFavicon };

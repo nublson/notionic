@@ -1,29 +1,14 @@
 import { linkedBlockId, normalizePageId } from "./links";
 import type { Footnote, FootnotesOptions, NotionBlock, PageFootnotes, RichText } from "./types";
-import { plainText } from "./utils";
+import { blockData, plainText, richTexts } from "./utils";
 
 const LEVELS = { heading_1: 1, heading_2: 2, heading_3: 3, heading_4: 4 } as const;
 const TEXT_TYPES = new Set(["paragraph", "bulleted_list_item", "numbered_list_item"]);
 
-/** The block's own data: `block.paragraph` for a paragraph, and so on. */
-function data(block: NotionBlock): Record<string, unknown> {
-  return (block as unknown as Record<string, Record<string, unknown>>)[block.type] ?? {};
-}
-
 function heading(block: NotionBlock): { level: 1 | 2 | 3 | 4; text: string } | null {
   if (!(block.type in LEVELS)) return null;
   const level = LEVELS[block.type as keyof typeof LEVELS];
-  return { level, text: plainText((data(block).rich_text as RichText) ?? []).trim() };
-}
-
-/** Every rich text of a block, in reading order: its text, its caption, then table cells. */
-function richTexts(block: NotionBlock): RichText[] {
-  const { rich_text, caption, cells } = data(block);
-  return [
-    ...(Array.isArray(rich_text) ? [rich_text as RichText] : []),
-    ...(Array.isArray(caption) ? [caption as RichText] : []),
-    ...(Array.isArray(cells) ? (cells as RichText[]) : []),
-  ];
+  return { level, text: plainText((blockData(block).rich_text as RichText) ?? []).trim() };
 }
 
 function isEmpty(block: NotionBlock): boolean {
@@ -59,7 +44,7 @@ export function collectFootnotes(
 
   // A toggleable heading holds its notes; otherwise they follow it, up to
   // the next heading of the same or a higher level.
-  const toggleable = Boolean(data(marker).is_toggleable);
+  const toggleable = Boolean(blockData(marker).is_toggleable);
   let end = toggleable
     ? start + 1
     : blocks.findIndex(

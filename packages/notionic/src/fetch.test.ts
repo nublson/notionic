@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fetchBlocks, fetchPage, type NotionClientLike } from "./fetch";
-import { block } from "./test-utils";
+import { block, richText } from "./test-utils";
 import type { NotionBlock } from "./types";
 
 /** A fake client serving pages of children per block id. */
@@ -205,5 +205,81 @@ describe("linked pages", () => {
       lastEditedTime: "2026-10-17T00:00:00.000Z",
     });
     expect(result.blocks.map((b) => b.id)).toEqual(["p"]);
+  });
+});
+
+describe("link favicons", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const para = (id: string, ...hrefs: string[]) =>
+    block("paragraph", { rich_text: hrefs.map((href) => richText("x", { href })) }, { id });
+
+  /** Serves Google's icon for every host but the ones listed, which have none. */
+  function stubProviders(missing: string[] = []) {
+    const fetch = vi.fn(async (url: URL | string) => {
+      const { searchParams, hostname } = new URL(String(url));
+      const host = searchParams.get("domain") ?? hostname;
+      const found = !missing.some((name) => String(url).includes(name));
+      return found && host
+        ? new Response(PNG, { status: 200 })
+        : new Response(null, { status: 404 });
+    });
+    vi.stubGlobal("fetch", fetch);
+    return fetch;
+  }
+
+  it("attaches each linked site's favicon by host, looking each host up once", async () => {
+    const fetch = stubProviders(["none.example"]);
+    const { client } = fakeClient({
+      root: [
+        [
+          para("a", "https://github.com/nublson", "https://GitHub.com/other", "/docs", "#top"),
+          para("b", "https://github.com/x", "https://none.example/"),
+          withChildren("toggle", "t"),
+          block("image", {
+            type: "external",
+            external: { url: "https://cdn.example.com/a.png" },
+            caption: [richText("pen", { href: "https://codepen.io/pen" })],
+          }),
+        ],
+      ],
+      t: [[para("nested", "https://sonner.emilkowal.ski/")]],
+    });
+    const [a, b, toggle, image] = await fetchBlocks(client, "root", { linkFavicons: true });
+    expect(Object.keys(a!.linkFavicons ?? {})).toEqual(["github.com"]);
+    expect(a!.linkFavicons?.["github.com"]).toMatch(/^data:image\/png;base64,/);
+    // A host without an icon is left out; a block with no icons gets no record.
+    expect(b!.linkFavicons).toEqual({ "github.com": a!.linkFavicons?.["github.com"] });
+    expect(toggle!.children?.[0]?.linkFavicons).toHaveProperty("sonner.emilkowal.ski");
+    expect(image!.linkFavicons).toHaveProperty("codepen.io");
+    const asked = fetch.mock.calls.map(([url]) => String(url));
+    expect(asked.filter((url) => url.includes("github.com"))).toHaveLength(1);
+    // Google, then DuckDuckGo for the host Google had none for.
+    expect(asked.filter((url) => url.includes("none.example"))).toHaveLength(2);
+  });
+
+  it("never looks up Notion pages, and makes no requests by default", async () => {
+    const fetch = stubProviders();
+    const { client } = fakeClient({
+      root: [
+        [
+          para(
+            "a",
+            `/${"244b17268ab383c3938887a7a5748b73"}`,
+            "https://www.notion.so/Title-244b17268ab383c3938887a7a5748b73",
+            "mailto:a@b.co",
+          ),
+        ],
+      ],
+    });
+    const [a] = await fetchBlocks(client, "root", { linkFavicons: true });
+    expect(a!.linkFavicons).toBeUndefined();
+    expect(fetch).not.toHaveBeenCalled();
+
+    const { client: other } = fakeClient({ root: [[para("b", "https://example.com/")]] });
+    const [b] = await fetchBlocks(other, "root");
+    expect(b!.linkFavicons).toBeUndefined();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

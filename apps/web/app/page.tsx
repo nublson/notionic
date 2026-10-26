@@ -30,7 +30,7 @@ async function getBlocks(): Promise<NotionBlock[]> {
   const pageId = process.env.NOTION_PAGE_ID;
   if (!client || !pageId) return sampleBlocks;
   try {
-    return await fetchBlocks(client, pageId);
+    return await fetchBlocks(client, pageId, { linkFavicons: true });
   } catch (error) {
     console.error("Could not fetch the Notion page; showing sample blocks.", error);
     return sampleBlocks;
@@ -82,6 +82,7 @@ export default async function Home() {
             components={notionComponents}
             transformFileUrl={notionFileUrl}
             demos={demos}
+            linkFavicons
           />
         </section>
       </main>
