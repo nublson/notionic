@@ -1,5 +1,13 @@
 # notionic
 
+## 0.10.1
+
+### Patch Changes
+
+- [#47](https://github.com/nublson/notionic/pull/47) [`b64b616`](https://github.com/nublson/notionic/commit/b64b616e87d1d2fbdac60a41985f662ce29e186c) Thanks [@nublson](https://github.com/nublson)! - A demo that throws no longer breaks the page: its frame stays, empty.
+
+- [#47](https://github.com/nublson/notionic/pull/47) [`b64b616`](https://github.com/nublson/notionic/commit/b64b616e87d1d2fbdac60a41985f662ce29e186c) Thanks [@nublson](https://github.com/nublson)! - The default demo frame is taller (a 14rem stage), so a demo that fails keeps the same space as a working one.
+
 ## 0.10.0
 
 ### Minor Changes

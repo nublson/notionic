@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DemoBoundary } from "../demo-boundary";
 import { matchDemo } from "../demos";
 import { resolveFileUrl } from "../files";
 import { resolveLink, resolvePageLink } from "../links";
@@ -397,7 +398,7 @@ function PreviewCard({
 export function DemoFrame({ caption, context, children }: DemoFrameProps) {
   return (
     <figure>
-      <div className="flex min-h-48 flex-col items-center justify-center gap-6 overflow-hidden rounded-xl border border-border px-6 py-10">
+      <div className="flex box-content min-h-56 flex-col items-center justify-center gap-6 overflow-hidden rounded-xl border border-border px-6 py-10">
         {children}
       </div>
       {caption.length ? (
@@ -412,7 +413,8 @@ export function DemoFrame({ caption, context, children }: DemoFrameProps) {
 /**
  * An embed, as a preview card linking to it: embedding any site in an iframe
  * is unsafe, and most refuse it. An embed of `…/demos/<name>` whose name is one of
- * `demos` renders that demo component instead, in the `demo` frame.
+ * `demos` renders that demo component instead, in the `demo` frame. A demo that
+ * throws leaves its frame empty.
  */
 export function Embed({ block, context }: BlockProps<"embed">) {
   const demo = matchDemo(block.embed.url, context.demos);
@@ -420,7 +422,9 @@ export function Embed({ block, context }: BlockProps<"embed">) {
     const Frame = context.components.demo ?? DemoFrame;
     return (
       <Frame name={demo.name} caption={block.embed.caption} context={context}>
-        <demo.Component name={demo.name} params={demo.params} />
+        <DemoBoundary>
+          <demo.Component name={demo.name} params={demo.params} />
+        </DemoBoundary>
       </Frame>
     );
   }

@@ -426,7 +426,7 @@ describe("NotionRenderer", () => {
     ];
     const html = await render(blocks, { demos: { "morph-button": Demo } });
     expect(html).toMatch(
-      /<figure><div class="flex min-h-48[^"]*"><button type="button">morph-button<!-- --> <!-- -->slow<\/button><\/div><figcaption[^>]*>Press the button.<\/figcaption><\/figure>/,
+      /<figure><div class="flex box-content min-h-56[^"]*"><!--\$--><button type="button">morph-button<!-- --> <!-- -->slow<\/button><!--\/\$--><\/div><figcaption[^>]*>Press the button.<\/figcaption><\/figure>/,
     );
     // An unknown name stays a link.
     expect(html).toMatch(/<a href="https:\/\/nublson.com\/demos\/unknown"/);
@@ -438,7 +438,18 @@ describe("NotionRenderer", () => {
     );
     expect(
       await render(blocks, { demos: { "morph-button": Demo }, components: { demo: Frame } }),
-    ).toContain('<section data-demo="morph-button"><button');
+    ).toContain('<section data-demo="morph-button"><!--$--><button');
+  });
+
+  it("keeps the frame of a demo that throws, empty", async () => {
+    const Broken = (): never => {
+      throw new Error("broken demo");
+    };
+    const blocks = [block("embed", { url: "https://nublson.com/demos/broken", caption: [] })];
+    const html = await render(blocks, { demos: { broken: Broken } });
+    expect(html).toMatch(
+      /<figure><div class="flex box-content min-h-56[^"]*">(<!--[^>]*-->|<template[^>]*><\/template>)*<\/div><\/figure>/,
+    );
   });
 
   it("renders callout icons in one slot, and keeps the surface for text colors", async () => {
