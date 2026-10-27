@@ -142,6 +142,9 @@ describe("NotionRenderer", () => {
         /^<a [^>]*><img src="data:image\/png;base64,AAAA" alt="" aria-hidden="true"/,
       );
       expect(known).toContain("before:bg-muted");
+      // The same inset hairline as images, so a light or dark icon keeps an edge.
+      expect(known).toContain("outline-(--notionic-image-outline)");
+      expect(known).toContain("-outline-offset-1");
       expect(unknown).toMatch(/^<a [^>]*><svg aria-hidden="true"[^>]*text-muted-foreground/);
       expect(unknown).toContain("<circle");
       // The page links to notion.so and opens in a new tab, but it's still a Notion page.

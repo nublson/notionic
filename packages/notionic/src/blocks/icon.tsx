@@ -3,6 +3,11 @@ import { resolveFileUrl } from "../files";
 import type { PageIcon, RenderContext } from "../types";
 import { cx } from "../utils";
 
+// An inset hairline (--notionic-image-outline: 10% black, 10% white in dark
+// mode) so an image keeps its edge on any background.
+export const IMAGE_OUTLINE =
+  "outline outline-1 -outline-offset-1 outline-(--notionic-image-outline)";
+
 // Covers the browser's broken-image icon with a muted surface. Browsers draw
 // an image's ::before only when it fails to load.
 export const BROKEN_IMAGE =
