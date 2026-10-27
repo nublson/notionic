@@ -38,10 +38,10 @@ export function imageType(bytes: Uint8Array): string | null {
   if (at(0, 0x47, 0x49, 0x46, 0x38)) return "image/gif";
   if (at(0, 0xff, 0xd8, 0xff)) return "image/jpeg";
   if (at(0, 0x52, 0x49, 0x46, 0x46) && at(8, 0x57, 0x45, 0x42, 0x50)) return "image/webp";
-  const text = new TextDecoder().decode(bytes.subarray(0, 512)).trimStart().toLowerCase();
-  if (text.startsWith("<svg") || (text.startsWith("<?xml") && text.includes("<svg"))) {
-    return "image/svg+xml";
-  }
+  // An SVG may open with an XML declaration, comments or a doctype before its root.
+  const text = new TextDecoder().decode(bytes.subarray(0, 1024)).toLowerCase();
+  const root = text.replace(/^(?:\s|<\?xml[^>]*>|<!--[\s\S]*?-->|<!doctype[^>]*>)*/, "");
+  if (root.startsWith("<svg")) return "image/svg+xml";
   return null;
 }
 
@@ -137,15 +137,20 @@ async function siteIcon(host: string): Promise<string | null> {
       await page?.response.body?.cancel().catch(() => {});
     }
     for (const url of urls.slice(0, SITE_ICON_TRIES)) {
-      const icon = await fetchPublic(url.href, "image/*", signal);
-      if (!icon) continue;
-      if (!icon.response.ok) {
-        await icon.response.body?.cancel().catch(() => {});
-        continue;
+      if (signal.aborted) break;
+      try {
+        const icon = await fetchPublic(url.href, "image/*", signal);
+        if (!icon) continue;
+        if (!icon.response.ok) {
+          await icon.response.body?.cancel().catch(() => {});
+          continue;
+        }
+        const bytes = await readBytes(icon.response, SITE_ICON_MAX_BYTES);
+        const dataUrl = bytes ? imageDataUrl(bytes) : null;
+        if (dataUrl) return dataUrl;
+      } catch {
+        // One icon that fails to load (a CDN that's down): try the next.
       }
-      const bytes = await readBytes(icon.response, SITE_ICON_MAX_BYTES);
-      const dataUrl = bytes ? imageDataUrl(bytes) : null;
-      if (dataUrl) return dataUrl;
     }
   } catch {
     // A site that's slow or unreachable: the favicon services may still know it.

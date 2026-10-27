@@ -1,3 +1,4 @@
+import { lookup } from "node:dns/promises";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   fetchLinkFavicon,
@@ -49,7 +50,11 @@ describe("imageType", () => {
     expect(imageType(new TextEncoder().encode(`<?xml version="1.0"?>\n${SVG}`))).toBe(
       "image/svg+xml",
     );
+    expect(imageType(new TextEncoder().encode(`<!-- license -->\n<!DOCTYPE svg>\n${SVG}`))).toBe(
+      "image/svg+xml",
+    );
     expect(imageType(new TextEncoder().encode("<html>nope</html>"))).toBeNull();
+    expect(imageType(new TextEncoder().encode("<!-- x --><html></html>"))).toBeNull();
     expect(imageType(new Uint8Array())).toBeNull();
   });
 
@@ -92,6 +97,25 @@ describe("fetchLinkFavicon", () => {
     });
     expect(await fetchLinkFavicon("purl.live")).toMatch(/^data:image\/svg\+xml;base64,/);
     expect(web.asked()).toEqual(["https://purl.live/", "https://purl.live/icon.svg"]);
+  });
+
+  it("tries the next icon when one fails, and skips icons on private addresses", async () => {
+    vi.mocked(lookup).mockImplementation((async (name: string) => [
+      { address: name === "icons.rebind.example" ? "127.0.0.1" : "93.184.216.34", family: 4 },
+    ]) as unknown as typeof lookup);
+    const web = stubWeb({
+      "https://example.com/": html(
+        '<link rel="icon" href="https://cdn.example.net/icon.svg"><link rel="icon" href="http://icons.rebind.example:8080/action.png" sizes="32x32"><link rel="icon" href="/icon.png" sizes="48x48">',
+      ),
+      "https://cdn.example.net/icon.svg": new TypeError("fetch failed"),
+      "https://example.com/icon.png": respond(200, PNG),
+    });
+    expect(await fetchLinkFavicon("example.com")).toMatch(/^data:image\/png/);
+    expect(web.asked()).not.toContain("http://icons.rebind.example:8080/action.png");
+    vi.mocked(lookup).mockReset();
+    vi.mocked(lookup).mockImplementation((async () => [
+      { address: "93.184.216.34", family: 4 },
+    ]) as unknown as typeof lookup);
   });
 
   it("tries /favicon.ico when the page declares no icon", async () => {

@@ -157,8 +157,24 @@ export async function readHead(response: Response): Promise<string> {
 }
 
 /**
+ * Whether a host name resolves to a private address, so a public-looking
+ * name can't point a request at the server's own network. Skipped where the
+ * runtime has no DNS (edge runtimes, which can't reach private networks).
+ * A name that doesn't resolve isn't private; its request fails anyway.
+ */
+async function resolvesPrivately(hostname: string): Promise<boolean> {
+  try {
+    const { lookup } = await import("node:dns/promises");
+    const addresses = await lookup(hostname.replace(/^\[|\]$/g, ""), { all: true });
+    return addresses.some(({ address }) => isPrivateHost(address));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Fetches a public URL, following redirects by hand so each hop gets the
- * private-host check. The final response and its URL, or null when a hop
+ * private-host check, on both the name and the addresses it resolves to. The final response and its URL, or null when a hop
  * isn't public or there are too many. Throws on network errors and timeouts.
  */
 export async function fetchPublic(
@@ -168,6 +184,7 @@ export async function fetchPublic(
 ): Promise<{ response: Response; url: URL } | null> {
   let target = fetchableUrl(url);
   for (let hop = 0; target && hop <= MAX_REDIRECTS; hop++) {
+    if (await resolvesPrivately(target.hostname)) return null;
     const response = await fetch(target, {
       headers: { accept, "user-agent": USER_AGENT },
       redirect: "manual",
