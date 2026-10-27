@@ -173,14 +173,29 @@ async function askProvider(url: string): Promise<string | null> {
   return bytes ? imageDataUrl(bytes) : null;
 }
 
+/** How to look favicons up. */
+export type LinkFaviconOptions = {
+  /**
+   * Read the icon each site declares for itself first (its home page and
+   * the icon files it names), before the favicon services. Default false:
+   * only Google's and DuckDuckGo's services are contacted. Turning it on
+   * fetches URLs the linked sites choose; private addresses are refused, but
+   * see the README on the limits of that check.
+   */
+  siteIcons?: boolean;
+};
+
 /**
- * The host's icon: its own, or from the first service that has one;
- * undefined when none has one and a service couldn't answer.
+ * The host's icon: its own (with `siteIcons`), or from the first service
+ * that has one; undefined when none has one and a service couldn't answer.
  */
-async function askProviders(host: string): Promise<string | null | undefined> {
+async function askProviders(
+  host: string,
+  { siteIcons = false }: LinkFaviconOptions,
+): Promise<string | null | undefined> {
   // The site's own icon first: the services' stored copies can be stale or
   // re-encoded (a white-cornered JPEG of a rounded icon).
-  const own = await siteIcon(host);
+  const own = siteIcons ? await siteIcon(host) : null;
   if (own) return own;
   let unanswered = false;
   for (const provider of PROVIDERS) {
@@ -217,37 +232,39 @@ export type FaviconLookups = Map<string, Promise<string | null | undefined>>;
 
 function ask(
   name: string,
-  lookups: FaviconLookups | undefined,
+  options: LinkFaviconOptions & { lookups?: FaviconLookups },
 ): Promise<string | null | undefined> {
-  if (!lookups) return askProviders(name);
+  const { lookups } = options;
+  if (!lookups) return askProviders(name, options);
   let lookup = lookups.get(name);
   if (!lookup) {
-    lookup = askProviders(name);
+    lookup = askProviders(name, options);
     lookups.set(name, lookup);
   }
   return lookup;
 }
 
 /**
- * A site's favicon as a data URL: the icon its own page declares (an SVG,
- * or the smallest PNG of 32px or more) or its `/favicon.ico`, and when it
- * has none that loads, Google's favicon service and then DuckDuckGo's.
- * Inlined as it came, a few KB. A subdomain without one gets its domain's (`you.substack.com` →
- * `substack.com`). Null when the site has none; undefined when a provider
- * couldn't answer (a timeout, a 5xx, a rate limit), so a caller can ask
- * again later rather than keep "none". Private hosts are never sent, and
- * get null. Pass `lookups` to share answers
- * across calls; otherwise it doesn't cache.
+ * A site's favicon as a data URL, from Google's favicon service or, when
+ * Google has none, DuckDuckGo's; with `siteIcons`, the icon the site's own
+ * page declares (an SVG, or the smallest PNG of 32px or more) or its
+ * `/favicon.ico` comes first. Inlined as it came, a few KB. A subdomain
+ * without one gets its domain's (`you.substack.com` → `substack.com`). Null
+ * when the site has none; undefined when a service couldn't answer (a
+ * timeout, a 5xx, a rate limit), so a caller can ask again later rather than
+ * keep "none". Private hosts are never sent, and get null. Pass `lookups` to
+ * share answers across calls (with the same `siteIcons`); otherwise it
+ * doesn't cache.
  */
 export async function lookupLinkFavicon(
   host: string,
-  lookups?: FaviconLookups,
+  options: LinkFaviconOptions & { lookups?: FaviconLookups } = {},
 ): Promise<string | null | undefined> {
   // Private hosts (`localhost`, `10.x`, `*.local`) are never sent to the services.
   let name: string | null = host.toLowerCase().replace(/\.$/, "");
   if (!name || isPrivateHost(name)) return null;
   while (name) {
-    const icon = await ask(name, lookups);
+    const icon = await ask(name, options);
     if (icon !== null) return icon;
     name = parentDomain(name);
   }
@@ -255,6 +272,9 @@ export async function lookupLinkFavicon(
 }
 
 /** A site's favicon as a data URL, or null when it has none or none could be fetched. See `lookupLinkFavicon`. */
-export async function fetchLinkFavicon(host: string): Promise<string | null> {
-  return (await lookupLinkFavicon(host)) ?? null;
+export async function fetchLinkFavicon(
+  host: string,
+  options: LinkFaviconOptions = {},
+): Promise<string | null> {
+  return (await lookupLinkFavicon(host, options)) ?? null;
 }

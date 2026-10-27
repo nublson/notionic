@@ -19,6 +19,8 @@ const respond =
     new Response(body === undefined ? null : body, { status, headers });
 const html = (head: string) =>
   respond(200, `<html><head>${head}</head><body></body></html>`, { "content-type": "text/html" });
+/** Reads the site's own icon first, as `linkFavicons: { siteIcons: true }` does. */
+const SITE = { siteIcons: true } as const;
 const google = (host: string) => `https://www.google.com/s2/favicons?domain=${host}&sz=32`;
 const duck = (host: string) => `https://icons.duckduckgo.com/ip3/${host}.ico`;
 
@@ -95,7 +97,7 @@ describe("fetchLinkFavicon", () => {
       "https://purl.live/": html('<link rel="icon" href="/icon.svg" type="image/svg+xml">'),
       "https://purl.live/icon.svg": respond(200, SVG),
     });
-    expect(await fetchLinkFavicon("purl.live")).toMatch(/^data:image\/svg\+xml;base64,/);
+    expect(await fetchLinkFavicon("purl.live", SITE)).toMatch(/^data:image\/svg\+xml;base64,/);
     expect(web.asked()).toEqual(["https://purl.live/", "https://purl.live/icon.svg"]);
   });
 
@@ -110,7 +112,7 @@ describe("fetchLinkFavicon", () => {
       "https://cdn.example.net/icon.svg": new TypeError("fetch failed"),
       "https://example.com/icon.png": respond(200, PNG),
     });
-    expect(await fetchLinkFavicon("example.com")).toMatch(/^data:image\/png/);
+    expect(await fetchLinkFavicon("example.com", SITE)).toMatch(/^data:image\/png/);
     expect(web.asked()).not.toContain("http://icons.rebind.example:8080/action.png");
     vi.mocked(lookup).mockReset();
     vi.mocked(lookup).mockImplementation((async () => [
@@ -123,7 +125,7 @@ describe("fetchLinkFavicon", () => {
       "https://example.com/": html("<title>x</title>"),
       "https://example.com/favicon.ico": respond(200, ICO),
     });
-    expect(await fetchLinkFavicon("example.com")).toMatch(/^data:image\/x-icon;base64,/);
+    expect(await fetchLinkFavicon("example.com", SITE)).toMatch(/^data:image\/x-icon;base64,/);
   });
 
   it("moves to Google when the site's icon isn't an image, or the site doesn't answer", async () => {
@@ -132,14 +134,24 @@ describe("fetchLinkFavicon", () => {
       "https://example.com/icon.png": respond(200, "<html>login</html>"),
       [google("example.com")]: respond(200, PNG),
     });
-    expect(await fetchLinkFavicon("example.com")).toMatch(/^data:image\/png/);
+    expect(await fetchLinkFavicon("example.com", SITE)).toMatch(/^data:image\/png/);
     expect(web.asked().at(-1)).toBe(google("example.com"));
 
     web = stubWeb({
       "https://example.com/": new TypeError("fetch failed"),
       [google("example.com")]: respond(200, PNG),
     });
-    expect(await fetchLinkFavicon("example.com")).toMatch(/^data:image\/png/);
+    expect(await fetchLinkFavicon("example.com", SITE)).toMatch(/^data:image\/png/);
+  });
+
+  it("never contacts the site itself by default", async () => {
+    const web = stubWeb({
+      "https://purl.live/": html('<link rel="icon" href="/icon.svg">'),
+      [google("purl.live")]: respond(200, PNG),
+    });
+    expect(await fetchLinkFavicon("purl.live")).toMatch(/^data:image\/png/);
+    expect(await lookupLinkFavicon("purl.live")).toMatch(/^data:image\/png/);
+    expect(web.asked().every((url) => !url.startsWith("https://purl.live"))).toBe(true);
   });
 
   it("uses Google's icon when the site has none", async () => {

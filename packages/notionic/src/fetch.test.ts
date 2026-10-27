@@ -304,6 +304,15 @@ describe("link favicons", () => {
     expect(asked.filter((url) => url.endsWith("domain=example.com&sz=32"))).toHaveLength(1);
   });
 
+  it("reads each site's own icon only with siteIcons", async () => {
+    const fetch = stubProviders();
+    const { client } = fakeClient({ root: [[para("a", "https://example.com/")]] });
+    await fetchBlocks(client, "root", { linkFavicons: true });
+    expect(fetch.mock.calls.map(([url]) => String(url))).not.toContain("https://example.com/");
+    await fetchBlocks(client, "root", { linkFavicons: { siteIcons: true } });
+    expect(fetch.mock.calls.map(([url]) => String(url))).toContain("https://example.com/");
+  });
+
   it("never asks about private hosts", async () => {
     const fetch = stubProviders();
     const { client } = fakeClient({
