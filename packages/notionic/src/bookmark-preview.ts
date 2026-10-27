@@ -157,18 +157,24 @@ export async function readHead(response: Response): Promise<string> {
 }
 
 /**
- * Whether a host name resolves to a private address, so a public-looking
- * name can't point a request at the server's own network. Skipped where the
- * runtime has no DNS (edge runtimes, which can't reach private networks).
- * A name that doesn't resolve isn't private; its request fails anyway.
+ * Whether a host name may resolve to a private address, so a public-looking
+ * name can't point a request at the server's own network. A lookup that
+ * fails counts as private (the request would fail anyway). Skipped where the
+ * runtime has no `node:dns` (edge runtimes); there, private networks are only
+ * kept out by the literal-address check.
  */
 async function resolvesPrivately(hostname: string): Promise<boolean> {
+  let lookup: typeof import("node:dns/promises").lookup;
   try {
-    const { lookup } = await import("node:dns/promises");
-    const addresses = await lookup(hostname.replace(/^\[|\]$/g, ""), { all: true });
-    return addresses.some(({ address }) => isPrivateHost(address));
+    ({ lookup } = await import("node:dns/promises"));
   } catch {
     return false;
+  }
+  try {
+    const addresses = await lookup(hostname.replace(/^\[|\]$/g, ""), { all: true });
+    return addresses.length === 0 || addresses.some(({ address }) => isPrivateHost(address));
+  } catch {
+    return true;
   }
 }
 
