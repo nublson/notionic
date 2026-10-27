@@ -1,0 +1,5 @@
+---
+"notionic": minor
+---
+
+Link favicons can now use the icon each site declares for itself: `linkFavicons: { siteIcons: true }` (and `fetchLinkFavicon(host, { siteIcons: true })`) reads the site's home page first and takes its SVG icon, or the smallest PNG of 32px or more, or its `/favicon.ico`, before Google's and DuckDuckGo's services, whose stored copies can be stale or re-encoded (Purl's came back as a white-cornered JPEG). It's off by default, since it fetches URLs the linked sites choose; each hop is checked for private hosts, and a site's own icon is capped at 100 KB. Image blocks and link favicons get a soft hairline that follows the image's own shape (`--notionic-image-edge`: 25% black, or 25% white in dark mode) instead of a square outline, so a light, dark, round or transparent image keeps an edge without a box around it. Video and embed frames keep the square outline. Fetching also refuses host names that resolve to private addresses (where the runtime has DNS), for bookmark previews and favicons alike.

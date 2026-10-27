@@ -13,7 +13,7 @@ import type {
   RichText as RichTextArray,
 } from "../types";
 import { cx, plainText } from "../utils";
-import { BROKEN_IMAGE, IconSlot } from "./icon";
+import { BROKEN_IMAGE, IconSlot, IMAGE_EDGE, IMAGE_OUTLINE } from "./icon";
 
 /** An http(s) URL, or a same-site path such as a file proxy route. */
 function isUrl(url: string): boolean {
@@ -59,7 +59,7 @@ export function Image({ block, context }: BlockProps<"image">) {
         alt={plainText(block.image.caption)}
         loading="lazy"
         decoding="async"
-        className={cx("h-auto max-w-full", MEDIA_OUTLINE)}
+        className={cx("h-auto max-w-full rounded-lg", IMAGE_EDGE)}
       />
       <Caption caption={block.image.caption} context={context} />
     </figure>
@@ -67,8 +67,7 @@ export function Image({ block, context }: BlockProps<"image">) {
 }
 
 // An inset hairline (--notionic-image-outline) so light media keep an edge.
-const MEDIA_OUTLINE =
-  "rounded-lg outline outline-1 -outline-offset-1 outline-(--notionic-image-outline)";
+const MEDIA_OUTLINE = `rounded-lg ${IMAGE_OUTLINE}`;
 // Players and embeds also get a muted fill, so they have a shape while they
 // load. Images don't: it would show through transparent ones.
 const MEDIA_SURFACE = `${MEDIA_OUTLINE} bg-muted`;

@@ -34,6 +34,10 @@
   /* Inset outline on images, so light ones keep an edge: pure black at 10%,
      pure white at 10% in dark mode, never a tinted neutral. */
   --notionic-image-outline: oklch(0 0 0 / 0.1);
+  /* Soft edge that follows an image's own shape (image blocks, link
+     favicons), so a light or dark image keeps an edge without a box round
+     its transparent corners. */
+  --notionic-image-edge: oklch(0 0 0 / 0.25);
 }
 
 /*
@@ -53,6 +57,7 @@
     --notionic-pink: light-dark(oklch(52.5% 0.223 3.958), oklch(71.8% 0.202 349.761));
     --notionic-red: light-dark(oklch(50.5% 0.213 27.518), oklch(70.4% 0.191 22.216));
     --notionic-image-outline: light-dark(oklch(0 0 0 / 0.1), oklch(1 0 0 / 0.1));
+    --notionic-image-edge: light-dark(oklch(0 0 0 / 0.25), oklch(1 0 0 / 0.25));
   }
 }
 
@@ -69,6 +74,7 @@
   --notionic-pink: oklch(71.8% 0.202 349.761);
   --notionic-red: oklch(70.4% 0.191 22.216);
   --notionic-image-outline: oklch(1 0 0 / 0.1);
+  --notionic-image-edge: oklch(1 0 0 / 0.25);
 }
 
 /*
