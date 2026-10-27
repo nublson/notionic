@@ -6,7 +6,12 @@ import type {
   PageObjectResponse,
 } from "@notionhq/client";
 import { fetchBookmarkPreview, isPrivateHost } from "./bookmark-preview";
-import { type FaviconLookups, fetchLinkFavicon, lookupLinkFavicon } from "./link-favicons";
+import {
+  type FaviconLookups,
+  fetchLinkFavicon,
+  type LinkFaviconOptions,
+  lookupLinkFavicon,
+} from "./link-favicons";
 import { externalLinkHost } from "./links";
 import { toLinkedPage, toNotionPage } from "./page";
 import type { NotionBlock, NotionPage } from "./types";
@@ -45,13 +50,15 @@ export type FetchBlocksOptions = {
   /**
    * Fetch the favicon of each site linked from text (Google's favicon
    * service, then DuckDuckGo's) and attach it to the block as `linkFavicons`,
-   * by host, for `<NotionRenderer linkFavicons>`. Default false. Each host is
+   * by host, for `<NotionRenderer linkFavicons>`. Default false. Pass
+   * `{ siteIcons: true }` to read each site's own icon first (see
+   * `LinkFaviconOptions`). Each host is
    * looked up once per call; a subdomain without an icon gets its parent
    * domain's. A site with none is recorded as null (a globe); a host the
    * services can't answer for within 3 seconds is left out, so the next
    * fetch asks again. Private hosts are never sent.
    */
-  linkFavicons?: boolean;
+  linkFavicons?: boolean | LinkFaviconOptions;
 };
 
 type Result = ListBlockChildrenResponse["results"][number];
@@ -118,7 +125,10 @@ async function mapPool<T, R>(
 }
 
 /** The block with the favicons of the sites its text links to, when any was looked up. */
-async function withLinkFavicons(block: NotionBlock, lookups: FaviconLookups): Promise<NotionBlock> {
+async function withLinkFavicons(
+  block: NotionBlock,
+  favicons: LinkFaviconOptions & { lookups: FaviconLookups },
+): Promise<NotionBlock> {
   const hosts = new Set<string>();
   for (const text of richTexts(block)) {
     for (const item of text) {
@@ -129,7 +139,7 @@ async function withLinkFavicons(block: NotionBlock, lookups: FaviconLookups): Pr
   }
   if (hosts.size === 0) return block;
   const icons = await Promise.all(
-    [...hosts].map(async (host) => [host, await lookupLinkFavicon(host, lookups)] as const),
+    [...hosts].map(async (host) => [host, await lookupLinkFavicon(host, favicons)] as const),
   );
   // null records a site without an icon; a host the services couldn't answer
   // for is left out, so the next fetch asks again.
@@ -144,7 +154,7 @@ type FetchState = {
   concurrency: number;
   bookmarkPreviews: boolean;
   /** Present when favicons are fetched. */
-  faviconLookups?: FaviconLookups;
+  favicons?: LinkFaviconOptions & { lookups: FaviconLookups };
 };
 
 async function fetchTree(
@@ -156,9 +166,7 @@ async function fetchTree(
   const blocks = await listChildren(client, blockId);
 
   return mapPool(blocks, state.concurrency, async (fetched) => {
-    const block = state.faviconLookups
-      ? await withLinkFavicons(fetched, state.faviconLookups)
-      : fetched;
+    const block = state.favicons ? await withLinkFavicons(fetched, state.favicons) : fetched;
     if (block.type === "link_to_page" && block.link_to_page.type === "page_id") {
       const page = await retrievePage(client, block.link_to_page.page_id);
       return page ? { ...block, linkedPage: toLinkedPage(page) } : block;
@@ -199,7 +207,9 @@ export async function fetchBlocks(
   return fetchTree(client, blockId, maxDepth, {
     concurrency,
     bookmarkPreviews,
-    faviconLookups: linkFavicons ? new Map() : undefined,
+    favicons: linkFavicons
+      ? { ...(linkFavicons === true ? {} : linkFavicons), lookups: new Map() }
+      : undefined,
   });
 }
 
@@ -226,3 +236,4 @@ export async function fetchPage(
 export { fetchBookmarkPreview };
 /** A site's favicon as a data URL, as `linkFavicons` fetches it; null if it has none. */
 export { fetchLinkFavicon };
+export type { LinkFaviconOptions };

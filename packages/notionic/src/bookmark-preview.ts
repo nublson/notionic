@@ -83,7 +83,7 @@ function clean(value: string | undefined): string | undefined {
 }
 
 /** The attributes of each tag with the given name, lowercased keys. */
-function tags(html: string, name: string): Record<string, string>[] {
+export function tags(html: string, name: string): Record<string, string>[] {
   const found: Record<string, string>[] = [];
   for (const [tag] of html.matchAll(new RegExp(`<${name}\\b[^>]*>`, "gi"))) {
     const attributes: Record<string, string> = {};
@@ -98,7 +98,7 @@ function tags(html: string, name: string): Record<string, string>[] {
 }
 
 /** An absolute http(s) URL resolved against the page, or undefined. */
-function absolute(value: string | undefined, base: URL): string | undefined {
+export function absolute(value: string | undefined, base: URL): string | undefined {
   if (!value) return undefined;
   try {
     const url = new URL(decodeEntities(value.trim()), base);
@@ -139,7 +139,7 @@ export function parseBookmarkPreview(html: string, pageUrl: string): BookmarkPre
 }
 
 /** Reads up to MAX_BYTES of a response body as text. */
-async function readHead(response: Response): Promise<string> {
+export async function readHead(response: Response): Promise<string> {
   if (!response.body) return "";
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -157,33 +157,78 @@ async function readHead(response: Response): Promise<string> {
 }
 
 /**
+ * Whether a host name may resolve to a private address, so a public-looking
+ * name can't point a request at the server's own network. A lookup that
+ * fails counts as private (the request would fail anyway). Skipped where the
+ * runtime has no `node:dns` (edge runtimes); there, private networks are only
+ * kept out by the literal-address check.
+ */
+async function resolvesPrivately(hostname: string): Promise<boolean> {
+  let lookup: typeof import("node:dns/promises").lookup;
+  try {
+    ({ lookup } = await import("node:dns/promises"));
+  } catch {
+    return false;
+  }
+  try {
+    const addresses = await lookup(hostname.replace(/^\[|\]$/g, ""), { all: true });
+    return addresses.length === 0 || addresses.some(({ address }) => isPrivateHost(address));
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Fetches a public URL, following redirects by hand so each hop gets the
+ * private-host check, on both the name and the addresses it resolves to. The final response and its URL, or null when a hop
+ * isn't public or there are too many. Throws on network errors and timeouts.
+ */
+export async function fetchPublic(
+  url: string,
+  accept: string,
+  signal: AbortSignal,
+): Promise<{ response: Response; url: URL } | null> {
+  let target = fetchableUrl(url);
+  for (let hop = 0; target && hop <= MAX_REDIRECTS; hop++) {
+    if (await resolvesPrivately(target.hostname)) return null;
+    const response = await fetch(target, {
+      headers: { accept, "user-agent": USER_AGENT },
+      redirect: "manual",
+      signal,
+    });
+    const location = response.headers.get("location");
+    if (response.status >= 300 && response.status < 400 && location) {
+      await response.body?.cancel().catch(() => {});
+      target = fetchableUrl(new URL(location, target).href);
+      continue;
+    }
+    return { response, url: target };
+  }
+  return null;
+}
+
+/** Whether a response is an HTML page. */
+export function isHtml(response: Response): boolean {
+  return response.ok && /html/i.test(response.headers.get("content-type") ?? "");
+}
+
+/**
  * The preview card data for a bookmarked page, read from its HTML, or null
  * when the page can't be fetched, isn't HTML, or has no title.
  */
 export async function fetchBookmarkPreview(url: string): Promise<BookmarkPreview | null> {
-  let target = fetchableUrl(url);
-  const signal = AbortSignal.timeout(TIMEOUT_MS);
   try {
-    // Redirects are followed by hand so each hop gets the private-host check.
-    for (let hop = 0; target && hop <= MAX_REDIRECTS; hop++) {
-      const response = await fetch(target, {
-        headers: { accept: "text/html,application/xhtml+xml", "user-agent": USER_AGENT },
-        redirect: "manual",
-        signal,
-      });
-      const location = response.headers.get("location");
-      if (response.status >= 300 && response.status < 400 && location) {
-        await response.body?.cancel().catch(() => {});
-        target = fetchableUrl(new URL(location, target).href);
-        continue;
-      }
-      if (!response.ok || !/html/i.test(response.headers.get("content-type") ?? "")) {
-        await response.body?.cancel().catch(() => {});
-        return null;
-      }
-      return parseBookmarkPreview(await readHead(response), target.href);
+    const page = await fetchPublic(
+      url,
+      "text/html,application/xhtml+xml",
+      AbortSignal.timeout(TIMEOUT_MS),
+    );
+    if (!page) return null;
+    if (!isHtml(page.response)) {
+      await page.response.body?.cancel().catch(() => {});
+      return null;
     }
-    return null;
+    return parseBookmarkPreview(await readHead(page.response), page.url.href);
   } catch {
     return null;
   }

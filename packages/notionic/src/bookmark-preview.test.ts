@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { lookup } from "node:dns/promises";
 import { fetchBookmarkPreview, parseBookmarkPreview } from "./bookmark-preview";
 
 const PAGE = "https://example.com/blog/post";
@@ -50,6 +51,28 @@ describe("parseBookmarkPreview", () => {
 });
 
 describe("fetchBookmarkPreview", () => {
+  it("refuses a host whose addresses can't be checked", async () => {
+    vi.mocked(lookup).mockImplementationOnce((async () => {
+      throw new Error("ESERVFAIL");
+    }) as unknown as typeof lookup);
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    expect(await fetchBookmarkPreview("https://flaky-dns.example/")).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it("never fetches a public name that resolves to a private address", async () => {
+    vi.mocked(lookup).mockImplementationOnce((async () => [
+      { address: "127.0.0.1", family: 4 },
+    ]) as unknown as typeof lookup);
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    expect(await fetchBookmarkPreview("https://rebind.example/")).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   afterEach(() => vi.unstubAllGlobals());
 
   const html = (body: string, init: ResponseInit = {}) =>
