@@ -1,16 +1,28 @@
-import { isPrivateHost, USER_AGENT } from "./bookmark-preview";
+import {
+  absolute,
+  fetchPublic,
+  isHtml,
+  isPrivateHost,
+  readHead,
+  tags,
+  USER_AGENT,
+} from "./bookmark-preview";
 
 /** One slow provider shouldn't stall a build. */
 const TIMEOUT_MS = 3000;
 /** Favicons are a few KB; anything bigger isn't one. */
 const MAX_BYTES = 512 * 1024;
+/** A site's own icon is inlined in every page that links to it, so a smaller cap. */
+const SITE_ICON_MAX_BYTES = 100 * 1024;
+/** Icon URLs to try from a site's page before the favicon services. */
+const SITE_ICON_TRIES = 3;
 /** Twice the size the icon renders at, so it stays sharp on dense screens. */
 const ICON_SIZE = 32;
 
 /**
- * Where favicons come from, in order: Google's favicon service, then
- * DuckDuckGo's, which knows subdomains Google misses. Each answers 404 for a
- * host it has no icon for.
+ * Where favicons come from when the site's own icon can't be read: Google's
+ * favicon service, then DuckDuckGo's, which knows subdomains Google misses.
+ * Each answers 404 for a host it has no icon for.
  */
 const PROVIDERS: readonly ((host: string) => string)[] = [
   (host) => `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=${ICON_SIZE}`,
@@ -26,6 +38,10 @@ export function imageType(bytes: Uint8Array): string | null {
   if (at(0, 0x47, 0x49, 0x46, 0x38)) return "image/gif";
   if (at(0, 0xff, 0xd8, 0xff)) return "image/jpeg";
   if (at(0, 0x52, 0x49, 0x46, 0x46) && at(8, 0x57, 0x45, 0x42, 0x50)) return "image/webp";
+  const text = new TextDecoder().decode(bytes.subarray(0, 512)).trimStart().toLowerCase();
+  if (text.startsWith("<svg") || (text.startsWith("<?xml") && text.includes("<svg"))) {
+    return "image/svg+xml";
+  }
   return null;
 }
 
@@ -79,6 +95,64 @@ function isTransient(status: number): boolean {
   return status >= 500 || status === 408 || status === 429;
 }
 
+/**
+ * The icons a page declares, best first: an SVG, then the smallest raster of
+ * 32px or more, then smaller ones, then `/favicon.ico`. `apple-touch-icon`
+ * (a large, opaque tile) is left out.
+ */
+export function siteIconUrls(head: string, base: URL): URL[] {
+  const rank = (link: Record<string, string>) => {
+    const svg = /svg/i.test(link.type ?? "") || /\.svg(?:$|[?#])/i.test(link.href ?? "");
+    if (svg) return 0;
+    const size = Number((link.sizes ?? "").match(/\d+/)?.[0] ?? 0);
+    if (!size) return 3000;
+    return size >= ICON_SIZE ? size : 2000 - size;
+  };
+  const icons = tags(head, "link")
+    .filter((link) => (link.rel ?? "").toLowerCase().split(/\s+/).includes("icon"))
+    .map((link) => ({ link, rank: rank(link) }))
+    .sort((a, b) => a.rank - b.rank)
+    .flatMap(({ link }) => {
+      const href = absolute(link.href, base);
+      return href ? [href] : [];
+    });
+  const urls = [...new Set([...icons, new URL("/favicon.ico", base).href])];
+  return urls.map((url) => new URL(url));
+}
+
+/**
+ * The icon a site declares for itself, read from its home page, or
+ * `/favicon.ico`; null when it has none that loads as an image within the
+ * timeout. Every hop is checked for private hosts.
+ */
+async function siteIcon(host: string): Promise<string | null> {
+  const signal = AbortSignal.timeout(TIMEOUT_MS);
+  try {
+    const home = `https://${host}/`;
+    const page = await fetchPublic(home, "text/html,application/xhtml+xml", signal);
+    let urls = [new URL("/favicon.ico", home)];
+    if (page && isHtml(page.response)) {
+      urls = siteIconUrls(await readHead(page.response), page.url);
+    } else {
+      await page?.response.body?.cancel().catch(() => {});
+    }
+    for (const url of urls.slice(0, SITE_ICON_TRIES)) {
+      const icon = await fetchPublic(url.href, "image/*", signal);
+      if (!icon) continue;
+      if (!icon.response.ok) {
+        await icon.response.body?.cancel().catch(() => {});
+        continue;
+      }
+      const bytes = await readBytes(icon.response, SITE_ICON_MAX_BYTES);
+      const dataUrl = bytes ? imageDataUrl(bytes) : null;
+      if (dataUrl) return dataUrl;
+    }
+  } catch {
+    // A site that's slow or unreachable: the favicon services may still know it.
+  }
+  return null;
+}
+
 /** A provider's icon for the host, or null when it has none. Throws when it can't answer. */
 async function askProvider(url: string): Promise<string | null> {
   const response = await fetch(url, {
@@ -94,8 +168,15 @@ async function askProvider(url: string): Promise<string | null> {
   return bytes ? imageDataUrl(bytes) : null;
 }
 
-/** The host's icon from the first provider that has one; undefined when none has one and one couldn't answer. */
+/**
+ * The host's icon: its own, or from the first service that has one;
+ * undefined when none has one and a service couldn't answer.
+ */
 async function askProviders(host: string): Promise<string | null | undefined> {
+  // The site's own icon first: the services' stored copies can be stale or
+  // re-encoded (a white-cornered JPEG of a rounded icon).
+  const own = await siteIcon(host);
+  if (own) return own;
   let unanswered = false;
   for (const provider of PROVIDERS) {
     try {
@@ -143,9 +224,10 @@ function ask(
 }
 
 /**
- * A site's favicon as a data URL, from Google's favicon service or, when
- * Google has none, DuckDuckGo's: a PNG or ICO of a few KB, inlined as it
- * came. A subdomain without one gets its domain's (`you.substack.com` →
+ * A site's favicon as a data URL: the icon its own page declares (an SVG,
+ * or the smallest PNG of 32px or more) or its `/favicon.ico`, and when it
+ * has none that loads, Google's favicon service and then DuckDuckGo's.
+ * Inlined as it came, a few KB. A subdomain without one gets its domain's (`you.substack.com` →
  * `substack.com`). Null when the site has none; undefined when a provider
  * couldn't answer (a timeout, a 5xx, a rate limit), so a caller can ask
  * again later rather than keep "none". Private hosts are never sent, and

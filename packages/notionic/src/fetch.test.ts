@@ -215,9 +215,15 @@ describe("link favicons", () => {
   const para = (id: string, ...hrefs: string[]) =>
     block("paragraph", { rich_text: hrefs.map((href) => richText("x", { href })) }, { id });
 
-  /** Serves Google's icon for every host but the ones listed, which have none. */
+  /**
+   * Serves Google's icon for every host but the ones listed, which have none.
+   * Sites themselves declare no icon, so lookups reach the services.
+   */
   function stubProviders(missing: string[] = []) {
     const fetch = vi.fn(async (url: URL | string) => {
+      if (!/google\.com|duckduckgo\.com/.test(String(url))) {
+        return new Response(null, { status: 404 });
+      }
       const { searchParams, hostname } = new URL(String(url));
       const host = searchParams.get("domain") ?? hostname;
       const found = !missing.some((name) => String(url).includes(name));
@@ -256,7 +262,9 @@ describe("link favicons", () => {
     });
     expect(toggle!.children?.[0]?.linkFavicons).toHaveProperty("sonner.emilkowal.ski");
     expect(image!.linkFavicons).toHaveProperty("codepen.io");
-    const asked = fetch.mock.calls.map(([url]) => String(url));
+    const asked = fetch.mock.calls
+      .map(([url]) => String(url))
+      .filter((url) => /google\.com|duckduckgo\.com/.test(url));
     expect(asked.filter((url) => url.includes("github.com"))).toHaveLength(1);
     // Google, then DuckDuckGo for the host Google had none for.
     expect(asked.filter((url) => url.includes("none.example"))).toHaveLength(2);
