@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { RichTextItemResponse } from "@notionhq/client";
-import { BROKEN_IMAGE } from "./blocks/icon";
+import { BROKEN_IMAGE, IMAGE_EDGE } from "./blocks/icon";
 import { colorClass, isBackgroundColor } from "./colors";
 import { externalLinkHost, resolveLink } from "./links";
 import type { RenderContext, ResolvedLink, RichText as RichTextArray } from "./types";
@@ -68,9 +68,9 @@ export function LinkFavicon({
       className={cx(
         FAVICON_CLASSES,
         "rounded-[2px] object-contain",
-        // A hairline that follows the icon's shape (--notionic-icon-edge), not
-        // a box: favicons are often round or have transparent corners.
-        "[filter:drop-shadow(0_0_0.5px_var(--notionic-icon-edge))]",
+        // Follows the icon's shape, not a box: favicons are often round or
+        // have transparent corners.
+        IMAGE_EDGE,
         BROKEN_IMAGE,
         className,
       )}

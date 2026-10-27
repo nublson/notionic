@@ -112,6 +112,15 @@ describe("NotionRenderer", () => {
     expect(defaultComponents.link).toBe(NotionLink);
   });
 
+  it("edges images along their shape, not with a square outline", async () => {
+    const html = await render([
+      block("image", { type: "external", external: { url: "https://e.com/a.png" }, caption: [] }),
+    ]);
+    const img = html.match(/<img [^>]*>/)?.[0] ?? "";
+    expect(img).toContain("drop-shadow(0_0_0.5px_var(--notionic-image-edge))");
+    expect(img).not.toContain("outline-(--notionic-image-outline)");
+  });
+
   describe("link favicons", () => {
     const ICON = "data:image/png;base64,AAAA";
     const withIcons = (...text: ReturnType<typeof richText>[]): NotionBlock => ({
@@ -144,7 +153,7 @@ describe("NotionRenderer", () => {
       expect(known).toContain("before:bg-muted");
       // A hairline that follows the icon's own shape, so a light or dark icon keeps
       // an edge without a box around its transparent corners.
-      expect(known).toContain("drop-shadow(0_0_0.5px_var(--notionic-icon-edge))");
+      expect(known).toContain("drop-shadow(0_0_0.5px_var(--notionic-image-edge))");
       expect(known).not.toContain("outline-(--notionic-image-outline)");
       expect(unknown).toMatch(/^<a [^>]*><svg aria-hidden="true"[^>]*text-muted-foreground/);
       expect(unknown).toContain("<circle");
