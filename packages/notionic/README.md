@@ -217,7 +217,7 @@ Headings match ignoring case. The section runs to the next heading of the same o
 
 Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`.
 
-Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
+Headings render at their Notion level: heading 1 as `<h1>`, heading 2 as `<h2>`, and so on. Headings get ids and anchor links.
 
 Tabs render as real tabs with no JavaScript: a row of pills that scrolls sideways, and one panel at a time. To use shadcn's Tabs component instead, add `notion-tabs` from the shadcn registry.
 
@@ -300,7 +300,7 @@ import { blocksToMarkdown } from "notionic/markdown";
 const markdown = `# ${page.title}\n\n${blocksToMarkdown(blocks, { pageHref, transformFileUrl })}`;
 ```
 
-It takes the same `pageHref` and `transformFileUrl` as `NotionRenderer`, so links and files match the HTML. Notion's heading 1 becomes `##`, so add the page title yourself. Toggles become `<details>`, equations `$…$` and `$$…$$`.
+It takes the same `pageHref` and `transformFileUrl` as `NotionRenderer`, so links and files match the HTML. Notion's heading 1 becomes `#`, heading 2 `##`, and so on. Toggles become `<details>`, equations `$…$` and `$$…$$`.
 
 ## Uploaded files
 

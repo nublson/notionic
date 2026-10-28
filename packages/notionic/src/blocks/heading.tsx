@@ -12,12 +12,12 @@ import { cx, plainText } from "../utils";
 type HeadingType = "heading_1" | "heading_2" | "heading_3" | "heading_4";
 type HeadingProps = { [T in HeadingType]: BlockProps<T> }[HeadingType];
 
-// A page's title is its h1, so Notion's heading 1 renders as h2, and so on.
+// Each Notion heading renders at its own level: heading 1 as h1, and so on.
 export const HEADING_LEVELS = {
-  heading_1: { Tag: "h2", className: "mt-6 text-2xl leading-tight font-semibold tracking-tight" },
-  heading_2: { Tag: "h3", className: "mt-4 text-xl leading-tight font-semibold tracking-tight" },
-  heading_3: { Tag: "h4", className: "mt-4 text-lg leading-snug font-semibold tracking-tight" },
-  heading_4: { Tag: "h5", className: "mt-4 text-base leading-snug font-semibold" },
+  heading_1: { Tag: "h1", className: "mt-6 text-2xl leading-tight font-semibold tracking-tight" },
+  heading_2: { Tag: "h2", className: "mt-4 text-xl leading-tight font-semibold tracking-tight" },
+  heading_3: { Tag: "h3", className: "mt-4 text-lg leading-snug font-semibold tracking-tight" },
+  heading_4: { Tag: "h4", className: "mt-4 text-base leading-snug font-semibold" },
 } as const;
 
 // Inline after the heading, so it follows the last word when the heading
