@@ -395,7 +395,8 @@ function PreviewCard({
 
 /**
  * The default frame around a demo: a bordered stage with the caption below.
- * The stage fits the demo, or with a `height` is that tall, border included.
+ * The stage fits the demo, or with a `height` is that tall, border included;
+ * it centers the demo, so a fixed height needs no vertical padding to go small.
  */
 export function DemoFrame({ caption, height, context, children }: DemoFrameProps) {
   return (
@@ -403,8 +404,8 @@ export function DemoFrame({ caption, height, context, children }: DemoFrameProps
       <div
         style={height ? { height } : undefined}
         className={cx(
-          "flex flex-col items-center justify-center gap-6 overflow-hidden rounded-xl border border-border px-6 py-10",
-          height ? "box-border" : "box-content min-h-56",
+          "flex flex-col items-center justify-center gap-6 overflow-hidden rounded-xl border border-border px-6",
+          height ? "box-border" : "box-content min-h-56 py-10",
         )}
       >
         {children}
