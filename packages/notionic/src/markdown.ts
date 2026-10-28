@@ -85,8 +85,7 @@ function linkLine(label: string, url: string | null, context: Context): string {
 }
 
 function headingLevel(type: string): number {
-  // A page's title is its h1, so Notion's heading 1 is ##, as in the HTML.
-  return Number(type.slice(-1)) + 1;
+  return Number(type.slice(-1));
 }
 
 function listItems(items: NotionBlock[], context: Context): string {
@@ -302,7 +301,7 @@ function render(blocks: NotionBlock[], context: Context): string {
 /**
  * Notion blocks as GitHub-flavored Markdown, for feeds, `llms.txt` and other
  * plain-text uses. Links and files resolve as in `NotionRenderer`; Notion's
- * heading 1 becomes `##`, so add the page title as `#` yourself.
+ * heading 1 becomes `#`, heading 2 `##`, and so on.
  */
 export function blocksToMarkdown(blocks: NotionBlock[], options: MarkdownOptions = {}): string {
   const context: Context = {
