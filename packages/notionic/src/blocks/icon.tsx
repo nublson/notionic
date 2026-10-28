@@ -3,11 +3,6 @@ import { resolveFileUrl } from "../files";
 import type { PageIcon, RenderContext } from "../types";
 import { cx } from "../utils";
 
-// An inset hairline (--notionic-image-outline: 10% black, 10% white in dark
-// mode) so a rectangular frame (a video, an embed) keeps its edge.
-export const IMAGE_OUTLINE =
-  "outline outline-1 -outline-offset-1 outline-(--notionic-image-outline)";
-
 // A soft hairline that follows an image's own shape (--notionic-image-edge),
 // so a round or transparent image keeps an edge without a box around it.
 export const IMAGE_EDGE = "[filter:drop-shadow(0_0_0.5px_var(--notionic-image-edge))]";
