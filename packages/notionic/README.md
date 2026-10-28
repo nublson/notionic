@@ -176,6 +176,8 @@ export function MorphButton({ params }: DemoProps) { /* … */ }
 
 In Notion, add `/embed` with `https://your-site.com/demos/morph-button`. Only the path counts, so the same embed renders on localhost and previews. The URL's query reaches the demo as `params`: `?speed=slow` is `{ speed: "slow" }`. Unknown names render as links.
 
+The frame fits the demo. To give it a height, add `?height=` in pixels to the embed URL: `…/demos/morph-button?height=320` makes the frame 320px tall, border included. Notion's API doesn't send the size you drag an embed to, so resizing it in Notion only changes how it looks there.
+
 To see the demo inside Notion while you write, add a page at `/demos/[name]` that renders the demo alone:
 
 ```tsx
@@ -188,7 +190,7 @@ export default async function DemoPage({ params }: { params: Promise<{ name: str
 }
 ```
 
-Demos render in `DemoFrame`, a bordered stage with the caption centered below. Replace it with `components={{ demo: MyFrame }}`; it gets the demo as `children`, plus `name`, `caption` and `context`. Only the demos a page uses send JavaScript to the browser.
+Demos render in `DemoFrame`, a bordered stage with the caption centered below. Replace it with `components={{ demo: MyFrame }}`; it gets the demo as `children`, plus `name`, `caption`, `height` (from `?height=`, or undefined) and `context`. Only the demos a page uses send JavaScript to the browser.
 
 ### Footnotes
 

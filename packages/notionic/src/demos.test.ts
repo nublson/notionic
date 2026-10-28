@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchDemo } from "./demos";
+import { demoHeight, matchDemo } from "./demos";
 
 const Button = () => null;
 const demos = { "morph-button": Button };
@@ -33,5 +33,16 @@ describe("matchDemo", () => {
       expect(matchDemo(url, demos)).toBeNull();
     }
     expect(matchDemo("https://nublson.com/demos/morph-button", undefined)).toBeNull();
+  });
+});
+
+describe("demoHeight", () => {
+  it("reads ?height= as whole pixels, and ignores anything else", () => {
+    expect(demoHeight({ height: "320" })).toBe(320);
+    expect(demoHeight({ height: "9999" })).toBe(9999);
+    for (const height of ["", "0", "-5", "12.5", "320px", "1e3", " 320", "10000"]) {
+      expect(demoHeight({ height })).toBeUndefined();
+    }
+    expect(demoHeight({ speed: "slow" })).toBeUndefined();
   });
 });

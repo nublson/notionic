@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { DemoBoundary } from "../demo-boundary";
-import { matchDemo } from "../demos";
+import { demoHeight, matchDemo } from "../demos";
 import { resolveFileUrl } from "../files";
 import { resolveLink, resolvePageLink } from "../links";
 import { NotionLink, RichText } from "../rich-text";
@@ -393,11 +393,20 @@ function PreviewCard({
   );
 }
 
-/** The default frame around a demo: a bordered stage with the caption below. */
-export function DemoFrame({ caption, context, children }: DemoFrameProps) {
+/**
+ * The default frame around a demo: a bordered stage with the caption below.
+ * The stage fits the demo, or with a `height` is that tall, border included.
+ */
+export function DemoFrame({ caption, height, context, children }: DemoFrameProps) {
   return (
     <figure>
-      <div className="flex box-content min-h-56 flex-col items-center justify-center gap-6 overflow-hidden rounded-xl border border-border px-6 py-10">
+      <div
+        style={height ? { height } : undefined}
+        className={cx(
+          "flex flex-col items-center justify-center gap-6 overflow-hidden rounded-xl border border-border px-6 py-10",
+          height ? "box-border" : "box-content min-h-56",
+        )}
+      >
         {children}
       </div>
       {caption.length ? (
@@ -412,15 +421,20 @@ export function DemoFrame({ caption, context, children }: DemoFrameProps) {
 /**
  * An embed, as a preview card linking to it: embedding any site in an iframe
  * is unsafe, and most refuse it. An embed of `…/demos/<name>` whose name is one of
- * `demos` renders that demo component instead, in the `demo` frame. A demo that
- * throws leaves its frame empty.
+ * `demos` renders that demo component instead, in the `demo` frame, as tall as
+ * the URL's `?height=` says. A demo that throws leaves its frame empty.
  */
 export function Embed({ block, context }: BlockProps<"embed">) {
   const demo = matchDemo(block.embed.url, context.demos);
   if (demo) {
     const Frame = context.components.demo ?? DemoFrame;
     return (
-      <Frame name={demo.name} caption={block.embed.caption} context={context}>
+      <Frame
+        name={demo.name}
+        caption={block.embed.caption}
+        height={demoHeight(demo.params)}
+        context={context}
+      >
         <DemoBoundary>
           <demo.Component name={demo.name} params={demo.params} />
         </DemoBoundary>
