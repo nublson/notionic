@@ -1,5 +1,11 @@
 # notionic
 
+## 0.16.1
+
+### Patch Changes
+
+- [#58](https://github.com/nublson/notionic/pull/58) [`420545f`](https://github.com/nublson/notionic/commit/420545fa99de90a5905c181f37eb865fac8fdc32) Thanks [@nublson](https://github.com/nublson)! - Keep the hairline around live embeds, YouTube players and videos on iOS and Safari. It now sits on a layer above the media, since WebKit painted their content over an outline on the element itself.
+
 ## 0.16.0
 
 ### Minor Changes
