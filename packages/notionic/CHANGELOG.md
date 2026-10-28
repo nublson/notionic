@@ -1,5 +1,11 @@
 # notionic
 
+## 0.15.0
+
+### Minor Changes
+
+- [#56](https://github.com/nublson/notionic/pull/56) [`6326645`](https://github.com/nublson/notionic/commit/63266452bbce4e758f699c138036fbffcb5851c4) Thanks [@nublson](https://github.com/nublson)! - Live embeds take `?height=` like demos: an embed of `https://www.sanding.space/demos/surface?height=600` that `embeds` allows renders as a 600px-tall iframe instead of 16:9. The URL reaches the embedded page unchanged.
+
 ## 0.14.0
 
 ### Minor Changes
