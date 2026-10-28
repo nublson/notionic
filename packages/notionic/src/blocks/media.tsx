@@ -9,6 +9,7 @@ import type {
   BookmarkPreview,
   PageIcon,
   DemoFrameProps,
+  EmbedPolicy,
   RenderContext,
   RichText as RichTextArray,
 } from "../types";
@@ -420,10 +421,34 @@ export function DemoFrame({ caption, height, context, children }: DemoFrameProps
 }
 
 /**
+ * Whether `embeds` lets this URL load in an iframe: only http(s) URLs, and of
+ * those all (`true`), the ones whose host is a listed host or a subdomain of
+ * one, or the ones the function accepts.
+ */
+function allowsEmbed(url: string, embeds: EmbedPolicy | undefined): boolean {
+  if (!embeds) return false;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+  if (embeds === true) return true;
+  if (typeof embeds === "function") return embeds(parsed.href);
+  const host = parsed.hostname.toLowerCase();
+  return embeds.some((allowed) => {
+    const listed = allowed.toLowerCase();
+    return host === listed || host.endsWith(`.${listed}`);
+  });
+}
+
+/**
  * An embed, as a preview card linking to it: embedding any site in an iframe
- * is unsafe, and most refuse it. An embed of `…/demos/<name>` whose name is one of
- * `demos` renders that demo component instead, in the `demo` frame, as tall as
- * the URL's `?height=` says. A demo that throws leaves its frame empty.
+ * is unsafe, and most refuse it. A site `embeds` allows loads in a sandboxed
+ * iframe instead. An embed of `…/demos/<name>` whose name is one of `demos`
+ * renders that demo component, in the `demo` frame, as tall as the URL's
+ * `?height=` says. A demo that throws leaves its frame empty.
  */
 export function Embed({ block, context }: BlockProps<"embed">) {
   const demo = matchDemo(block.embed.url, context.demos);
@@ -440,6 +465,24 @@ export function Embed({ block, context }: BlockProps<"embed">) {
           <demo.Component name={demo.name} params={demo.params} />
         </DemoBoundary>
       </Frame>
+    );
+  }
+  if (allowsEmbed(block.embed.url, context.embeds)) {
+    const caption = block.embed.caption;
+    return (
+      <figure>
+        <iframe
+          src={block.embed.url}
+          title={plainText(caption) || block.bookmarkPreview?.title || "Embedded content"}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+          allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+          loading="lazy"
+          className={cx("aspect-video w-full", MEDIA_SURFACE)}
+        />
+        <Caption caption={caption} context={context} />
+      </figure>
     );
   }
   return (
