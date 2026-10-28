@@ -1,5 +1,13 @@
 # notionic
 
+## 0.13.0
+
+### Minor Changes
+
+- [#53](https://github.com/nublson/notionic/pull/53) [`377f0a1`](https://github.com/nublson/notionic/commit/377f0a15d16e07d37eec2ed583d299bfe5ac5f9d) Thanks [@nublson](https://github.com/nublson)! - Demo embeds take a height: `…/demos/<name>?height=320` makes the demo's frame 320px tall, border included, with the demo centered and no vertical padding, so short frames stay as short as asked. Notion's API doesn't send the size an embed is given in Notion, so the URL carries it. Custom frames get it as the `height` prop (undefined without one); the default frame still fits the demo when there's none.
+
+- [#52](https://github.com/nublson/notionic/pull/52) [`0939992`](https://github.com/nublson/notionic/commit/0939992eb3fc0e9af5b3422882bcface8c660dfa) Thanks [@nublson](https://github.com/nublson)! - Headings now render at their Notion level instead of one level down: heading 1 is `<h1>`, heading 2 `<h2>`, heading 3 `<h3>` and heading 4 `<h4>`, and `blocksToMarkdown` writes `#` through `####`. The footnotes title follows its marker heading the same way. If your page title is also an `<h1>`, use heading 2 and below in Notion for sections.
+
 ## 0.12.0
 
 ### Minor Changes
