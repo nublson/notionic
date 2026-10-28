@@ -19,6 +19,8 @@ import {
 import { Table } from "./blocks/table";
 import { Tab, TableOfContents } from "./blocks/navigation";
 import { Callout, Divider, Equation, InlineEquation, Paragraph, Quote } from "./blocks/text";
+import { EmbedResizer } from "./embed-resizer";
+import { hasLiveEmbed } from "./embeds";
 import { collectFootnotes } from "./footnotes";
 import { defaultPageHref, normalizePageId } from "./links";
 import type { HostedFile } from "./files";
@@ -252,6 +254,12 @@ export type NotionRendererProps = {
    * framed and show an empty frame, so list the ones you use. An embedded
    * page runs its own scripts, so only allow sites you trust, and not your
    * own origin. Default false: every embed is a card.
+   *
+   * A framed page can post `{ type: "notionic:resize", height }` to its
+   * parent to set its frame's height in pixels (see `EmbedResizer`). With a
+   * function, only a page on the embed URL's own origin can, since the
+   * function can't run in the browser; embed a redirecting URL by its final
+   * address.
    */
   embeds?: EmbedPolicy;
   /**
@@ -293,7 +301,7 @@ export function collectLinkFavicons(blocks: NotionBlock[]): Map<string, string |
 /**
  * Renders Notion blocks. Works as a Server Component; it ships no client
  * JavaScript of its own, beyond a small boundary around demos (which ship
- * theirs).
+ * theirs) and, on a page with live embeds, a listener that resizes them.
  */
 export function NotionRenderer({
   blocks,
@@ -329,6 +337,9 @@ export function NotionRenderer({
       ) : (
         <BlockList blocks={blocks} context={context} />
       )}
+      {hasLiveEmbed(blocks, embeds, demos) ? (
+        <EmbedResizer hosts={typeof embeds === "function" ? undefined : embeds || undefined} />
+      ) : null}
     </div>
   );
 }

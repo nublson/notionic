@@ -1,8 +1,15 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  // The demo boundary is its own chunk, so its "use client" stays at the top.
-  entry: ["src/index.ts", "src/fetch.ts", "src/markdown.ts", "src/demo-boundary.tsx"],
+  // The demo boundary and embed resizer are their own chunks, so their
+  // "use client" stays at the top.
+  entry: [
+    "src/index.ts",
+    "src/fetch.ts",
+    "src/markdown.ts",
+    "src/demo-boundary.tsx",
+    "src/embed-resizer.tsx",
+  ],
   format: "esm",
   platform: "neutral",
   dts: true,
