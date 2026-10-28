@@ -533,7 +533,7 @@ describe("NotionRenderer", () => {
     ];
     const html = await render(blocks, { demos: { "morph-button": Demo } });
     expect(html).toMatch(
-      /<figure><div class="flex box-content min-h-56[^"]*"><!--\$--><button type="button">morph-button<!-- --> <!-- -->slow<\/button><!--\/\$--><\/div><figcaption[^>]*>Press the button.<\/figcaption><\/figure>/,
+      /<figure><div class="flex [^"]*box-content min-h-56 py-10"><!--\$--><button type="button">morph-button<!-- --> <!-- -->slow<\/button><!--\/\$--><\/div><figcaption[^>]*>Press the button.<\/figcaption><\/figure>/,
     );
     // An unknown name stays a link.
     expect(html).toMatch(/<a href="https:\/\/nublson.com\/demos\/unknown"/);
@@ -548,6 +548,31 @@ describe("NotionRenderer", () => {
     ).toContain('<section data-demo="morph-button"><!--$--><button');
   });
 
+  it("makes a demo's frame as tall as the URL's ?height= says", async () => {
+    const Demo = () => <button type="button">Press</button>;
+    const embed = (url: string) => block("embed", { url, caption: [] });
+    const demos = { "morph-button": Demo };
+    // No vertical padding, so a short frame is as short as it says.
+    expect(await render([embed("https://x.dev/demos/morph-button?height=50")], { demos })).toMatch(
+      /<figure><div style="height:50px" class="flex [^"]*px-6 box-border"><!--\$--><button/,
+    );
+    // Not a whole number of pixels: the frame fits the demo.
+    const fitted = await render([embed("https://x.dev/demos/morph-button?height=tall")], { demos });
+    expect(fitted).toMatch(/<figure><div class="flex [^"]*box-content min-h-56 py-10">/);
+    expect(fitted).not.toContain("style=");
+
+    let frameHeight: number | undefined;
+    const Frame = ({ height, children }: DemoFrameProps) => {
+      frameHeight = height;
+      return <section>{children}</section>;
+    };
+    await render([embed("https://x.dev/demos/morph-button?height=480")], {
+      demos,
+      components: { demo: Frame },
+    });
+    expect(frameHeight).toBe(480);
+  });
+
   it("keeps the frame of a demo that throws, empty", async () => {
     const Broken = (): never => {
       throw new Error("broken demo");
@@ -555,7 +580,7 @@ describe("NotionRenderer", () => {
     const blocks = [block("embed", { url: "https://nublson.com/demos/broken", caption: [] })];
     const html = await render(blocks, { demos: { broken: Broken } });
     expect(html).toMatch(
-      /<figure><div class="flex box-content min-h-56[^"]*">(<!--[^>]*-->|<template[^>]*><\/template>)*<\/div><\/figure>/,
+      /<figure><div class="flex [^"]*box-content min-h-56 py-10">(<!--[^>]*-->|<template[^>]*><\/template>)*<\/div><\/figure>/,
     );
   });
 

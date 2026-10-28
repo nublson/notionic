@@ -26,3 +26,15 @@ export function matchDemo(url: string, demos: Demos | undefined): DemoMatch | nu
   if (!Component) return null;
   return { name, params: Object.fromEntries(parsed.searchParams), Component };
 }
+
+/**
+ * The frame height a demo's `?height=` asks for, in pixels, or undefined. The
+ * public API doesn't send the size an embed has in Notion, so the URL carries
+ * it. Only whole numbers from 1 to 9999 count.
+ */
+export function demoHeight(params: Record<string, string>): number | undefined {
+  const value = params.height;
+  if (!value || !/^\d{1,4}$/.test(value)) return undefined;
+  const height = Number(value);
+  return height > 0 ? height : undefined;
+}
