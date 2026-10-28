@@ -143,6 +143,8 @@ export type DemoFrameProps = {
   name: string;
   /** The embed's caption. */
   caption: RichText;
+  /** The frame's height in pixels, from the URL's `?height=`; undefined fits the demo. */
+  height?: number;
   context: RenderContext;
   /** The demo, rendered. */
   children: ReactNode;

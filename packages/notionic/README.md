@@ -176,6 +176,8 @@ export function MorphButton({ params }: DemoProps) { /* … */ }
 
 In Notion, add `/embed` with `https://your-site.com/demos/morph-button`. Only the path counts, so the same embed renders on localhost and previews. The URL's query reaches the demo as `params`: `?speed=slow` is `{ speed: "slow" }`. Unknown names render as links.
 
+The frame fits the demo. To give it a height, add `?height=` in pixels to the embed URL: `…/demos/morph-button?height=320` makes the frame 320px tall, border included. Notion's API doesn't send the size you drag an embed to, so resizing it in Notion only changes how it looks there.
+
 To see the demo inside Notion while you write, add a page at `/demos/[name]` that renders the demo alone:
 
 ```tsx
@@ -188,7 +190,7 @@ export default async function DemoPage({ params }: { params: Promise<{ name: str
 }
 ```
 
-Demos render in `DemoFrame`, a bordered stage with the caption centered below. Replace it with `components={{ demo: MyFrame }}`; it gets the demo as `children`, plus `name`, `caption` and `context`. Only the demos a page uses send JavaScript to the browser.
+Demos render in `DemoFrame`, a bordered stage with the caption centered below. Replace it with `components={{ demo: MyFrame }}`; it gets the demo as `children`, plus `name`, `caption`, `height` (from `?height=`, or undefined) and `context`. Only the demos a page uses send JavaScript to the browser.
 
 ### Live embeds
 
@@ -227,7 +229,7 @@ Headings match ignoring case. The section runs to the next heading of the same o
 
 Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos or a live iframe), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`.
 
-Notion's heading 1 renders as `<h2>`, since your page title is the `<h1>`; heading 2 as `<h3>`, and so on. Headings get ids and anchor links.
+Headings render at their Notion level: heading 1 as `<h1>`, heading 2 as `<h2>`, and so on. Headings get ids and anchor links.
 
 Tabs render as real tabs with no JavaScript: a row of pills that scrolls sideways, and one panel at a time. To use shadcn's Tabs component instead, add `notion-tabs` from the shadcn registry.
 
@@ -310,7 +312,7 @@ import { blocksToMarkdown } from "notionic/markdown";
 const markdown = `# ${page.title}\n\n${blocksToMarkdown(blocks, { pageHref, transformFileUrl })}`;
 ```
 
-It takes the same `pageHref` and `transformFileUrl` as `NotionRenderer`, so links and files match the HTML. Notion's heading 1 becomes `##`, so add the page title yourself. Toggles become `<details>`, equations `$…$` and `$$…$$`.
+It takes the same `pageHref` and `transformFileUrl` as `NotionRenderer`, so links and files match the HTML. Notion's heading 1 becomes `#`, heading 2 `##`, and so on. Toggles become `<details>`, equations `$…$` and `$$…$$`.
 
 ## Uploaded files
 
