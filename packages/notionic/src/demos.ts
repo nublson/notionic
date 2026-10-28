@@ -28,7 +28,7 @@ export function matchDemo(url: string, demos: Demos | undefined): DemoMatch | nu
 }
 
 /**
- * The frame height a demo's `?height=` asks for, in pixels, or undefined. The
+ * The frame height a demo's or live embed's `?height=` asks for, in pixels, or undefined. The
  * public API doesn't send the size an embed has in Notion, so the URL carries
  * it. Only whole numbers from 1 to 9999 count.
  */

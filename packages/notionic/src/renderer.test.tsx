@@ -612,6 +612,22 @@ describe("NotionRenderer", () => {
     expect(frameHeight).toBe(480);
   });
 
+  it("makes a live embed as tall as the URL's ?height= says, or 16:9", async () => {
+    const embed = (url: string) => block("embed", { url, caption: [] });
+    const tall = await render([embed("https://www.sanding.space/demos/surface?height=600")], {
+      embeds: ["sanding.space"],
+    });
+    // The URL reaches the embedded page unchanged.
+    expect(tall).toMatch(
+      /<iframe src="https:\/\/www.sanding.space\/demos\/surface\?height=600"[^>]*style="height:600px" class="w-full rounded-lg/,
+    );
+    const fitted = await render([embed("https://www.sanding.space/demos/surface?height=tall")], {
+      embeds: ["sanding.space"],
+    });
+    expect(fitted).toMatch(/<iframe [^>]*class="w-full aspect-video /);
+    expect(fitted).not.toContain("style=");
+  });
+
   it("keeps the frame of a demo that throws, empty", async () => {
     const Broken = (): never => {
       throw new Error("broken demo");
