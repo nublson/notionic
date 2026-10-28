@@ -202,6 +202,15 @@ Embeds render as preview cards by default, since many sites refuse to be framed 
 
 A listed host includes its subdomains. `embeds` also takes `true` (every embed) or a function of the embed's URL. Only http(s) URLs are embedded, and demos take precedence. An embed is 16:9; add `?height=` in pixels to its URL to set its height instead, as for demos (the parameter also reaches the embedded page). Don't list your own site: a same-origin page could lift its sandbox.
 
+Embedded pages can report their height by posting `{ type: "notionic:resize", height }` to the parent, and the frame takes that height in pixels (up to 9999). `?height=`, or 16:9, is the size until the first message. Only frames on the page and origins `embeds` allows count; with a function, only the embed URL's own origin, so embed a redirecting URL by its final address. On the embedded site:
+
+```js
+new ResizeObserver(([entry]) => {
+  const height = Math.ceil(entry.borderBoxSize[0].blockSize);
+  window.parent.postMessage({ type: "notionic:resize", height }, "*");
+}).observe(document.documentElement);
+```
+
 ### Footnotes
 
 Notion has no footnote block, so notionic reads them from a section:

@@ -1,5 +1,11 @@
 # notionic
 
+## 0.16.0
+
+### Minor Changes
+
+- [#57](https://github.com/nublson/notionic/pull/57) [`a48ffad`](https://github.com/nublson/notionic/commit/a48ffadb5513f080ac75d11d800c4be1f81121b5) Thanks [@nublson](https://github.com/nublson)! - Live embeds resize to the height their page reports via `notionic:resize`: a framed page that posts `{ type: "notionic:resize", height }` to its parent gets a frame that many pixels tall (rounded, up to 9999). A message counts only from one of the renderer's live frames and from an origin `embeds` allows (with a function policy, the frame's own origin). `?height=`, or 16:9, is the starting size. A page with live embeds ships a small client listener for this; pages without ship nothing new.
+
 ## 0.15.0
 
 ### Minor Changes

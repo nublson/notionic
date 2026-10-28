@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { DemoBoundary } from "../demo-boundary";
 import { demoHeight, matchDemo } from "../demos";
+import { allowsEmbed } from "../embeds";
 import { resolveFileUrl } from "../files";
 import { resolveLink, resolvePageLink } from "../links";
 import { NotionLink, RichText } from "../rich-text";
@@ -9,7 +10,6 @@ import type {
   BookmarkPreview,
   PageIcon,
   DemoFrameProps,
-  EmbedPolicy,
   RenderContext,
   RichText as RichTextArray,
 } from "../types";
@@ -421,34 +421,12 @@ export function DemoFrame({ caption, height, context, children }: DemoFrameProps
 }
 
 /**
- * Whether `embeds` lets this URL load in an iframe: only http(s) URLs, and of
- * those all (`true`), the ones whose host is a listed host or a subdomain of
- * one, or the ones the function accepts.
- */
-function allowsEmbed(url: string, embeds: EmbedPolicy | undefined): boolean {
-  if (!embeds) return false;
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    return false;
-  }
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
-  if (embeds === true) return true;
-  if (typeof embeds === "function") return embeds(parsed.href);
-  const host = parsed.hostname.toLowerCase();
-  return embeds.some((allowed) => {
-    const listed = allowed.toLowerCase();
-    return host === listed || host.endsWith(`.${listed}`);
-  });
-}
-
-/**
  * An embed, as a preview card linking to it: embedding any site in an iframe
  * is unsafe, and most refuse it. A site `embeds` allows loads in a sandboxed
- * iframe instead, 16:9 or as tall as the URL's `?height=` says. An embed of `…/demos/<name>` whose name is one of `demos`
- * renders that demo component, in the `demo` frame, as tall as the URL's
- * `?height=` says. A demo that throws leaves its frame empty.
+ * iframe instead, 16:9 or as tall as the URL's `?height=` says until its page
+ * reports its height (see `EmbedResizer`). An embed of `…/demos/<name>` whose
+ * name is one of `demos` renders that demo component, in the `demo` frame, as
+ * tall as the URL's `?height=` says. A demo that throws leaves its frame empty.
  */
 export function Embed({ block, context }: BlockProps<"embed">) {
   const demo = matchDemo(block.embed.url, context.demos);
@@ -469,7 +447,8 @@ export function Embed({ block, context }: BlockProps<"embed">) {
   }
   if (allowsEmbed(block.embed.url, context.embeds)) {
     const caption = block.embed.caption;
-    const height = demoHeight(Object.fromEntries(new URL(block.embed.url).searchParams));
+    const url = new URL(block.embed.url);
+    const height = demoHeight(Object.fromEntries(url.searchParams));
     return (
       <figure>
         <iframe
@@ -482,6 +461,7 @@ export function Embed({ block, context }: BlockProps<"embed">) {
           loading="lazy"
           style={height ? { height } : undefined}
           className={cx("w-full", !height && "aspect-video", MEDIA_SURFACE)}
+          data-notionic-embed={url.origin}
         />
         <Caption caption={caption} context={context} />
       </figure>
