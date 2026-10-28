@@ -46,7 +46,7 @@ export default async function Page() {
 - `pageHref={(pageId) => "/blog/" + slugs.get(pageId)}`: point links between Notion pages at your routes; return `null` for no link.
 - `transformFileUrl={({ blockId }) => "/api/notion/file/" + blockId}`: Notion's file URLs expire after an hour, so route uploaded files through an endpoint that re-signs them.
 - `components={{ callout: MyCallout }}`: replace the component for any block type.
-- `demos={{ "morph-button": MorphButton }}`: an embed of `…/demos/<name>` renders your own component.
+- `demos={{ "morph-button": MorphButton }}`: an embed of `…/demos/<name>` renders your own component; `?height=320` on the embed URL sets its frame's height in pixels.
 
 ## shadcn/ui components
 
