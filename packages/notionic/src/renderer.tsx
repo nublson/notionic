@@ -28,6 +28,7 @@ import type {
   BlockComponents,
   BlockProps,
   Demos,
+  EmbedPolicy,
   FootnotesOptions,
   NotionBlock,
   PageFootnotes,
@@ -243,6 +244,16 @@ export type NotionRendererProps = {
    */
   demos?: Demos;
   /**
+   * Which embeds render live, in a sandboxed iframe, instead of as a preview
+   * card: `true` for all, a list of hosts (`["codepen.io", "figma.com"]`,
+   * subdomains included), or a function of the embed's URL. Only http(s)
+   * URLs are embedded, and demos take precedence. Many sites refuse to be
+   * framed and show an empty frame, so list the ones you use. An embedded
+   * page runs its own scripts, so only allow sites you trust, and not your
+   * own origin. Default false: every embed is a card.
+   */
+  embeds?: EmbedPolicy;
+  /**
    * Footnotes: links to blocks under a "Footnotes" heading become numbered
    * references, and those blocks a footnote list. `headings` names the
    * heading (default ["Footnotes"]), `showTitle` shows it above the list
@@ -289,6 +300,7 @@ export function NotionRenderer({
   pageHref = defaultPageHref,
   transformFileUrl,
   demos,
+  embeds,
   footnotes: footnotesOptions,
   linkFavicons = false,
   className,
@@ -298,6 +310,7 @@ export function NotionRenderer({
     pageHref,
     transformFileUrl,
     demos,
+    embeds,
     footnotes,
     headings: collectHeadings(blocks, { footnotes: footnotesOptions }),
     components: { ...defaultComponents, ...components },

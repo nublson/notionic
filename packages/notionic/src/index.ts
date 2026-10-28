@@ -41,6 +41,7 @@ export type {
   Demos,
   DemoProps,
   DemoFrameProps,
+  EmbedPolicy,
   NotionPage,
   PageIcon,
   FootnotesOptions,

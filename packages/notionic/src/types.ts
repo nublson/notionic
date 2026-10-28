@@ -109,6 +109,8 @@ export type RenderContext = {
   transformFileUrl?: (file: HostedFile) => string;
   /** Your demo components, by name (see `NotionRendererProps`). */
   demos?: Demos;
+  /** Which embeds load in an iframe (see `NotionRendererProps`). */
+  embeds?: EmbedPolicy;
   /** The page's footnotes, when it has a footnotes section (see `collectFootnotes`). */
   footnotes?: PageFootnotes;
   /**
@@ -128,6 +130,13 @@ export type DemoProps = {
 
 /** Demo components by name, rendered in place of embeds of `…/demos/<name>`. */
 export type Demos = Record<string, ComponentType<DemoProps>>;
+
+/**
+ * Which embeds load in an iframe: all (`true`), those whose host is one of
+ * these hosts or a subdomain of one, or those the function accepts (it gets
+ * the embed's URL). Only http(s) URLs are ever embedded.
+ */
+export type EmbedPolicy = boolean | readonly string[] | ((url: string) => boolean);
 
 /** Props of the frame around a demo. */
 export type DemoFrameProps = {
