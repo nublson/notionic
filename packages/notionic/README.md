@@ -192,6 +192,16 @@ export default async function DemoPage({ params }: { params: Promise<{ name: str
 
 Demos render in `DemoFrame`, a bordered stage with the caption centered below. Replace it with `components={{ demo: MyFrame }}`; it gets the demo as `children`, plus `name`, `caption`, `height` (from `?height=`, or undefined) and `context`. Only the demos a page uses send JavaScript to the browser.
 
+### Live embeds
+
+Embeds render as preview cards by default, since many sites refuse to be framed and an embedded page runs its own scripts. Pass `embeds` to load the sites you trust in a sandboxed iframe, with the caption below:
+
+```tsx
+<NotionRenderer blocks={blocks} embeds={["codepen.io", "figma.com", "loom.com"]} />
+```
+
+A listed host includes its subdomains. `embeds` also takes `true` (every embed) or a function of the embed's URL. Only http(s) URLs are embedded, and demos take precedence. Don't list your own site: a same-origin page could lift its sandbox.
+
 ### Footnotes
 
 Notion has no footnote block, so notionic reads them from a section:
@@ -217,7 +227,7 @@ Headings match ignoring case. The section runs to the next heading of the same o
 
 ## Supported blocks
 
-Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos or a live iframe), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`.
 
 Headings render at their Notion level: heading 1 as `<h1>`, heading 2 as `<h2>`, and so on. Headings get ids and anchor links.
 

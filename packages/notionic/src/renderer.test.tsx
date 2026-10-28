@@ -519,6 +519,45 @@ describe("NotionRenderer", () => {
     expect(html).toMatch(/<figcaption[^>]*>The design.<\/figcaption>/);
   });
 
+  it("renders embeds that `embeds` allows as sandboxed iframes, the rest as cards", async () => {
+    const embed = (url: string) => block("embed", { url, caption: [richText("Live.")] });
+    const blocks = [
+      embed("https://www.figma.com/file/abc/Sample"),
+      embed("https://codepen.io/x/pen/y"),
+      embed("https://notfigma.com/x"),
+      embed("javascript:alert(1)"),
+    ];
+    const frames = (html: string) => [...html.matchAll(/<iframe src="([^"]*)"/g)].map((m) => m[1]);
+
+    const listed = await render(blocks, { embeds: ["figma.com"] });
+    // Subdomains of a listed host match; a lookalike host doesn't.
+    expect(frames(listed)).toEqual(["https://www.figma.com/file/abc/Sample"]);
+    expect(listed).toMatch(
+      /<iframe [^>]*title="Live."[^>]*sandbox="allow-scripts allow-same-origin/,
+    );
+    expect(listed).toMatch(/<a href="https:\/\/notfigma.com\/x"/);
+
+    // `true` embeds every http(s) URL, never a javascript: one.
+    expect(frames(await render(blocks, { embeds: true }))).toEqual([
+      "https://www.figma.com/file/abc/Sample",
+      "https://codepen.io/x/pen/y",
+      "https://notfigma.com/x",
+    ]);
+    expect(
+      frames(await render(blocks, { embeds: (url) => url.startsWith("https://codepen.io/") })),
+    ).toEqual(["https://codepen.io/x/pen/y"]);
+    // Off by default.
+    expect(await render(blocks)).not.toContain("<iframe");
+    // Demos take precedence.
+    const Demo = () => <button type="button">demo</button>;
+    const demoHtml = await render([embed("https://nublson.com/demos/a")], {
+      demos: { a: Demo },
+      embeds: true,
+    });
+    expect(demoHtml).toContain("<button");
+    expect(demoHtml).not.toContain("<iframe");
+  });
+
   it("renders embeds of /demos/<name> as demos, in a frame with the caption", async () => {
     const Demo = ({ name, params }: DemoProps) => (
       <button type="button">
