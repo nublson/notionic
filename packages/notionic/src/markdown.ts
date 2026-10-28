@@ -85,8 +85,7 @@ function linkLine(label: string, url: string | null, context: Context): string {
 }
 
 function headingLevel(type: string): number {
-  // A page's title is its h1, so Notion's heading 1 is ##, as in the HTML.
-  return Number(type.slice(-1)) + 1;
+  return Number(type.slice(-1));
 }
 
 function listItems(items: NotionBlock[], context: Context): string {

@@ -21,7 +21,7 @@ describe("blocksToMarkdown", () => {
     expect(md).toBe("**bold** and `code`, [site](https://example.com), one  \ntwo");
   });
 
-  it("shifts headings down a level and nests lists", () => {
+  it("keeps heading levels and nests lists", () => {
     const md = blocksToMarkdown([
       block("heading_1", { rich_text: [richText("Title")] }),
       block(
@@ -34,7 +34,7 @@ describe("blocksToMarkdown", () => {
       block("numbered_list_item", { rich_text: [richText("two")] }),
       block("to_do", { rich_text: [richText("done")], checked: true }),
     ]);
-    expect(md).toBe("## Title\n\n1. one\n   - nested\n2. two\n\n- [x] done");
+    expect(md).toBe("# Title\n\n1. one\n   - nested\n2. two\n\n- [x] done");
   });
 
   it("maps Notion page links through pageHref and drops unsafe links", () => {
@@ -94,7 +94,7 @@ describe("blocksToMarkdown", () => {
 
   it("renders a whole real page", () => {
     const md = blocksToMarkdown(page as unknown as NotionBlock[]);
-    expect(md).toContain("## Heading 1");
+    expect(md).toMatch(/^# Heading 1$/m);
     expect(md).toContain("| Block | Default | shadcn |");
     expect(md).toContain("```typescript\nimport { NotionRenderer }");
     expect(md).toContain("$$\n\\int_0^1");
