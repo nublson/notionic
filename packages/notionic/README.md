@@ -200,7 +200,7 @@ Embeds render as preview cards by default, since many sites refuse to be framed 
 <NotionRenderer blocks={blocks} embeds={["codepen.io", "figma.com", "loom.com"]} />
 ```
 
-A listed host includes its subdomains. `embeds` also takes `true` (every embed) or a function of the embed's URL. Only http(s) URLs are embedded, and demos take precedence. Don't list your own site: a same-origin page could lift its sandbox.
+A listed host includes its subdomains. `embeds` also takes `true` (every embed) or a function of the embed's URL. Only http(s) URLs are embedded, and demos take precedence. An embed is 16:9; add `?height=` in pixels to its URL to set its height instead, as for demos (the parameter also reaches the embedded page). Don't list your own site: a same-origin page could lift its sandbox.
 
 ### Footnotes
 

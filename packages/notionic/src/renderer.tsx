@@ -247,7 +247,8 @@ export type NotionRendererProps = {
    * Which embeds render live, in a sandboxed iframe, instead of as a preview
    * card: `true` for all, a list of hosts (`["codepen.io", "figma.com"]`,
    * subdomains included), or a function of the embed's URL. Only http(s)
-   * URLs are embedded, and demos take precedence. Many sites refuse to be
+   * URLs are embedded, and demos take precedence. An embed is 16:9, or as
+   * tall as its URL's `?height=` says, in pixels. Many sites refuse to be
    * framed and show an empty frame, so list the ones you use. An embedded
    * page runs its own scripts, so only allow sites you trust, and not your
    * own origin. Default false: every embed is a card.

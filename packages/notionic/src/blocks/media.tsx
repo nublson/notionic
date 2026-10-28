@@ -446,7 +446,7 @@ function allowsEmbed(url: string, embeds: EmbedPolicy | undefined): boolean {
 /**
  * An embed, as a preview card linking to it: embedding any site in an iframe
  * is unsafe, and most refuse it. A site `embeds` allows loads in a sandboxed
- * iframe instead. An embed of `…/demos/<name>` whose name is one of `demos`
+ * iframe instead, 16:9 or as tall as the URL's `?height=` says. An embed of `…/demos/<name>` whose name is one of `demos`
  * renders that demo component, in the `demo` frame, as tall as the URL's
  * `?height=` says. A demo that throws leaves its frame empty.
  */
@@ -469,6 +469,7 @@ export function Embed({ block, context }: BlockProps<"embed">) {
   }
   if (allowsEmbed(block.embed.url, context.embeds)) {
     const caption = block.embed.caption;
+    const height = demoHeight(Object.fromEntries(new URL(block.embed.url).searchParams));
     return (
       <figure>
         <iframe
@@ -479,7 +480,8 @@ export function Embed({ block, context }: BlockProps<"embed">) {
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
           loading="lazy"
-          className={cx("aspect-video w-full", MEDIA_SURFACE)}
+          style={height ? { height } : undefined}
+          className={cx("w-full", !height && "aspect-video", MEDIA_SURFACE)}
         />
         <Caption caption={caption} context={context} />
       </figure>
