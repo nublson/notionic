@@ -301,7 +301,7 @@ function render(blocks: NotionBlock[], context: Context): string {
 /**
  * Notion blocks as GitHub-flavored Markdown, for feeds, `llms.txt` and other
  * plain-text uses. Links and files resolve as in `NotionRenderer`; Notion's
- * heading 1 becomes `##`, so add the page title as `#` yourself.
+ * heading 1 becomes `#`, heading 2 `##`, and so on.
  */
 export function blocksToMarkdown(blocks: NotionBlock[], options: MarkdownOptions = {}): string {
   const context: Context = {
