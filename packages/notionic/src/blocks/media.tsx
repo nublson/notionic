@@ -14,7 +14,7 @@ import type {
   RichText as RichTextArray,
 } from "../types";
 import { cx, plainText } from "../utils";
-import { BROKEN_IMAGE, IconSlot, IMAGE_EDGE, IMAGE_OUTLINE } from "./icon";
+import { BROKEN_IMAGE, IconSlot, IMAGE_EDGE } from "./icon";
 
 /** An http(s) URL, or a same-site path such as a file proxy route. */
 function isUrl(url: string): boolean {
@@ -67,11 +67,23 @@ export function Image({ block, context }: BlockProps<"image">) {
   );
 }
 
-// An inset hairline (--notionic-image-outline) so light media keep an edge.
-const MEDIA_OUTLINE = `rounded-lg ${IMAGE_OUTLINE}`;
-// Players and embeds also get a muted fill, so they have a shape while they
-// load. Images don't: it would show through transparent ones.
-const MEDIA_SURFACE = `${MEDIA_OUTLINE} bg-muted`;
+// Players and embeds get a muted fill, so they have a shape while they load.
+// Images don't: it would show through transparent ones.
+const MEDIA_SURFACE = "block rounded-lg bg-muted";
+
+// 10% black, 10% white in dark mode.
+const MEDIA_OUTLINE =
+  "after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:outline after:outline-1 after:-outline-offset-1 after:outline-(--notionic-image-outline) after:content-['']";
+
+/**
+ * Holds an iframe or video with an inset hairline (--notionic-image-outline)
+ * so light media keep an edge. The hairline sits on an ::after layer above
+ * the media: WebKit, every browser on iOS, paints an iframe's or video's
+ * content over an outline drawn on the element itself.
+ */
+function MediaFrame({ children }: { children: ReactNode }) {
+  return <div className={cx("relative rounded-lg", MEDIA_OUTLINE)}>{children}</div>;
+}
 
 // External links to video files play like uploaded ones, as in Notion.
 const VIDEO_FILE = /\.(mp4|webm|mov|m4v|ogv)$/i;
@@ -112,15 +124,17 @@ export function Video({ block, context }: BlockProps<"video">) {
   if (embed) {
     return (
       <figure>
-        <iframe
-          src={embed}
-          title={label || "YouTube video"}
-          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-          loading="lazy"
-          className={cx("aspect-video w-full", MEDIA_SURFACE)}
-        />
+        <MediaFrame>
+          <iframe
+            src={embed}
+            title={label || "YouTube video"}
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+            loading="lazy"
+            className={cx("aspect-video w-full", MEDIA_SURFACE)}
+          />
+        </MediaFrame>
         <Caption caption={caption} context={context} />
       </figure>
     );
@@ -128,14 +142,16 @@ export function Video({ block, context }: BlockProps<"video">) {
   if (isUrl(src) && (block.video.type === "file" || isVideoFile(src))) {
     return (
       <figure>
-        {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
-        <video
-          src={src}
-          controls
-          preload="metadata"
-          aria-label={label || "Video"}
-          className={cx("w-full", MEDIA_SURFACE)}
-        />
+        <MediaFrame>
+          {/* biome-ignore lint/a11y/useMediaCaption: Notion has no caption tracks to render; the caption is shown in <figcaption> */}
+          <video
+            src={src}
+            controls
+            preload="metadata"
+            aria-label={label || "Video"}
+            className={cx("w-full", MEDIA_SURFACE)}
+          />
+        </MediaFrame>
         <Caption caption={caption} context={context} />
       </figure>
     );
@@ -451,18 +467,20 @@ export function Embed({ block, context }: BlockProps<"embed">) {
     const height = demoHeight(Object.fromEntries(url.searchParams));
     return (
       <figure>
-        <iframe
-          src={block.embed.url}
-          title={plainText(caption) || block.bookmarkPreview?.title || "Embedded content"}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
-          allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-          loading="lazy"
-          style={height ? { height } : undefined}
-          className={cx("w-full", !height && "aspect-video", MEDIA_SURFACE)}
-          data-notionic-embed={url.origin}
-        />
+        <MediaFrame>
+          <iframe
+            src={block.embed.url}
+            title={plainText(caption) || block.bookmarkPreview?.title || "Embedded content"}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+            allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+            loading="lazy"
+            style={height ? { height } : undefined}
+            className={cx("w-full", !height && "aspect-video", MEDIA_SURFACE)}
+            data-notionic-embed={url.origin}
+          />
+        </MediaFrame>
         <Caption caption={caption} context={context} />
       </figure>
     );

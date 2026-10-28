@@ -619,13 +619,37 @@ describe("NotionRenderer", () => {
     });
     // The URL reaches the embedded page unchanged.
     expect(tall).toMatch(
-      /<iframe src="https:\/\/www.sanding.space\/demos\/surface\?height=600"[^>]*style="height:600px" class="w-full rounded-lg/,
+      /<iframe src="https:\/\/www.sanding.space\/demos\/surface\?height=600"[^>]*style="height:600px" class="w-full block rounded-lg/,
     );
     const fitted = await render([embed("https://www.sanding.space/demos/surface?height=tall")], {
       embeds: ["sanding.space"],
     });
     expect(fitted).toMatch(/<iframe [^>]*class="w-full aspect-video /);
     expect(fitted).not.toContain("style=");
+  });
+
+  it("draws the hairline of iframes and videos on a layer above them", async () => {
+    // WebKit paints an iframe's or video's content over an outline on the
+    // element itself, so the outline goes on the wrapper's ::after instead.
+    const html = await render(
+      [
+        block("embed", { url: "https://www.sanding.space/demos/surface", caption: [] }),
+        block("video", {
+          type: "external",
+          external: { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+          caption: [],
+        }),
+        block("video", { type: "external", external: { url: "https://e.com/a.mp4" }, caption: [] }),
+      ],
+      { embeds: ["sanding.space"] },
+    );
+    const media = html.match(/<div class="relative [^"]*"><(iframe|video) [^>]*>/g) ?? [];
+    expect(media).toHaveLength(3);
+    for (const frame of media) {
+      expect(frame).toMatch(/^<div [^>]*after:outline-\(--notionic-image-outline\)/);
+      expect(frame).toMatch(/<(iframe|video) [^>]*class="[^"]*bg-muted/);
+      expect(frame).not.toMatch(/<(iframe|video) [^>]*outline/);
+    }
   });
 
   it("keeps the frame of a demo that throws, empty", async () => {
