@@ -1,5 +1,11 @@
 # notionic
 
+## 0.14.0
+
+### Minor Changes
+
+- [#55](https://github.com/nublson/notionic/pull/55) [`ec00c7f`](https://github.com/nublson/notionic/commit/ec00c7febec0b3cd87996363170f80348f295163) Thanks [@nublson](https://github.com/nublson)! - Live embeds: `<NotionRenderer embeds={["codepen.io", "figma.com"]}>` renders embeds of the listed hosts (subdomains included) in a sandboxed iframe with the caption below, instead of a preview card. `embeds` also takes `true` for every embed or a function of the URL. Only http(s) URLs are embedded, demos take precedence, and it's off by default. Exports the `EmbedPolicy` type.
+
 ## 0.13.0
 
 ### Minor Changes
