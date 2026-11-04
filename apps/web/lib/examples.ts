@@ -51,7 +51,10 @@ export function toRecipe(block: BlockOf<"code">): BlockOf<"code"> | null {
   };
 }
 
-/** Whether to list unpublished docs: with NOTION_DOCS_DRAFTS=1, and never in production. */
+/**
+ * Whether to list unpublished docs: with NOTION_DOCS_DRAFTS=1, and only in
+ * development, so no build can include them.
+ */
 export function includeDrafts(env: { NODE_ENV?: string; NOTION_DOCS_DRAFTS?: string }): boolean {
-  return env.NOTION_DOCS_DRAFTS === "1" && env.NODE_ENV !== "production";
+  return env.NOTION_DOCS_DRAFTS === "1" && env.NODE_ENV === "development";
 }

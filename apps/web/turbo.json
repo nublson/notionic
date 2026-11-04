@@ -8,7 +8,8 @@
         "NOTION_PAGE_ID",
         "NOTION_DOCS_DATA_SOURCE_ID",
         "AUTHOR_NAME",
-        "AUTHOR_URL"
+        "AUTHOR_URL",
+        "NOTION_DOCS_DRAFTS"
       ]
     }
   }

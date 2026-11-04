@@ -70,7 +70,11 @@ export const getDocs = cache(async (): Promise<DocSummary[]> => {
   const pages = await collectPaginatedAPI(notion.client.dataSources.query, {
     data_source_id: notion.dataSourceId,
     // NOTION_DOCS_DRAFTS=1 lists unpublished docs too, in development only.
-    ...(includeDrafts(process.env)
+    // NODE_ENV read as a literal, so production bundles inline it.
+    ...(includeDrafts({
+      NODE_ENV: process.env.NODE_ENV,
+      NOTION_DOCS_DRAFTS: process.env.NOTION_DOCS_DRAFTS,
+    })
       ? {}
       : { filter: { property: "Published", checkbox: { equals: true } } }),
   });

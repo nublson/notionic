@@ -66,6 +66,11 @@ describe("includeDrafts", () => {
     expect(includeDrafts({ NOTION_DOCS_DRAFTS: "1", NODE_ENV: "production" })).toBe(false);
   });
 
+  it("is false unless NODE_ENV is development", () => {
+    expect(includeDrafts({ NOTION_DOCS_DRAFTS: "1" })).toBe(false);
+    expect(includeDrafts({ NOTION_DOCS_DRAFTS: "1", NODE_ENV: "test" })).toBe(false);
+  });
+
   it("is false without the flag", () => {
     expect(includeDrafts({})).toBe(false);
   });
