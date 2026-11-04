@@ -38,6 +38,8 @@ export type NotionBlock = BlockObjectResponse & {
    * `linkFavicons: true`; hosts it couldn't look up are left out.
    */
   linkFavicons?: Record<string, string | null>;
+  /** What the linked page says about itself, attached by `fetchBlocks` to resource items. */
+  resourcePreview?: BookmarkPreview;
 };
 
 /** A Notion page's metadata, from `fetchPage`. */
@@ -90,6 +92,31 @@ export type PageFootnotes = {
   notes: Footnote[];
   /** Each referencing rich text item, by identity: its footnote's number and anchor id. */
   refs: Map<object, { number: number; id: string }>;
+};
+
+/** A Resources section (see `NotionRendererProps`). */
+export type ResourcesOptions = {
+  /** Heading texts that start the resources section, matched ignoring case. Default ["Resources"]; [] turns resources off. */
+  headings?: string[];
+};
+
+/** One list item of the resources section that starts with a link. */
+export type ResourceItem = {
+  block: NotionBlock;
+  href: string;
+  /** The rich text sharing the first link. */
+  title: RichText;
+  /** The writer's text after the title, separator trimmed; null when empty. */
+  description: RichText | null;
+  /** What `fetchBlocks` read from the linked page, or null. */
+  preview: BookmarkPreview | null;
+};
+
+/** A page's resources, from `collectResources`. */
+export type PageResources = {
+  headingBlockId: string;
+  /** Resource items by block id without dashes. */
+  items: Map<string, ResourceItem>;
 };
 
 /** A link as it should render: same tab, or a new tab for another site. */
