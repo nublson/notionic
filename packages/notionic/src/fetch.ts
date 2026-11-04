@@ -12,9 +12,10 @@ import {
   type LinkFaviconOptions,
   lookupLinkFavicon,
 } from "./link-favicons";
-import { externalLinkHost } from "./links";
+import { externalLinkHost, normalizePageId } from "./links";
 import { toLinkedPage, toNotionPage } from "./page";
-import type { NotionBlock, NotionPage } from "./types";
+import { collectResources } from "./resources";
+import type { NotionBlock, NotionPage, ResourcesOptions } from "./types";
 import { richTexts } from "./utils";
 
 /**
@@ -59,6 +60,14 @@ export type FetchBlocksOptions = {
    * fetch asks again. Private hosts are never sent.
    */
   linkFavicons?: boolean | LinkFaviconOptions;
+  /**
+   * The Resources section, as in `NotionRenderer`: the page behind each of
+   * its links is fetched for its favicon and description, attached to the
+   * item as `resourcePreview`, unless `bookmarkPreviews` is false. Pass it
+   * when you rename the heading (default ["Resources"]); links elsewhere on
+   * the page are never fetched.
+   */
+  resources?: ResourcesOptions;
 };
 
 type Result = ListBlockChildrenResponse["results"][number];
@@ -150,6 +159,34 @@ async function withLinkFavicons(
   return Object.keys(linkFavicons).length > 0 ? { ...block, linkFavicons } : block;
 }
 
+/** The blocks with a preview on each resource item whose link goes to another site. */
+async function withResourcePreviews(
+  blocks: NotionBlock[],
+  options: ResourcesOptions | undefined,
+  concurrency: number,
+): Promise<NotionBlock[]> {
+  const resources = collectResources(blocks, { resources: options });
+  if (!resources) return blocks;
+  const items = [...resources.items.values()].filter((item) => externalLinkHost(item.href));
+  const previews = new Map<string, NotionBlock["resourcePreview"]>();
+  await mapPool(items, concurrency, async (item) => {
+    const preview = await fetchBookmarkPreview(item.href);
+    if (preview) previews.set(normalizePageId(item.block.id), preview);
+  });
+  if (previews.size === 0) return blocks;
+  const attach = (block: NotionBlock): NotionBlock => {
+    const preview = previews.get(normalizePageId(block.id));
+    return preview ? { ...block, resourcePreview: preview } : block;
+  };
+  // Resource items are top-level blocks, or a toggleable heading's children.
+  return blocks.map((block) => {
+    const attached = attach(block);
+    return normalizePageId(block.id) === resources.headingBlockId && block.children
+      ? { ...attached, children: block.children.map(attach) }
+      : attached;
+  });
+}
+
 type FetchState = {
   concurrency: number;
   bookmarkPreviews: boolean;
@@ -203,14 +240,21 @@ export async function fetchBlocks(
   blockId: string,
   options: FetchBlocksOptions = {},
 ): Promise<NotionBlock[]> {
-  const { maxDepth = 5, concurrency = 3, bookmarkPreviews = true, linkFavicons = false } = options;
-  return fetchTree(client, blockId, maxDepth, {
+  const {
+    maxDepth = 5,
+    concurrency = 3,
+    bookmarkPreviews = true,
+    linkFavicons = false,
+    resources,
+  } = options;
+  const blocks = await fetchTree(client, blockId, maxDepth, {
     concurrency,
     bookmarkPreviews,
     favicons: linkFavicons
       ? { ...(linkFavicons === true ? {} : linkFavicons), lookups: new Map() }
       : undefined,
   });
+  return bookmarkPreviews ? withResourcePreviews(blocks, resources, concurrency) : blocks;
 }
 
 /**

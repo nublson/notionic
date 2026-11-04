@@ -208,6 +208,102 @@ describe("linked pages", () => {
   });
 });
 
+describe("resource previews", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const html = (title: string) =>
+    new Response(`<head><meta property="og:title" content="${title}"></head>`, {
+      headers: { "content-type": "text/html" },
+    });
+  const heading = (text: string, extra: { id?: string } = {}) =>
+    block("heading_2", { rich_text: [richText(text)], color: "default" }, extra);
+  const item = (id: string, href: string) =>
+    block("bulleted_list_item", { rich_text: [richText("Link", { href })] }, { id });
+  const para = (id: string, href: string) =>
+    block("paragraph", { rich_text: [richText("Link", { href })] }, { id });
+  const stubFetch = () => {
+    const fetch = vi.fn(async (url: URL) => html(`Title of ${url.hostname}`));
+    vi.stubGlobal("fetch", fetch);
+    return fetch;
+  };
+  const hosts = (fetch: ReturnType<typeof stubFetch>) =>
+    fetch.mock.calls.map(([url]) => new URL(String(url)).hostname);
+
+  it("fetches a preview for each resource link only", async () => {
+    const fetch = stubFetch();
+    const { client } = fakeClient({
+      root: [
+        [para("p", "https://a.example/x"), heading("Resources"), item("r", "https://b.example/y")],
+      ],
+    });
+    const [p, , r] = await fetchBlocks(client, "root");
+    expect(hosts(fetch)).toEqual(["b.example"]);
+    expect(r!.resourcePreview).toMatchObject({ title: "Title of b.example" });
+    expect(p!.resourcePreview).toBeUndefined();
+  });
+
+  it("reads a renamed heading", async () => {
+    const fetch = stubFetch();
+    const { client } = fakeClient({
+      root: [[heading("Recursos"), item("r", "https://b.example/y")]],
+    });
+    const [, r] = await fetchBlocks(client, "root", { resources: { headings: ["Recursos"] } });
+    expect(hosts(fetch)).toEqual(["b.example"]);
+    expect(r!.resourcePreview).toBeDefined();
+  });
+
+  it("fetches nothing with bookmarkPreviews: false", async () => {
+    const fetch = stubFetch();
+    const { client } = fakeClient({
+      root: [[heading("Resources"), item("r", "https://b.example/y")]],
+    });
+    const [, r] = await fetchBlocks(client, "root", { bookmarkPreviews: false });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(r!.resourcePreview).toBeUndefined();
+  });
+
+  it("skips links to Notion pages", async () => {
+    const fetch = stubFetch();
+    const { client } = fakeClient({
+      root: [[heading("Resources"), item("r", "/3fcb17268ab381d995c6ff3f97dc741b")]],
+    });
+    await fetchBlocks(client, "root");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("keeps the item when the fetch fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("offline");
+      }),
+    );
+    const { client } = fakeClient({
+      root: [[heading("Resources"), item("r", "https://b.example/y")]],
+    });
+    const [, r] = await fetchBlocks(client, "root");
+    expect(r!.id).toBe("r");
+    expect(r!.resourcePreview).toBeUndefined();
+  });
+
+  it("fetches inside a toggleable resources heading", async () => {
+    stubFetch();
+    const marker = {
+      ...block(
+        "heading_2",
+        { rich_text: [richText("Resources")], color: "default", is_toggleable: true },
+        { id: "h" },
+      ),
+      has_children: true,
+    } as NotionBlock;
+    const { client } = fakeClient({
+      root: [[marker]],
+      h: [[item("r", "https://b.example/y")]],
+    });
+    const [h] = await fetchBlocks(client, "root");
+    expect(h!.children?.[0]?.resourcePreview).toMatchObject({ title: "Title of b.example" });
+  });
+});
+
 describe("link favicons", () => {
   afterEach(() => vi.unstubAllGlobals());
 
