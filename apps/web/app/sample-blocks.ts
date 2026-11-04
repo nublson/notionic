@@ -49,6 +49,14 @@ const p = (...rich_text: ReturnType<typeof text>[]) =>
 const row = (...cells: string[]) =>
   block("table_row", { cells: cells.map((cell) => [text(cell)]) });
 
+/** A Resources item: a link, then a description. */
+function resource(title: string, href: string, description: string) {
+  return block("bulleted_list_item", {
+    rich_text: [text(title, {}, href), text(` - ${description}`)],
+    color: "default",
+  });
+}
+
 export const sampleBlocks: NotionBlock[] = [
   p(
     text("notionic renders blocks from the "),
@@ -123,6 +131,14 @@ export const sampleBlocks: NotionBlock[] = [
     block("column", {}, [p(text("Left column"))]),
     block("column", {}, [p(text("Right column"))]),
   ]),
+  block("heading_2", { rich_text: [text("Resources")], color: "default", is_toggleable: false }),
+  resource(
+    "Notion API",
+    "https://developers.notion.com/reference/intro",
+    "the blocks notionic renders",
+  ),
+  resource("shadcn/ui", "https://ui.shadcn.com", "the components it's styled like"),
+  resource("Tailwind CSS", "https://tailwindcss.com", "the utility classes it ships with"),
   block("divider", {}),
   p(text("That's it.", { color: "gray" })),
 ];
