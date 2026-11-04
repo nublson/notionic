@@ -138,6 +138,32 @@ describe("collectResources", () => {
     expect(resource(collectResources([heading("Resources"), one]), one)?.preview).toBe(preview);
   });
 
+  it("does not treat a footnote reference as a resource title", () => {
+    const PAGE = "3fcb17268ab381d995c6ff3f97dc741b";
+    const noteId = "f00d0000000000000000000000000001";
+    const note = block(
+      "paragraph",
+      { rich_text: [text("A note")], color: "default" },
+      { id: noteId },
+    );
+    const one = item(link("a", `/${PAGE}#${noteId}`), text(" - d"));
+    const result = collectResources([
+      heading("Resources"),
+      one,
+      item(link("ok")),
+      heading("Footnotes"),
+      note,
+    ]);
+    expect(resource(result, one)).toBeUndefined();
+  });
+
+  it("never rewrites a linked description item while trimming", () => {
+    const linked = link(" - see MDN", "https://example.com/mdn");
+    const one = item(link("a"), linked);
+    const found = resource(collectResources([heading("Resources"), one]), one);
+    expect(found?.description?.[0]).toBe(linked);
+  });
+
   it("defers to footnotes on the same heading", () => {
     const one = item(link("a"));
     expect(

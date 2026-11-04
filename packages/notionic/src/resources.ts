@@ -1,3 +1,4 @@
+import { collectFootnotes } from "./footnotes";
 import { normalizePageId } from "./links";
 import { findSection } from "./sections";
 import type {
@@ -29,6 +30,8 @@ function trimSeparator(text: RichText): RichText {
   let separator = false;
   while (out[0]) {
     const first = out[0];
+    // A linked item may be a footnote reference, matched by identity: keep it.
+    if (first.href) break;
     const value = first.plain_text;
     let i = 0;
     while (i < value.length) {
@@ -49,13 +52,16 @@ function trimSeparator(text: RichText): RichText {
   return out;
 }
 
-/** The item as a resource when its text starts with a link. */
-function toResource(block: NotionBlock): ResourceItem | null {
+/** The item as a resource when its text starts with a link that isn't a footnote reference. */
+function toResource(
+  block: NotionBlock,
+  footnoteRefs: ReadonlyMap<object, unknown>,
+): ResourceItem | null {
   if (!ITEM_TYPES.has(block.type)) return null;
   const text = (blockData(block).rich_text as RichText | undefined) ?? [];
   const start = text.findIndex((item) => item.plain_text.trim() !== "");
   const href = text[start]?.href;
-  if (!href) return null;
+  if (!href || footnoteRefs.has(text[start] as object)) return null;
   let end = start;
   while (text[end]?.href === href) end++;
   const description = trimSeparator(text.slice(end));
@@ -86,9 +92,11 @@ export function collectResources(
   );
   if (footnotes.includes(section.heading.text.toLowerCase())) return null;
 
+  // A footnote reference keeps its item an ordinary list item, so it renders.
+  const footnoteRefs = collectFootnotes(blocks, options.footnotes)?.refs ?? new Map();
   const items = new Map<string, ResourceItem>();
   for (const block of section.items) {
-    const resource = toResource(block);
+    const resource = toResource(block, footnoteRefs);
     if (resource) items.set(normalizePageId(block.id), resource);
   }
   if (items.size === 0) return null;

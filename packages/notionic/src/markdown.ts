@@ -95,6 +95,11 @@ function headingLevel(type: string): number {
   return Number(type.slice(-1));
 }
 
+/** Plain text from another site, escaped so Markdown and HTML in it stay literal. */
+function escapeMarkdown(text: string): string {
+  return text.replace(/[\\`*_{}[\]<>()#!|~&]/g, "\\$&");
+}
+
 function listItems(items: NotionBlock[], context: Context): string {
   const first = items[0];
   const start =
@@ -119,7 +124,7 @@ function listItems(items: NotionBlock[], context: Context): string {
       const resource = context.resources?.items.get(normalizePageId(item.id));
       const fetched =
         resource && !resource.description && resource.preview?.description
-          ? ` - ${resource.preview.description}`
+          ? ` - ${escapeMarkdown(resource.preview.description)}`
           : "";
       return `${marker} ${inline(text, context)}${fetched}${children}`;
     })

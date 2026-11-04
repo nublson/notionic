@@ -197,6 +197,16 @@ describe("resources", () => {
     expect(blocksToMarkdown([heading, fetched])).toContain(`- [a](${URL}) - From the site`);
   });
 
+  it("escapes the fetched description", () => {
+    const fetched = {
+      ...item(richText("a", { href: URL })),
+      resourcePreview: { title: "A", description: "Use <b> tags, *not* [links](x) & `code`" },
+    };
+    expect(blocksToMarkdown([heading, fetched])).toContain(
+      "- [a](https://developer.mozilla.org/x) - Use \\<b\\> tags, \\*not\\* \\[links\\]\\(x\\) \\& \\`code\\`",
+    );
+  });
+
   it("leaves the heading as a heading", () => {
     expect(blocksToMarkdown([heading, item(richText("a", { href: URL }))])).toContain(
       "## Resources",
