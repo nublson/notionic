@@ -1,15 +1,17 @@
 import type { BlockOf } from "notionic";
 import { describe, expect, it } from "vitest";
-import { includeDrafts, isRecipe } from "./examples";
+import { includeDrafts, isRecipe, toRecipe } from "./examples";
 
-const code = (caption: string) =>
+const code = (caption: string, source = "") =>
   ({
     object: "block",
     id: "code",
     type: "code",
     code: {
       language: "tsx",
-      rich_text: [],
+      rich_text: source
+        ? [{ type: "text", text: { content: source, link: null }, plain_text: source, href: null }]
+        : [],
       caption: caption
         ? [
             {
@@ -33,6 +35,25 @@ describe("isRecipe", () => {
     expect(isRecipe(code("app/page.tsx"))).toBe(false);
     expect(isRecipe(code(""))).toBe(false);
     expect(isRecipe(code("customize"))).toBe(false);
+  });
+});
+
+describe("toRecipe", () => {
+  it("moves a first-line Customize comment into the caption", () => {
+    const recipe = toRecipe(code("", "// Customize · callout.tsx\nconst a = 1\n"));
+    expect(recipe?.code.caption.map((t) => t.plain_text).join("")).toBe("Customize · callout.tsx");
+    expect(recipe?.code.rich_text.map((t) => t.plain_text).join("")).toBe("const a = 1\n");
+  });
+
+  it("keeps a block already captioned Customize", () => {
+    const block = code("Customize · x.tsx", "const a = 1");
+    expect(toRecipe(block)).toBe(block);
+  });
+
+  it("is null for other code", () => {
+    expect(toRecipe(code("", "// a comment\nconst a = 1"))).toBeNull();
+    expect(toRecipe(code("app/page.tsx", "const a = 1"))).toBeNull();
+    expect(toRecipe(code("", ""))).toBeNull();
   });
 });
 

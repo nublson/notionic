@@ -43,7 +43,7 @@ Each block on a page has the same four parts, in this order:
 1. **In Notion**: one line on how to create it, for example ``Type `/callout`.``
 2. **The block**: the real Notion block, rendered live.
 3. **Renders as**: one line naming the HTML element, linking to Supported blocks.
-4. **Customize**: a short TSX recipe in a code block captioned `Customize · <file>`. It's usually a `components.<type>` override that wraps or restyles the built-in component. When a prop or option is what you'd change (for example `embeds`, `demos`, `linkFavicons`, `footnotes` or `resources`), the recipe uses that instead.
+4. **Customize**: a short TSX recipe in a code block whose first line is `// Customize · <file>.tsx` (shown as its caption on the site). It's usually a `components.<type>` override that wraps or restyles the built-in component. When a prop or option is what you'd change (for example `embeds`, `demos`, `linkFavicons`, `footnotes` or `resources`), the recipe uses that instead.
 
 Recipes are type-checked against the current `notionic` package in a scratch file before they go into Notion.
 
@@ -57,6 +57,7 @@ export const examplesComponents: BlockComponents = { code: ExampleCode };
 ```
 
 - `ExampleCode` renders a code block whose caption's plain text starts with `Customize` with the site's `NotionCode`, and any other code block with notionic's built-in `Code`.
+- Notion's Markdown can't write code captions, and the site's integration is read-only, so a recipe can instead start with the comment `// Customize · <file>.tsx`. `ExampleCode` strips that line and shows it as the caption.
 - Every other block uses notionic's built-in component.
 - Mermaid and highlighted code come from the registry. On the Code and math page, the built-in Mermaid example shows its source, and a recipe shows `withMermaid(NotionCode)`.
 

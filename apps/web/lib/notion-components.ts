@@ -7,7 +7,7 @@ import { withMermaid } from "@/registry/notionic/notion-mermaid";
 import { NotionTable } from "@/registry/notionic/notion-table";
 import { NotionTabs } from "@/registry/notionic/notion-tabs";
 import { NotionToggle } from "@/registry/notionic/notion-toggle";
-import { isRecipe } from "./examples";
+import { toRecipe } from "./examples";
 
 /** The shadcn/ui versions from notionic's registry, used across the site. */
 export const notionComponents = {
@@ -20,10 +20,11 @@ export const notionComponents = {
   inline_equation: NotionInlineEquation,
 };
 
-/** On Examples pages, recipes keep the site's highlighting; other code blocks render built-in. */
+/** On Examples pages, recipes keep the site's highlighting, captioned; other code blocks render built-in. */
 function ExampleCode(props: BlockProps<"code">) {
+  const recipe = toRecipe(props.block);
   const Code = defaultComponents.code;
-  if (isRecipe(props.block) || !Code) return createElement(NotionCode, props);
+  if (recipe || !Code) return createElement(NotionCode, { ...props, block: recipe ?? props.block });
   return createElement(Code, props);
 }
 
