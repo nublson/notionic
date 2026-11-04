@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { externalLinkHost, resolveLink } from "../links";
+import { BlockList } from "../renderer";
 import { NotionLink, RichText } from "../rich-text";
 import type {
   RenderContext,
@@ -114,15 +115,16 @@ const TITLE =
 function Row({ item, context }: { item: ResourceItem; context: RenderContext }) {
   const title = <RichText text={unlinked(item.title)} context={context} />;
   // A description with its own links can't sit inside the row's link, so
-  // only the title links.
+  // only the favicon and title link, still a full-height row, and outside
+  // the description's clipping so the focus ring shows.
   if (item.description?.some((part) => part.href)) {
     return (
-      <span className={ROW}>
-        <Favicon item={item} context={context} />
-        <span className="min-w-0 truncate">
-          <RowLink item={item} className={cx("group", TITLE)} context={context}>
-            {title}
-          </RowLink>
+      <span className="flex min-w-0 items-center">
+        <RowLink item={item} className={cx("group", ROW)} context={context}>
+          <Favicon item={item} context={context} />
+          <span className={cx("min-w-0 truncate", TITLE)}>{title}</span>
+        </RowLink>
+        <span className="min-w-0 truncate ps-[0.25em]">
           <Description item={item} context={context} />
         </span>
       </span>
@@ -149,6 +151,12 @@ export function Resources({ items, context }: ResourcesProps) {
       {items.map((item) => (
         <li key={item.block.id} className="min-w-0">
           <Row item={item} context={context} />
+          {item.block.children?.length ? (
+            // Indented past the favicon, under the title.
+            <div className="flex flex-col gap-2 ps-7 pb-2">
+              <BlockList blocks={item.block.children} context={context} />
+            </div>
+          ) : null}
         </li>
       ))}
     </ul>

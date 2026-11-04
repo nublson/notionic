@@ -251,7 +251,7 @@ Pass `resources` only to rename the heading, and pass it to `fetchBlocks`, `Noti
 
 ## Supported blocks
 
-Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos or a live iframe), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos or a live iframe), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`. Footnotes and a Resources list come from sections of the page (see [Footnotes](#footnotes) and [Resources](#resources)).
 
 Headings render at their Notion level: heading 1 as `<h1>`, heading 2 as `<h2>`, and so on. Headings get ids and anchor links.
 

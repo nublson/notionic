@@ -96,6 +96,8 @@ const LIST_KINDS: Partial<Record<NotionBlock["type"], ListKind>> = {
  * returns each item as its own block. Other blocks stand alone. With the
  * page's `resources`, consecutive resource items form a group of their own.
  */
+export function groupBlocks(blocks: NotionBlock[]): Exclude<BlockGroup, { kind: "resources" }>[];
+export function groupBlocks(blocks: NotionBlock[], resources?: PageResources): BlockGroup[];
 export function groupBlocks(blocks: NotionBlock[], resources?: PageResources): BlockGroup[] {
   const groups: BlockGroup[] = [];
   for (const block of blocks) {

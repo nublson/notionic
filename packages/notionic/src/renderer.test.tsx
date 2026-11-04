@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { defaultComponents, NotionRenderer, type NotionRendererProps } from "./renderer";
+import {
+  defaultComponents,
+  groupBlocks,
+  NotionRenderer,
+  type NotionRendererProps,
+} from "./renderer";
 import { NotionLink, RichText } from "./rich-text";
 import { block, renderToHtml, richText } from "./test-utils";
 import type { BlockProps, DemoFrameProps, DemoProps, LinkProps, NotionBlock } from "./types";
@@ -1043,6 +1048,35 @@ describe("resources", () => {
       },
     });
     expect(rows(html)[0]).toContain(`data-custom="true" href="${URL_A}"`);
+  });
+
+  it("renders a resource item's nested blocks under its row", async () => {
+    const parent = block(
+      "bulleted_list_item",
+      { rich_text: [richText("a", { href: URL_A }), richText(" - d")], color: "default" },
+      { children: [para(richText("A nested note"))] },
+    );
+    const html = await render([heading(), parent]);
+    expect(rows(html)[0]).toMatch(/<li[\s\S]*A nested note[\s\S]*<\/li>/);
+  });
+
+  it("gives the title link a full-height row, outside any clipping, when the description has links", async () => {
+    const html = await render([
+      heading(),
+      item(richText("a", { href: URL_A }), richText(" - see "), richText("b", { href: URL_B })),
+    ]);
+    const li = rows(html)[0]!;
+    const anchor = li.match(new RegExp(`<a [^>]*href="${URL_A}"[^>]*>`))?.[0] ?? "";
+    expect(anchor).toContain("min-h-10");
+    expect(li.slice(0, li.indexOf(anchor))).not.toContain("truncate");
+  });
+
+  it("keeps groupBlocks' one-argument groups typed as before", () => {
+    const groups = groupBlocks([block("bulleted_list_item", { rich_text: [] })]);
+    const ids = groups.map((group) =>
+      group.kind === "block" ? group.block.id : group.items[0].id,
+    );
+    expect(ids).toHaveLength(1);
   });
 
   it("leaves pages without a Resources heading unchanged", async () => {
