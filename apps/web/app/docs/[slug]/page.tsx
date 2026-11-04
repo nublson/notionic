@@ -6,7 +6,8 @@ import { collectHeadings, NotionRenderer } from "notionic";
 import { SiteHeader } from "@/components/site-header";
 import { docsPageHref, getDoc, getDocs, groupBySection, type DocSummary } from "@/lib/docs";
 import { demos } from "@/lib/demos";
-import { notionComponents, notionFileUrl } from "@/lib/notion-components";
+import { EXAMPLES_SECTION } from "@/lib/examples";
+import { examplesComponents, notionComponents, notionFileUrl } from "@/lib/notion-components";
 import { docStructuredData, JsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 
@@ -148,10 +149,11 @@ export default async function DocPage({ params }: Props) {
 
           <NotionRenderer
             blocks={blocks}
-            components={notionComponents}
+            components={doc.section === EXAMPLES_SECTION ? examplesComponents : notionComponents}
             pageHref={docsPageHref(docs)}
             transformFileUrl={notionFileUrl}
             demos={demos}
+            embeds={["codepen.io"]}
             linkFavicons
           />
 

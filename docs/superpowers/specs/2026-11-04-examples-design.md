@@ -62,6 +62,8 @@ export const examplesComponents: BlockComponents = { code: ExampleCode };
 
 Every docs page also gets `embeds={["codepen.io"]}`, so the live-iframe example on Links and embeds loads in a frame. Demos keep using the existing `demos`.
 
+`NOTION_DOCS_DRAFTS=1` lists unpublished docs in development, never in production, so the pages can be checked before they go live.
+
 `SECTIONS` in `apps/web/lib/docs.ts` gets `"Examples"` between `"Guides"` and `"Reference"`.
 
 ## Edge cases
