@@ -4,6 +4,7 @@ import { collectPaginatedAPI, isFullPage, type PageObjectResponse } from "@notio
 import { normalizePageId, pageTitle, plainText } from "notionic";
 import { fetchPage } from "notionic/fetch";
 import { cache } from "react";
+import { EXAMPLES_SECTION, includeDrafts } from "./examples";
 import { notionClient } from "./notion";
 
 /**
@@ -18,7 +19,7 @@ import { notionClient } from "./notion";
  */
 
 /** Sidebar groups, in order. Docs in other sections come last. */
-const SECTIONS = ["Getting started", "Guides", "Reference", "Registry"];
+const SECTIONS = ["Getting started", "Guides", EXAMPLES_SECTION, "Reference", "Registry"];
 
 export type DocSummary = {
   /** The page id, 32 hex characters without dashes. */
@@ -68,7 +69,14 @@ export const getDocs = cache(async (): Promise<DocSummary[]> => {
   if (!notion) return [];
   const pages = await collectPaginatedAPI(notion.client.dataSources.query, {
     data_source_id: notion.dataSourceId,
-    filter: { property: "Published", checkbox: { equals: true } },
+    // NOTION_DOCS_DRAFTS=1 lists unpublished docs too, in development only.
+    // NODE_ENV read as a literal, so production bundles inline it.
+    ...(includeDrafts({
+      NODE_ENV: process.env.NODE_ENV,
+      NOTION_DOCS_DRAFTS: process.env.NOTION_DOCS_DRAFTS,
+    })
+      ? {}
+      : { filter: { property: "Published", checkbox: { equals: true } } }),
   });
   return pages
     .filter(isFullPage)
