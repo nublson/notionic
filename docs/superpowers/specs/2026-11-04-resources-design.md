@@ -80,8 +80,8 @@ The heading renders as an ordinary heading and stays in the table of contents. E
 </ul>
 ```
 
-- The row is one link, rendered through `components.link` when it's set, so external links behave as elsewhere.
-- No list marker; the favicon sits in its place. Without a favicon, a small generic link icon keeps rows aligned.
+- The row is one link, rendered through `components.link` when you replaced it (a Next.js `Link`, say), else as an anchor with the same new-tab rules as other links.
+- No list marker; the favicon sits in its place: the `linkFavicons` data URL for the host when `NotionRenderer` shows link favicons, else the preview's favicon, else a muted globe that keeps rows aligned. The title never draws a second inline favicon.
 - Title in the foreground; description muted, with the component's own ` - ` before it, on one line, truncated with an ellipsis.
 - Description: the writer's, or else the fetched `description`, or else none.
 - If the description contains its own links, the row can't nest them: the title is the link and the description follows it as rich text, still on one line.
