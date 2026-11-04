@@ -1,5 +1,11 @@
 # notionic
 
+## 0.17.0
+
+### Minor Changes
+
+- [#59](https://github.com/nublson/notionic/pull/59) [`947bbec`](https://github.com/nublson/notionic/commit/947bbec9ac8e63194393201ab19015780983f5d0) Thanks [@nublson](https://github.com/nublson)! - Resources
+
 ## 0.16.1
 
 ### Patch Changes
