@@ -140,6 +140,8 @@ export type RenderContext = {
   embeds?: EmbedPolicy;
   /** The page's footnotes, when it has a footnotes section (see `collectFootnotes`). */
   footnotes?: PageFootnotes;
+  /** The page's resources, when it has a resources section (see `collectResources`). */
+  resources?: PageResources;
   /**
    * The favicons of linked sites by host, when `NotionRenderer` shows them
    * (see `collectLinkFavicons`). Absent when favicons are off.
@@ -217,6 +219,7 @@ export type BlockComponents = {
   link?: ComponentType<LinkProps>;
   demo?: ComponentType<DemoFrameProps>;
   footnotes?: ComponentType<FootnotesProps>;
+  resources?: ComponentType<ResourcesProps>;
 };
 
 /** Props of the component that renders the footnote list, in place of the footnotes section. */
@@ -229,5 +232,11 @@ export type FootnotesProps = {
   showTitle: boolean;
   /** The footnotes heading's level in Notion: 1 for heading 1. */
   level: 1 | 2 | 3 | 4;
+  context: RenderContext;
+};
+
+/** Props of the component that renders a run of resource items, in place of their list. */
+export type ResourcesProps = {
+  items: [ResourceItem, ...ResourceItem[]];
   context: RenderContext;
 };

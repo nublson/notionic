@@ -25,6 +25,7 @@ export { pageTitle } from "./page";
 export { resolveFileUrl } from "./files";
 export { DemoFrame } from "./blocks/media";
 export { Footnotes } from "./blocks/footnotes";
+export { Resources } from "./blocks/resources";
 export { languageName } from "./blocks/code";
 export type { HostedFile } from "./files";
 export type {
@@ -52,5 +53,6 @@ export type {
   ResourcesOptions,
   ResourceItem,
   PageResources,
+  ResourcesProps,
 } from "./types";
 export type { RichText as NotionRichText } from "./types";

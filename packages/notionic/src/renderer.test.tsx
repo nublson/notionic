@@ -915,3 +915,139 @@ describe("footnotes", () => {
     );
   });
 });
+
+describe("resources", () => {
+  const URL_A = "https://a.example/one";
+  const URL_B = "https://b.example/two";
+  const heading = (
+    text = "Resources",
+    extra: { children?: NotionBlock[]; toggleable?: boolean } = {},
+  ) =>
+    block(
+      "heading_2",
+      { rich_text: [richText(text)], color: "default", is_toggleable: Boolean(extra.toggleable) },
+      extra.children ? { children: extra.children } : {},
+    );
+  const item = (...text: ReturnType<typeof richText>[]) =>
+    block("bulleted_list_item", { rich_text: text, color: "default" });
+  const resource = (title: string, href: string, description?: string) =>
+    item(richText(title, { href }), ...(description ? [richText(` - ${description}`)] : []));
+  const rows = (html: string) => html.match(/<ul data-resources[\s\S]*?<\/ul>/g) ?? [];
+
+  it("renders resource items as one list of row links", async () => {
+    const html = await render([
+      heading(),
+      resource("font-smooth", URL_A, "MDN on smoothing"),
+      resource("Details", URL_B, "A collection"),
+    ]);
+    const [list] = rows(html);
+    expect(rows(html)).toHaveLength(1);
+    expect(list!.match(/<li[ >]/g)).toHaveLength(2);
+    expect(list!.match(/<a /g)).toHaveLength(2);
+    expect(list).toContain(`href="${URL_A}"`);
+    expect(list).toContain("font-smooth");
+    expect(list).toMatch(
+      /text-muted-foreground[^>]*>[^<]*- <!-- -->MDN on smoothing|text-muted-foreground[^>]*> - MDN on smoothing/,
+    );
+    expect(list).not.toContain("list-disc");
+  });
+
+  it("keeps the heading visible and in the table of contents", async () => {
+    const html = await render([
+      block("table_of_contents", { color: "default" }),
+      heading(),
+      resource("a", URL_A),
+    ]);
+    expect(html).toMatch(/<h\d[^>]*>Resources<\/h\d>/);
+    expect(html).toMatch(/href="#resources"/);
+  });
+
+  it("uses the preview's favicon, then a link icon", async () => {
+    const withIcon = {
+      ...resource("a", URL_A),
+      resourcePreview: { title: "A", favicon: "https://a.example/icon.png" },
+    };
+    const html = await render([heading(), withIcon, resource("b", URL_B)]);
+    const [list] = rows(html);
+    const [first, second] = list!.split("</li>");
+    expect(first).toContain('src="https://a.example/icon.png"');
+    expect(second).not.toContain("<img");
+    expect(second).toContain('<svg aria-hidden="true"');
+  });
+
+  it("falls back to the fetched description", async () => {
+    const fetched = {
+      ...resource("a", URL_A),
+      resourcePreview: { title: "A", description: "From the site" },
+    };
+    const html = await render([heading(), fetched, resource("b", URL_B)]);
+    const [first, second] = rows(html)[0]!.split("</li>");
+    expect(first).toContain("From the site");
+    expect(second).not.toContain(" - ");
+  });
+
+  it("draws one favicon per row with linkFavicons", async () => {
+    const ICON = "data:image/png;base64,AA";
+    const withIcons = { ...resource("b", URL_B, "d"), linkFavicons: { "b.example": ICON } };
+    const html = await render([heading(), withIcons], { linkFavicons: true });
+    const [list] = rows(html);
+    expect(list!.match(/<img/g)).toHaveLength(1);
+    expect(list).toContain(`src="${ICON}"`);
+  });
+
+  it("splits resource runs around other blocks", async () => {
+    const html = await render([
+      heading(),
+      resource("a", URL_A),
+      para(richText("Between")),
+      resource("b", URL_B),
+    ]);
+    expect(rows(html)).toHaveLength(2);
+    expect(html.indexOf("Between")).toBeGreaterThan(html.indexOf(URL_A));
+    expect(html.indexOf("Between")).toBeLessThan(html.indexOf(URL_B));
+  });
+
+  it("lays out the title as the link when the description has links", async () => {
+    const html = await render([
+      heading(),
+      item(richText("a", { href: URL_A }), richText(" - see "), richText("b", { href: URL_B })),
+    ]);
+    const [list] = rows(html);
+    expect(list).toContain(`href="${URL_A}"`);
+    expect(list).toContain(`href="${URL_B}"`);
+    expect(list).not.toMatch(/<a [^>]*>(?:(?!<\/a>)[\s\S])*<a /);
+  });
+
+  it("renders toggleable resources inside the toggle", async () => {
+    const html = await render([
+      heading("Resources", { toggleable: true, children: [resource("a", URL_A)] }),
+    ]);
+    expect(html).toMatch(/<details[\s\S]*data-resources[\s\S]*<\/details>/);
+  });
+
+  it("uses components.resources", async () => {
+    const html = await render([heading(), resource("a", URL_A), resource("b", URL_B)], {
+      components: { resources: ({ items }) => <p>custom {items.length}</p> },
+    });
+    expect(html).toContain("custom <!-- -->2");
+  });
+
+  it("uses a custom components.link for the row", async () => {
+    const html = await render([heading(), resource("a", URL_A)], {
+      components: {
+        link: ({ link, children }: LinkProps) => (
+          <a data-custom href={link.href}>
+            {children}
+          </a>
+        ),
+      },
+    });
+    expect(rows(html)[0]).toContain(`data-custom="true" href="${URL_A}"`);
+  });
+
+  it("leaves pages without a Resources heading unchanged", async () => {
+    const html = await render([heading("Links"), resource("a", URL_A)]);
+    expect(html).not.toContain("data-resources");
+    expect(html).toContain("list-disc");
+  });
+});
