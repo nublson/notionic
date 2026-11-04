@@ -174,3 +174,42 @@ describe("footnotes", () => {
     );
   });
 });
+
+describe("resources", () => {
+  const URL = "https://developer.mozilla.org/x";
+  const heading = block("heading_2", { rich_text: [richText("Resources")], color: "default" });
+  const item = (...text: ReturnType<typeof richText>[]) =>
+    block("bulleted_list_item", { rich_text: text, color: "default" });
+
+  it("writes resources as the list items they are", () => {
+    const markdown = blocksToMarkdown([
+      heading,
+      item(richText("font-smooth", { href: URL }), richText(" - MDN")),
+    ]);
+    expect(markdown).toContain(`- [font-smooth](${URL}) - MDN`);
+  });
+
+  it("adds the fetched description when none was written", () => {
+    const fetched = {
+      ...item(richText("a", { href: URL })),
+      resourcePreview: { title: "A", description: "From the site" },
+    };
+    expect(blocksToMarkdown([heading, fetched])).toContain(`- [a](${URL}) - From the site`);
+  });
+
+  it("escapes the fetched description", () => {
+    const fetched = {
+      ...item(richText("a", { href: URL })),
+      resourcePreview: { title: "A", description: "Use <b> tags, *not* [links](x) & `code`" },
+    };
+    expect(blocksToMarkdown([heading, fetched])).toContain(
+      "- [a](https://developer.mozilla.org/x) - Use \\<b\\> tags, \\*not\\* \\[links\\]\\(x\\) \\& \\`code\\`",
+    );
+  });
+
+  it("leaves the heading as a heading", () => {
+    expect(blocksToMarkdown([heading, item(richText("a", { href: URL }))])).toContain(
+      "## Resources",
+    );
+  });
+});

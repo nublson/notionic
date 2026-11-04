@@ -10,6 +10,7 @@ export type { NotionRendererProps } from "./renderer";
 export { RichText, NotionLink, LinkFavicon } from "./rich-text";
 export { collectHeadings } from "./headings";
 export { collectFootnotes } from "./footnotes";
+export { collectResources } from "./resources";
 export type { PageHeading } from "./headings";
 export {
   resolveLink,
@@ -24,6 +25,7 @@ export { pageTitle } from "./page";
 export { resolveFileUrl } from "./files";
 export { DemoFrame } from "./blocks/media";
 export { Footnotes } from "./blocks/footnotes";
+export { Resources } from "./blocks/resources";
 export { languageName } from "./blocks/code";
 export type { HostedFile } from "./files";
 export type {
@@ -48,5 +50,9 @@ export type {
   Footnote,
   PageFootnotes,
   FootnotesProps,
+  ResourcesOptions,
+  ResourceItem,
+  PageResources,
+  ResourcesProps,
 } from "./types";
 export type { RichText as NotionRichText } from "./types";

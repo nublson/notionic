@@ -1,11 +1,13 @@
 import { resolveFileUrl } from "./files";
 import { collectFootnotes } from "./footnotes";
 import { defaultPageHref, normalizePageId, resolveLink, resolvePageLink } from "./links";
+import { collectResources } from "./resources";
 import type {
   FootnotesOptions,
   NotionBlock,
   PageFootnotes,
   RenderContext,
+  ResourcesOptions,
   RichText,
 } from "./types";
 import { plainText } from "./utils";
@@ -17,6 +19,11 @@ export type MarkdownOptions = {
   transformFileUrl?: RenderContext["transformFileUrl"];
   /** Footnotes, as in `NotionRenderer`: written as GFM footnotes (`word[^1]`). */
   footnotes?: FootnotesOptions;
+  /**
+   * Resources, as in `NotionRenderer`: written as the list items they are,
+   * with the fetched description when the item has none.
+   */
+  resources?: ResourcesOptions;
 };
 
 type Context = RenderContext;
@@ -88,6 +95,11 @@ function headingLevel(type: string): number {
   return Number(type.slice(-1));
 }
 
+/** Plain text from another site, escaped so Markdown and HTML in it stay literal. */
+function escapeMarkdown(text: string): string {
+  return text.replace(/[\\`*_{}[\]<>()#!|~&]/g, "\\$&");
+}
+
 function listItems(items: NotionBlock[], context: Context): string {
   const first = items[0];
   const start =
@@ -108,7 +120,13 @@ function listItems(items: NotionBlock[], context: Context): string {
       const children = item.children?.length
         ? `\n${indent(render(item.children, context), "   ")}`
         : "";
-      return `${marker} ${inline(text, context)}${children}`;
+      // A resource with no description of its own gets the fetched one.
+      const resource = context.resources?.items.get(normalizePageId(item.id));
+      const fetched =
+        resource && !resource.description && resource.preview?.description
+          ? ` - ${escapeMarkdown(resource.preview.description)}`
+          : "";
+      return `${marker} ${inline(text, context)}${fetched}${children}`;
     })
     .join("\n");
 }
@@ -310,6 +328,9 @@ export function blocksToMarkdown(blocks: NotionBlock[], options: MarkdownOptions
     headings: [],
     components: {},
     footnotes: collectFootnotes(blocks, options.footnotes) ?? undefined,
+    resources:
+      collectResources(blocks, { resources: options.resources, footnotes: options.footnotes }) ??
+      undefined,
   };
   const { footnotes } = context;
   if (!footnotes) return render(blocks, context);

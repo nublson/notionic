@@ -234,9 +234,24 @@ Links into that section render as numbered superscripts, in reading order. The s
 
 Headings match ignoring case. The section runs to the next heading of the same or a higher level, or, under a toggleable heading, is the toggle's content. A section nothing links to renders as ordinary content. Notes nothing links to are listed after the numbered ones. Replace the list through `components={{ footnotes: MyFootnotes }}`. Pass the same option to `collectHeadings` and `blocksToMarkdown`, which writes GFM footnotes.
 
+### Resources
+
+To list the sources of a page, or any useful links, add a heading named "Resources" at the end of the page, and under it one bulleted or numbered item per link: `[font-smooth](https://developer.mozilla.org/…) - MDN on font smoothing`. Each item that starts with a link renders as one row: the site's favicon, the linked text, and the rest of the item muted, on one line. The separator you type (`-`, `–`, `—`, `:` or `|`) is replaced by notionic's own. The heading stays a heading, in the table of contents.
+
+`fetchBlocks` fetches the page behind each of those links, as for bookmarks, for its favicon and for a description to show when you wrote none. Links elsewhere on the page are never fetched, and `bookmarkPreviews: false` turns these fetches off too. With `linkFavicons`, rows use the favicons it fetched.
+
+```tsx
+const resources = { headings: ["Resources", "Recursos"] }; // default ["Resources"]; [] turns resources off
+const blocks = await fetchBlocks(notion, "your-page-id", { resources });
+
+<NotionRenderer blocks={blocks} resources={resources} />;
+```
+
+Pass `resources` only to rename the heading, and pass it to `fetchBlocks`, `NotionRenderer` and `blocksToMarkdown` alike. Headings match ignoring case, and the section runs as for footnotes. Other blocks in the section (an intro paragraph, an item that doesn't start with a link) render as they are. If the heading also names the footnotes section, footnotes win. Replace the list through `components={{ resources: MyResources }}`, which gets each run of rows as `items` (`href`, `title`, `description`, and the fetched `preview`).
+
 ## Supported blocks
 
-Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos or a live iframe), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`.
+Paragraph (with line breaks), headings 1–4 (including toggleable headings), bulleted, numbered and to-do lists, quote, callout, toggle, divider, equation, code, table, columns, tabs, table of contents, synced block, image, video (YouTube or file), audio, file, PDF, bookmark (a card with the page's title, description and image, from `fetchBlocks`), embed and link preview (cards like bookmarks, or for an embed one of your demos or a live iframe), and child page and link to page (with their icons and titles, from `fetchBlocks`). Date mentions render as `<time>`. Footnotes and a Resources list come from sections of the page (see [Footnotes](#footnotes) and [Resources](#resources)).
 
 Headings render at their Notion level: heading 1 as `<h1>`, heading 2 as `<h2>`, and so on. Headings get ids and anchor links.
 
