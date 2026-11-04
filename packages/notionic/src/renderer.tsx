@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { Code } from "./blocks/code";
 import { Footnotes } from "./blocks/footnotes";
+import { Resources } from "./blocks/resources";
 import { Heading } from "./blocks/heading";
 import { Column, ColumnList, SyncedBlock, Toggle } from "./blocks/layout";
 import { BulletedListItem, NumberedListItem, ToDo } from "./blocks/list";
@@ -25,6 +26,7 @@ import { collectFootnotes } from "./footnotes";
 import { defaultPageHref, normalizePageId } from "./links";
 import type { HostedFile } from "./files";
 import { collectHeadings } from "./headings";
+import { collectResources } from "./resources";
 import { NotionLink } from "./rich-text";
 import type {
   BlockComponents,
@@ -34,7 +36,10 @@ import type {
   FootnotesOptions,
   NotionBlock,
   PageFootnotes,
+  PageResources,
   RenderContext,
+  ResourceItem,
+  ResourcesOptions,
 } from "./types";
 import { cx, warnOnce } from "./utils";
 
@@ -77,7 +82,8 @@ type ListKind = "bulleted" | "numbered" | "todo";
 
 type BlockGroup =
   | { kind: "block"; block: NotionBlock }
-  | { kind: ListKind; items: [NotionBlock, ...NotionBlock[]] };
+  | { kind: ListKind; items: [NotionBlock, ...NotionBlock[]] }
+  | { kind: "resources"; items: [ResourceItem, ...ResourceItem[]] };
 
 const LIST_KINDS: Partial<Record<NotionBlock["type"], ListKind>> = {
   bulleted_list_item: "bulleted",
@@ -87,13 +93,22 @@ const LIST_KINDS: Partial<Record<NotionBlock["type"], ListKind>> = {
 
 /**
  * Merges consecutive list items of one kind into a group, since the API
- * returns each item as its own block. Other blocks stand alone.
+ * returns each item as its own block. Other blocks stand alone. With the
+ * page's `resources`, consecutive resource items form a group of their own.
  */
-export function groupBlocks(blocks: NotionBlock[]): BlockGroup[] {
+export function groupBlocks(blocks: NotionBlock[]): Exclude<BlockGroup, { kind: "resources" }>[];
+export function groupBlocks(blocks: NotionBlock[], resources?: PageResources): BlockGroup[];
+export function groupBlocks(blocks: NotionBlock[], resources?: PageResources): BlockGroup[] {
   const groups: BlockGroup[] = [];
   for (const block of blocks) {
-    const kind = LIST_KINDS[block.type];
+    const resource = resources?.items.get(normalizePageId(block.id));
     const last = groups[groups.length - 1];
+    if (resource) {
+      if (last?.kind === "resources") last.items.push(resource);
+      else groups.push({ kind: "resources", items: [resource] });
+      continue;
+    }
+    const kind = LIST_KINDS[block.type];
     if (!kind) groups.push({ kind: "block", block });
     else if (last && last.kind === kind) last.items.push(block);
     else groups.push({ kind, items: [block] });
@@ -162,13 +177,16 @@ export function BlockList({
   context: RenderContext;
 }) {
   if (!blocks?.length) return null;
-  return groupBlocks(blocks).map((group) =>
-    group.kind === "block" ? (
-      <Block key={group.block.id} block={group.block} context={context} />
-    ) : (
-      <List key={group.items[0].id} kind={group.kind} items={group.items} context={context} />
-    ),
-  );
+  const ResourceList = context.components.resources ?? Resources;
+  return groupBlocks(blocks, context.resources).map((group) => {
+    if (group.kind === "block") {
+      return <Block key={group.block.id} block={group.block} context={context} />;
+    }
+    if (group.kind === "resources") {
+      return <ResourceList key={group.items[0].block.id} items={group.items} context={context} />;
+    }
+    return <List key={group.items[0].id} kind={group.kind} items={group.items} context={context} />;
+  });
 }
 
 /** One block, rendered by its component, with its nested blocks as children. */
@@ -270,6 +288,15 @@ export type NotionRendererProps = {
    */
   footnotes?: FootnotesOptions;
   /**
+   * Resources: the list items under a "Resources" heading that start with a
+   * link render as a compact list, one row per link, with the site's favicon,
+   * the title and a muted description. `headings` names the heading (default
+   * ["Resources"]; [] turns resources off). Pass the same option to
+   * `fetchBlocks`, which fetches each link's favicon and description. If the
+   * heading also names the footnotes section, footnotes win.
+   */
+  resources?: ResourcesOptions;
+  /**
    * Show each link to another site with the site's favicon before its text,
    * as `fetchBlocks(…, { linkFavicons: true })` attached them; a site
    * without one gets a muted globe, and a site that wasn't looked up gets
@@ -311,6 +338,7 @@ export function NotionRenderer({
   demos,
   embeds,
   footnotes: footnotesOptions,
+  resources: resourcesOptions,
   linkFavicons = false,
   className,
 }: NotionRendererProps) {
@@ -321,6 +349,9 @@ export function NotionRenderer({
     demos,
     embeds,
     footnotes,
+    resources:
+      collectResources(blocks, { resources: resourcesOptions, footnotes: footnotesOptions }) ??
+      undefined,
     headings: collectHeadings(blocks, { footnotes: footnotesOptions }),
     components: { ...defaultComponents, ...components },
     linkFavicons: linkFavicons ? collectLinkFavicons(blocks) : undefined,

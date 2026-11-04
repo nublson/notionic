@@ -1,15 +1,9 @@
 import { linkedBlockId, normalizePageId } from "./links";
-import type { Footnote, FootnotesOptions, NotionBlock, PageFootnotes, RichText } from "./types";
-import { blockData, plainText, richTexts } from "./utils";
+import type { Footnote, FootnotesOptions, NotionBlock, PageFootnotes } from "./types";
+import { findSection } from "./sections";
+import { richTexts } from "./utils";
 
-const LEVELS = { heading_1: 1, heading_2: 2, heading_3: 3, heading_4: 4 } as const;
 const TEXT_TYPES = new Set(["paragraph", "bulleted_list_item", "numbered_list_item"]);
-
-function heading(block: NotionBlock): { level: 1 | 2 | 3 | 4; text: string } | null {
-  if (!(block.type in LEVELS)) return null;
-  const level = LEVELS[block.type as keyof typeof LEVELS];
-  return { level, text: plainText((blockData(block).rich_text as RichText) ?? []).trim() };
-}
 
 function isEmpty(block: NotionBlock): boolean {
   return (
@@ -31,28 +25,9 @@ export function collectFootnotes(
   blocks: NotionBlock[],
   options: FootnotesOptions = {},
 ): PageFootnotes | null {
-  const names = new Set(
-    (options.headings ?? ["Footnotes"]).map((name) => name.trim().toLowerCase()),
-  );
-  const start = blocks.findIndex((block) => {
-    const text = heading(block)?.text;
-    return text !== undefined && names.has(text.toLowerCase());
-  });
-  const marker = blocks[start];
-  const markerHeading = marker ? heading(marker) : null;
-  if (!marker || !markerHeading) return null;
-
-  // A toggleable heading holds its notes; otherwise they follow it, up to
-  // the next heading of the same or a higher level.
-  const toggleable = Boolean(blockData(marker).is_toggleable);
-  let end = toggleable
-    ? start + 1
-    : blocks.findIndex(
-        (block, i) => i > start && (heading(block)?.level ?? 5) <= markerHeading.level,
-      );
-  if (end === -1) end = blocks.length;
-  const section = blocks.slice(start + 1, end);
-  const noteBlocks = toggleable ? (marker.children ?? []) : section;
+  const found = findSection(blocks, options.headings ?? ["Footnotes"]);
+  if (!found) return null;
+  const { marker, heading: markerHeading, start, end, blocks: section, items: noteBlocks } = found;
 
   const notes = new Map<string, Footnote>();
   for (const block of noteBlocks) {
